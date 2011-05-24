@@ -36,7 +36,7 @@ import org.slf4j.Logger;
  */
 public class JGroupsEnvironment {
 	
-	private static final Logger log = org.hibernate.search.util.LoggerFactory.make();
+	private static final Logger log = org.hibernate.search.util.logging.LoggerFactory.make();
 	
 	// some system properties needed for JGroups
 	static {

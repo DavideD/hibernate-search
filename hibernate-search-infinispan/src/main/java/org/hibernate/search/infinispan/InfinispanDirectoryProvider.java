@@ -25,15 +25,14 @@ package org.hibernate.search.infinispan;
 
 import java.util.Properties;
 
+import org.hibernate.search.backend.configuration.ConfigurationParseHelper;
+import org.hibernate.search.spi.BuildContext;
+import org.hibernate.search.store.DirectoryProviderHelper;
+import org.hibernate.search.util.logging.LoggerFactory;
 import org.infinispan.Cache;
 import org.infinispan.lucene.InfinispanDirectory;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.slf4j.Logger;
-
-import org.hibernate.search.backend.configuration.ConfigurationParseHelper;
-import org.hibernate.search.spi.BuildContext;
-import org.hibernate.search.store.DirectoryProviderHelper;
-import org.hibernate.search.util.LoggerFactory;
 
 /**
  * A DirectoryProvider using Infinispan to store the Index. This depends on the
