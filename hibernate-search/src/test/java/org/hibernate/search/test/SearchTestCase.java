@@ -34,8 +34,6 @@ import org.apache.lucene.analysis.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.Version;
-import org.slf4j.Logger;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Interceptor;
 import org.hibernate.Session;
@@ -51,7 +49,9 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.engine.SearchFactoryImplementor;
 import org.hibernate.search.event.FullTextIndexEventListener;
 import org.hibernate.search.test.util.JGroupsEnvironment;
+import org.hibernate.search.util.logging.LoggerFactory;
 import org.hibernate.testing.junit.functional.annotations.HibernateTestCase;
+import org.slf4j.Logger;
 
 /**
  * Base class for Hibernate Search unit tests.
@@ -61,7 +61,7 @@ import org.hibernate.testing.junit.functional.annotations.HibernateTestCase;
  */
 public abstract class SearchTestCase extends HibernateTestCase {
 
-	private static final Logger log = org.hibernate.search.util.LoggerFactory.make();
+	private static final Logger log = LoggerFactory.make();
 
 	public static final Analyzer standardAnalyzer = new StandardAnalyzer( getTargetLuceneVersion() );
 	public static final Analyzer stopAnalyzer = new StopAnalyzer( getTargetLuceneVersion() );

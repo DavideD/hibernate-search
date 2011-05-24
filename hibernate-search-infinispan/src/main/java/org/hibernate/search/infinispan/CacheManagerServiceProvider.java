@@ -25,20 +25,20 @@ package org.hibernate.search.infinispan;
 
 import java.io.IOException;
 import java.util.Properties;
+
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import org.infinispan.manager.DefaultCacheManager;
-import org.infinispan.manager.EmbeddedCacheManager;
-import org.slf4j.Logger;
-
 import org.hibernate.search.SearchException;
 import org.hibernate.search.spi.ServiceProvider;
 import org.hibernate.search.util.JGroupsHelper;
-import org.hibernate.search.util.LoggerFactory;
+import org.hibernate.search.util.logging.LoggerFactory;
 import org.hibernate.util.NamingHelper;
 import org.hibernate.util.PropertiesHelper;
+import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
+import org.slf4j.Logger;
 
 /**
  * Provides access to Infinispan's CacheManager; one CacheManager is needed for all caches,
