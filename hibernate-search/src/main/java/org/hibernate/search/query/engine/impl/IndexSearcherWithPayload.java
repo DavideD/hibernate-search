@@ -24,7 +24,7 @@ import java.util.Set;
 
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.search.IndexSearcher;
-import org.slf4j.Logger;
+import org.hibernate.search.util.logging.Log;
 
 import org.hibernate.search.SearchException;
 import org.hibernate.search.engine.SearchFactoryImplementor;
@@ -37,7 +37,7 @@ import static org.hibernate.search.reader.ReaderProviderHelper.getIndexReaders;
 * @author Emmanuel Bernard
 */
 public class IndexSearcherWithPayload {
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 	private final IndexSearcher searcher;
 	private boolean fieldSortDoTrackScores;
 	private boolean fieldSortDoMaxScore;

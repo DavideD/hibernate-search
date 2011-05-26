@@ -25,7 +25,7 @@ package org.hibernate.search.test.util;
 
 import java.util.Properties;
 
-import org.slf4j.Logger;
+import org.hibernate.search.test.util.logging.Log;
 
 /**
  * JGroups tests require some system properties to be set; while this can be done via Maven
@@ -36,7 +36,7 @@ import org.slf4j.Logger;
  */
 public class JGroupsEnvironment {
 	
-	private static final Logger log = org.hibernate.search.util.logging.LoggerFactory.make();
+	private static final Log log = org.hibernate.search.util.logging.LoggerFactory.make(Log.class);
 	
 	// some system properties needed for JGroups
 	static {
@@ -48,7 +48,7 @@ public class JGroupsEnvironment {
 		// to the jvm launching maven and setting the value to an interface where you know multicast works
 		String ip4Stack = "java.net.preferIPv4Stack";
 		if ( properties.containsKey( ip4Stack ) ) {
-			log.debug( "Found explicit value for '" + ip4Stack + "' Using value: " + properties.get( ip4Stack ) );
+			log.debugf( "Found explicit value for '%s' Using value: %s", ip4Stack, properties.get( ip4Stack ) );
 		}
 		else {
 			log.debug( "'" + ip4Stack + "' property not set. Setting it explicitly to 'true'" );
@@ -60,10 +60,10 @@ public class JGroupsEnvironment {
 		// try setting this to 'false', although typically that won't be helpful.
 		String bindAddress = "jgroups.bind_addr";
 		if ( properties.containsKey( bindAddress ) ) {
-			log.debug( "Found explicit value for '" + bindAddress + "' Using value: " + properties.get( bindAddress ) );
+			log.debugf( "Found explicit value for '%s' Using value: %s", bindAddress, properties.get( bindAddress ) );
 		}
 		else {
-			log.debug( "'" + bindAddress + "' property not set. Setting it explicitly to '127.0.0.1'" );
+			log.debugf( "'%s' property not set. Setting it explicitly to '127.0.0.1'", bindAddress );
 			System.setProperty( "jgroups.bind_addr", "127.0.0.1" );
 		}
 	}

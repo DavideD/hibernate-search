@@ -44,15 +44,15 @@ import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.Search;
 import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.util.FileHelper;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
-import org.slf4j.Logger;
 
 /**
  * @author Emmanuel Bernard
  */
 public abstract class ReaderPerfTestCase extends SearchTestCase {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	protected void setUp() throws Exception {
 		File sub = getBaseIndexDir();

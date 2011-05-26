@@ -31,7 +31,7 @@ import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.ObjectMessage;
 
-import org.slf4j.Logger;
+import org.hibernate.search.util.logging.Log;
 
 import org.hibernate.Session;
 import org.hibernate.search.Search;
@@ -47,7 +47,7 @@ import org.hibernate.search.util.logging.LoggerFactory;
  * @author Emmanuel Bernard
  */
 public abstract class AbstractJMSHibernateSearchController implements MessageListener {
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	/**
 	 * Return the current or give a new session
@@ -86,7 +86,7 @@ public abstract class AbstractJMSHibernateSearchController implements MessageLis
 	 */
 	public void onMessage(Message message) {
 		if ( !( message instanceof ObjectMessage ) ) {
-			log.error( "Incorrect message type: {}", message.getClass() );
+			log.incorrectMessageType( message.getClass() );
 			return;
 		}
 		ObjectMessage objectMessage = (ObjectMessage) message;

@@ -49,6 +49,7 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.engine.SearchFactoryImplementor;
 import org.hibernate.search.event.FullTextIndexEventListener;
 import org.hibernate.search.test.util.JGroupsEnvironment;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
 import org.hibernate.testing.junit.functional.annotations.HibernateTestCase;
 import org.slf4j.Logger;
@@ -61,7 +62,7 @@ import org.slf4j.Logger;
  */
 public abstract class SearchTestCase extends HibernateTestCase {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	public static final Analyzer standardAnalyzer = new StandardAnalyzer( getTargetLuceneVersion() );
 	public static final Analyzer stopAnalyzer = new StopAnalyzer( getTargetLuceneVersion() );
@@ -90,7 +91,7 @@ public abstract class SearchTestCase extends HibernateTestCase {
 				.getParentFile(); // target
 
 		indexDir = new File( targetDir, "indextemp" );
-		log.debug( "Using {} as index directory.", indexDir.getAbsolutePath() );
+		log.debugf( "Using %s as index directory.", indexDir.getAbsolutePath() );
 	}
 
 	// some system properties needed for JGroups
@@ -114,7 +115,7 @@ public abstract class SearchTestCase extends HibernateTestCase {
 			}
 			session.close();
 			session = null;
-			log.warn("Closing open session. Make sure to close sessions explicitly in your tests!");
+			log.debug("Closing open session. Make sure to close sessions explicitly in your tests!");
 		}
 		else {
 			session = null;
