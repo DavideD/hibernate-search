@@ -52,16 +52,16 @@ import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.test.configuration.mutablefactory.generated.Generated;
 import org.hibernate.search.test.util.ManualConfiguration;
 import org.hibernate.search.test.util.ManualTransactionContext;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
 import org.junit.Test;
-import org.slf4j.Logger;
 
 /**
  * @author Emmanuel Bernard
  */
 public class MutableFactoryTest {
 
-	public static final Logger log = LoggerFactory.make();
+	public static final Log log = LoggerFactory.make();
 
 	@Test
 	public void testCreateEmptyFactory() throws Exception {

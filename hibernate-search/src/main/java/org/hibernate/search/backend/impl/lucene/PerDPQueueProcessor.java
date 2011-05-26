@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.store.LockObtainFailedException;
-import org.slf4j.Logger;
+import org.hibernate.search.util.logging.Log;
 
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.Workspace;
@@ -53,7 +53,7 @@ import org.hibernate.search.util.logging.LoggerFactory;
  */
 class PerDPQueueProcessor implements Runnable {
 	
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 	
 	private final Workspace workspace;
 	private final LuceneWorkVisitor worker;

@@ -38,8 +38,6 @@ import java.util.TreeSet;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.search.Similarity;
-import org.slf4j.Logger;
-
 import org.hibernate.annotations.common.AssertionFailure;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.annotations.common.reflection.XAnnotatedElement;
@@ -65,16 +63,17 @@ import org.hibernate.search.annotations.NumericFields;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.annotations.TermVector;
 import org.hibernate.search.backend.LuceneWork;
-import org.hibernate.search.bridge.builtin.impl.NullEncodingTwoWayFieldBridge;
-import org.hibernate.search.bridge.impl.BridgeFactory;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
+import org.hibernate.search.bridge.builtin.impl.NullEncodingTwoWayFieldBridge;
+import org.hibernate.search.bridge.impl.BridgeFactory;
 import org.hibernate.search.impl.ConfigContext;
 import org.hibernate.search.util.ClassLoaderHelper;
 import org.hibernate.search.util.PassThroughAnalyzer;
 import org.hibernate.search.util.ReflectionHelper;
 import org.hibernate.search.util.ScopedAnalyzer;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
 
 /**
@@ -83,7 +82,7 @@ import org.hibernate.search.util.logging.LoggerFactory;
  * @author Hardy Ferentschik
  */
 public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	private final XClass beanXClass;
 	protected final String beanXClassName;
@@ -551,10 +550,7 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 				similarity = (Similarity) similarityClass.newInstance();
 			}
 			catch ( Exception e ) {
-				log.error(
-						"Exception attempting to instantiate Similarity '{}' set for {}",
-						similarityClass.getName(), beanXClass.getName()
-				);
+				log.similarityInstantiationException(similarityClass.getName(), beanXClass.getName());
 			}
 		}
 	}
@@ -652,7 +648,7 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 			}
 			else if ( log.isTraceEnabled() ) {
 				String localPrefix = buildEmbeddedPrefix( prefix, embeddedAnn, member );
-				log.trace( "depth reached, ignoring {}", localPrefix );
+				log.tracef( "depth reached, ignoring %s", localPrefix );
 			}
 
 			level--;
@@ -971,11 +967,11 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 			return false;
 		}
 		if ( metadata.classBridges.size() > 0 ) {
-			log.trace( "State inspection optimization disabled as ClassBridges are enabled on entity {}", this.beanXClassName );
+			log.tracef( "State inspection optimization disabled as ClassBridges are enabled on entity %s", this.beanXClassName );
 			return false; // can't know what a classBridge is going to look at -> reindex //TODO nice new feature to have?
 		}
 		if ( !( metadata.classBoostStrategy instanceof DefaultBoostStrategy ) ) {
-			log.trace( "State inspection optimization disabled as DynamicBoost is enabled on entity {}", this.beanXClassName );
+			log.tracef( "State inspection optimization disabled as DynamicBoost is enabled on entity %s", this.beanXClassName );
 			return false; // as with classbridge: might be affected by any field //TODO nice new feature to have?
 		}
 		return true;
