@@ -40,6 +40,7 @@ import org.hibernate.search.Search;
 import org.hibernate.search.SearchException;
 import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.util.FileHelper;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
 
 /**
@@ -50,7 +51,7 @@ import org.hibernate.search.util.logging.LoggerFactory;
  */
 public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	static File root;
 
@@ -60,7 +61,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 			buildDir = ".";
 		}
 		root = new File( buildDir, "lucenedirs" );
-		log.info( "Using {} as test directory.", root.getAbsolutePath() );
+		log.debugf( "Using %s as test directory.", root.getAbsolutePath() );
 	}
 
 	/**
@@ -114,7 +115,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		Thread.sleep( waitPeriodMilli );
 
 		// assert that the master hass indexed the snowstorm
-		log.info( "Searching master" );
+		log.debug( "Searching master" );
 		fullTextSession = Search.getFullTextSession( getMasterSession() );
 		tx = fullTextSession.beginTransaction();
 		result = fullTextSession.createFullTextQuery( parser.parse( "location:dallas" ) ).list();
@@ -123,7 +124,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		fullTextSession.close();
 
 		// assert that index got copied to the salve as well
-		log.info( "Searching slave" );
+		log.debug( "Searching slave" );
 		fullTextSession = Search.getFullTextSession( getSlaveSession() );
 		tx = fullTextSession.beginTransaction();
 		result = fullTextSession.createFullTextQuery( parser.parse( "location:dallas" ) ).list();
@@ -144,7 +145,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		Thread.sleep( waitPeriodMilli ); //wait a bit more than 2 refresh (one master / one slave)
 
 		// assert that the new snowstorm made it into the slave
-		log.info( "Searching slave" );
+		log.debug( "Searching slave" );
 		fullTextSession = Search.getFullTextSession( getSlaveSession() );
 		tx = fullTextSession.beginTransaction();
 		result = fullTextSession.createFullTextQuery( parser.parse( "location:chennai" ) ).list();
@@ -164,7 +165,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		Thread.sleep( waitPeriodMilli ); //wait a bit more than 2 refresh (one master / one slave)
 
 		// once more - assert that the new snowstorm made it into the slave
-		log.info( "Searching slave" );
+		log.debug( "Searching slave" );
 		fullTextSession = Search.getFullTextSession( getSlaveSession() );
 		tx = fullTextSession.beginTransaction();
 		result = fullTextSession.createFullTextQuery( parser.parse( "location:melbourne" ) ).list();
@@ -222,7 +223,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 	}
 
 	static void cleanupDirectories() {
-		log.info( "Deleting test directory {} ", root.getAbsolutePath() );
+		log.debugf( "Deleting test directory %s ", root.getAbsolutePath() );
 		FileHelper.delete( root );
 	}
 

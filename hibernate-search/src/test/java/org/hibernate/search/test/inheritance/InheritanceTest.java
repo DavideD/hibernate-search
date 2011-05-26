@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.hibernate.Transaction;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
 import org.hibernate.search.test.SearchTestCase;
 
@@ -44,7 +45,7 @@ import org.hibernate.search.test.SearchTestCase;
  */
 public class InheritanceTest extends SearchTestCase {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	protected void setUp() throws Exception {
 		super.setUp();

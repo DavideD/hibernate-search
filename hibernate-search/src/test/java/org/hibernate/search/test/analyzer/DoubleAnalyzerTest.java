@@ -33,6 +33,7 @@ import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.test.SearchTestCase;
+import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
 
 /**
@@ -42,7 +43,7 @@ import org.hibernate.search.util.logging.LoggerFactory;
  */
 public class DoubleAnalyzerTest extends SearchTestCase {
 
-	public static final Logger log = LoggerFactory.make();
+	public static final Log log = LoggerFactory.make();
 
 	protected Class<?>[] getAnnotatedClasses() {
 		return new Class[] { MyEntity.class, AlarmEntity.class };
