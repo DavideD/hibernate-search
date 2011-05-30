@@ -129,7 +129,7 @@ public interface Log extends BasicLogger
    void jGroupsClosingChannelError(@Cause Exception toLog);
 
    @LogMessage(level = INFO)
-   @Message(value = "Received new cluster view: {}", id = 15)
+   @Message(value = "Received new cluster view: %s", id = 15)
    void jGroupsReceivedNewClusterView(Object view);
 
    @LogMessage(level = ERROR)
