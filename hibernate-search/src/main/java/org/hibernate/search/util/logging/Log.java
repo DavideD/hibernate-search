@@ -35,8 +35,6 @@ import org.jboss.logging.Cause;
 import org.jboss.logging.LogMessage;
 import org.jboss.logging.Message;
 import org.jboss.logging.MessageLogger;
-import org.jgroups.Address;
-import org.jgroups.View;
 
 /**
  * Hibernate Search's log abstraction layer on top of JBoss Logging.
@@ -96,7 +94,7 @@ public interface Log extends BasicLogger
 
    @LogMessage(level = INFO)
    @Message(value = "Connected to cluster [ %s ]. The node address is $s", id = 6) 
-   void jGroupsConnectedToCluster(String clusterName, Address address);
+   void jGroupsConnectedToCluster(String clusterName, Object address);
    
    @LogMessage(level = WARN)
    @Message(value = "FLUSH is not present in your JGroups stack!  FLUSH is needed to ensure messages are not dropped while new nodes join the cluster.  Will proceed, but inconsistencies may arise!", id = 7)
@@ -132,11 +130,11 @@ public interface Log extends BasicLogger
 
    @LogMessage(level = INFO)
    @Message(value = "Received new cluster view: {}", id = 15)
-   void jGroupsReceivedNewClusterView(View view);
+   void jGroupsReceivedNewClusterView(Object view);
 
    @LogMessage(level = ERROR)
    @Message(value = "Incorrect message type: %s", id = 16) 
-   void incorrectMessageType(Class<? extends javax.jms.Message> class1);
+   void incorrectMessageType(Class<?> class1);
 
    @LogMessage(level = ERROR)
    @Message(value = "Work discarded, thread was interrupted while waiting for space to schedule: %s", id = 17) 
