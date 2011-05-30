@@ -56,10 +56,12 @@ import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.test.util.ManualTransactionContext;
 import org.hibernate.search.util.logging.Log;
 import org.hibernate.search.util.logging.LoggerFactory;
+import org.junit.Ignore;
 
 /**
  * @author Emmanuel Bernard
  */
+@Ignore
 public class ProgrammaticMappingTest extends SearchTestCase {
 	
 	private static final Log log = LoggerFactory.make();
