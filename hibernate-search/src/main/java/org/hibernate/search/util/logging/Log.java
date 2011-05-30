@@ -83,7 +83,7 @@ public interface Log extends BasicLogger
    @LogMessage(level = WARN)
    @Message(value = "update DirectoryProviders \"blackhole\" backend. Index changes will be prepared but discarded!", id = 3)
    void updatedDirectoryProviders();
-   
+
    @LogMessage(level = ERROR)
    @Message(value = "Exception attempting to instantiate Similarity '%s' set for %s", id = 4)
    void similarityInstantiationException(String similarityName, String beanXClassName);
@@ -93,9 +93,9 @@ public interface Log extends BasicLogger
    void jGroupsStartingChannel();
 
    @LogMessage(level = INFO)
-   @Message(value = "Connected to cluster [ %s ]. The node address is $s", id = 6) 
+   @Message(value = "Connected to cluster [ %s ]. The node address is $s", id = 6)
    void jGroupsConnectedToCluster(String clusterName, Object address);
-   
+
    @LogMessage(level = WARN)
    @Message(value = "FLUSH is not present in your JGroups stack!  FLUSH is needed to ensure messages are not dropped while new nodes join the cluster.  Will proceed, but inconsistencies may arise!", id = 7)
    void jGroupsFlushNotPresentInStack();
@@ -109,7 +109,7 @@ public interface Log extends BasicLogger
    void jGroupsChannelCreationUsingXmlError(String configuration);
 
    @LogMessage(level = ERROR)
-   @Message(value = "Error while trying to create a channel using config string: %s", id = 10) 
+   @Message(value = "Error while trying to create a channel using config string: %s", id = 10)
    void jGroupsChannelCreationFromStringError(String configuration);
 
    @LogMessage(level = INFO)
@@ -119,9 +119,9 @@ public interface Log extends BasicLogger
    @LogMessage(level = WARN)
    @Message(value = "Default JGroups configuration file was not found. Attempt to start JGroups channel with default configuration!", id = 12)
    void jGroupsDefaultConfigurationFileNotFound();
-   
+
    @LogMessage(level = INFO)
-   @Message(value = "Disconnecting and closing JGroups Channel", id = 13 )
+   @Message(value = "Disconnecting and closing JGroups Channel", id = 13)
    void jGroupsDisconnectingAndClosingChannel();
 
    @LogMessage(level = ERROR)
@@ -133,15 +133,15 @@ public interface Log extends BasicLogger
    void jGroupsReceivedNewClusterView(Object view);
 
    @LogMessage(level = ERROR)
-   @Message(value = "Incorrect message type: %s", id = 16) 
+   @Message(value = "Incorrect message type: %s", id = 16)
    void incorrectMessageType(Class<?> class1);
 
    @LogMessage(level = ERROR)
-   @Message(value = "Work discarded, thread was interrupted while waiting for space to schedule: %s", id = 17) 
+   @Message(value = "Work discarded, thread was interrupted while waiting for space to schedule: %s", id = 17)
    void interruptedWokError(Runnable r);
 
    @LogMessage(level = INFO)
-   @Message(value = "Skipping directory synchronization, previous work still in progress: %s", id = 18)  
+   @Message(value = "Skipping directory synchronization, previous work still in progress: %s", id = 18)
    void skippingDirectorySynchronization(String indexName);
 
    @LogMessage(level = WARN)
@@ -149,7 +149,7 @@ public interface Log extends BasicLogger
    void unableToRemovePreviousMarket(String indexName);
 
    @LogMessage(level = WARN)
-   @Message(value = "Unable to create current marker in source of %s", id = 20) 
+   @Message(value = "Unable to create current marker in source of %s", id = 20)
    void unableToCreateCurrentMarker(String indexName, @Cause IOException e);
 
    @LogMessage(level = ERROR)
@@ -169,13 +169,13 @@ public interface Log extends BasicLogger
    void idCannotBeExtracted(String affectedOwnerEntityName);
 
    @LogMessage(level = WARN)
-   @Message(value = "Service provider has been used but not released: %s", id = 25)   
+   @Message(value = "Service provider has been used but not released: %s", id = 25)
    void serviceProviderNotReleased(Class<?> class1);
 
    @LogMessage(level = ERROR)
    @Message(value = "Fail to properly stop service: %s", id = 26)
    void stopServiceFailed(Class<?> class1, @Cause Exception e);
-   
+
    @LogMessage(level = INFO)
    @Message(value = "Going to reindex %d entities", id = 27)
    void indexingEntities(long count);
@@ -187,21 +187,21 @@ public interface Log extends BasicLogger
    @LogMessage(level = INFO)
    @Message(value = "Indexing completed. Reindexed %d entities. Unregistering MBean from server", id = 29)
    void indexingCompletedAndMBeanUnregistered(long l);
-   
+
    @LogMessage(level = INFO)
    @Message(value = "%d documents indexed in %d ms", id = 30)
    void indexingDocumentsCompleted(long doneCount, long elapsedMs);
 
    @LogMessage(level = INFO)
-   @Message(value = "Indexing speed: %f documents/second; progress: %f%", id = 31) 
+   @Message(value = "Indexing speed: %f documents/second; progress: %f%", id = 31)
    void indexingSpeed(float estimateSpeed, float estimatePercentileComplete);
 
    @LogMessage(level = ERROR)
-   @Message(value = "Could not delete %s", id = 32) 
+   @Message(value = "Could not delete %s", id = 32)
    void notDeleted(File file);
 
    @LogMessage(level = WARN)
-   @Message(value = "Could not change timestamp for %s. Index synchronization may be slow.", id = 33)  
+   @Message(value = "Could not change timestamp for %s. Index synchronization may be slow.", id = 33)
    void notChangeTimestamp(File destFile);
 
    @LogMessage(level = INFO)
