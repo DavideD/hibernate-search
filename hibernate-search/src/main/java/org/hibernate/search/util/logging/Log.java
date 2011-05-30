@@ -93,7 +93,7 @@ public interface Log extends BasicLogger
    void jGroupsStartingChannel();
 
    @LogMessage(level = INFO)
-   @Message(value = "Connected to cluster [ %s ]. The node address is $s", id = 6)
+   @Message(value = "Connected to cluster [ %s ]. The node address is %s", id = 6)
    void jGroupsConnectedToCluster(String clusterName, Object address);
 
    @LogMessage(level = WARN)
