@@ -137,6 +137,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <bytemanVersion>1.5.1</bytemanVersion>
         <jbossLoggingVersion>3.0.0.Beta5</jbossLoggingVersion>
+        <jbossLoggingProcessorVersion>1.0.0.Beta5</jbossLoggingProcessorVersion>
     </properties>
 
     <dependencies>
@@ -256,6 +257,11 @@
                 <groupId>org.jboss.logging</groupId>
                 <artifactId>jboss-logging</artifactId>
                 <version>${jbossLoggingVersion}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging-processor</artifactId>
+                <version>${jbossLoggingProcessorVersion}</version>
             </dependency>
              <dependency>
                 <groupId>org.jboss.byteman</groupId>
