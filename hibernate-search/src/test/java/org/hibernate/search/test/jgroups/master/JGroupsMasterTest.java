@@ -34,7 +34,6 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
-import org.junit.Ignore;
 
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -61,7 +60,6 @@ import org.hibernate.search.test.jms.master.TShirt;
  *
  * @author Lukasz Moren
  */
-@Ignore
 public class JGroupsMasterTest extends SearchTestCase {
 
 	/**

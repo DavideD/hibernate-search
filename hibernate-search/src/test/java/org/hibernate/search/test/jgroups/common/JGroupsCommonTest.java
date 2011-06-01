@@ -37,7 +37,6 @@ import org.hibernate.search.Search;
 import org.hibernate.search.backend.impl.jgroups.JGroupsBackendQueueProcessorFactory;
 import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.test.jgroups.master.TShirt;
-import org.junit.Ignore;
 
 /**
  * In case of running test outside Hibernate Search Maven configuration set following VM configuration:
@@ -48,7 +47,6 @@ import org.junit.Ignore;
  *
  * @author Lukasz Moren
  */
-@Ignore
 public class JGroupsCommonTest extends MultipleSessionsSearchTestCase {
 
 	private static final String DEFAULT_JGROUPS_CONFIGURATION_FILE = "testing-flush-udp.xml";
