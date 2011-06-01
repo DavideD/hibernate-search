@@ -35,14 +35,15 @@ import org.hibernate.Transaction;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.test.SearchTestCase;
-import org.hibernate.search.util.LoggerFactory;
+import org.hibernate.search.util.logging.Log;
+import org.hibernate.search.util.logging.LoggerFactory;
 
 /**
  * @author John Griffin
  */
 public class  FieldBoostTest extends SearchTestCase {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	public void testBoostedGetDesc() throws Exception {
 		FullTextSession fullTextSession = Search.getFullTextSession( openSession() );

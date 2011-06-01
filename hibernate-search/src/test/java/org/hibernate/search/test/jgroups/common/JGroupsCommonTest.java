@@ -28,7 +28,6 @@ import java.util.UUID;
 
 import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
@@ -38,6 +37,7 @@ import org.hibernate.search.Search;
 import org.hibernate.search.backend.impl.jgroups.JGroupsBackendQueueProcessorFactory;
 import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.test.jgroups.master.TShirt;
+import org.junit.Ignore;
 
 /**
  * In case of running test outside Hibernate Search Maven configuration set following VM configuration:
@@ -48,6 +48,7 @@ import org.hibernate.search.test.jgroups.master.TShirt;
  *
  * @author Lukasz Moren
  */
+@Ignore
 public class JGroupsCommonTest extends MultipleSessionsSearchTestCase {
 
 	private static final String DEFAULT_JGROUPS_CONFIGURATION_FILE = "testing-flush-udp.xml";

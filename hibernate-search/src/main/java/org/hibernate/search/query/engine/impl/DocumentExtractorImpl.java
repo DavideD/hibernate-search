@@ -38,8 +38,8 @@ import org.hibernate.search.engine.SearchFactoryImplementor;
 import org.hibernate.search.query.engine.spi.DocumentExtractor;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.collector.FieldCacheCollector;
-import org.hibernate.search.util.LoggerFactory;
-import org.slf4j.Logger;
+import org.hibernate.search.util.logging.LoggerFactory;
+import org.hibernate.search.util.logging.Log;
 
 /**
  * DocumentExtractor is a traverser over the full-text results (EntityInfo)
@@ -60,7 +60,7 @@ import org.slf4j.Logger;
  */
 public class DocumentExtractorImpl implements DocumentExtractor {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	private final SearchFactoryImplementor searchFactoryImplementor;
 	private final String[] projection;

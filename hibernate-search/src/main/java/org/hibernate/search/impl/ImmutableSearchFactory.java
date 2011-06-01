@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.Similarity;
-import org.slf4j.Logger;
+import org.hibernate.search.util.logging.Log;
 
 import org.hibernate.annotations.common.AssertionFailure;
 import org.hibernate.annotations.common.util.StringHelper;
@@ -78,7 +78,7 @@ import org.hibernate.search.stat.StatisticsImplementor;
 import org.hibernate.search.store.DirectoryProvider;
 import org.hibernate.search.store.optimization.OptimizerStrategy;
 import org.hibernate.search.util.ClassLoaderHelper;
-import org.hibernate.search.util.LoggerFactory;
+import org.hibernate.search.util.logging.LoggerFactory;
 
 /**
  * This implementation is never directly exposed to the user, it is always wrapped into a {@link org.hibernate.search.impl.MutableSearchFactory}
@@ -91,7 +91,7 @@ public class ImmutableSearchFactory implements SearchFactoryImplementorWithShare
 		Version.touch();
 	}
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	private final Map<Class<?>, DocumentBuilderIndexedEntity<?>> documentBuildersIndexedEntities;
 	private final Map<Class<?>, DocumentBuilderContainedEntity<?>> documentBuildersContainedEntities;

@@ -27,15 +27,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jgroups.ChannelClosedException;
-import org.jgroups.ChannelNotConnectedException;
-import org.jgroups.Message;
-import org.slf4j.Logger;
-
 import org.hibernate.search.SearchException;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.OptimizeLuceneWork;
-import org.hibernate.search.util.LoggerFactory;
+import org.hibernate.search.util.logging.Log;
+import org.hibernate.search.util.logging.LoggerFactory;
+import org.jgroups.ChannelClosedException;
+import org.jgroups.ChannelNotConnectedException;
+import org.jgroups.Message;
 
 /**
  * Responsible for sending Lucene works from slave nodes to master node
@@ -44,7 +43,7 @@ import org.hibernate.search.util.LoggerFactory;
  */
 public class JGroupsBackendQueueProcessor implements Runnable {
 
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 
 	private final JGroupsBackendQueueProcessorFactory factory;
 	private final List<LuceneWork> queue;
@@ -53,13 +52,13 @@ public class JGroupsBackendQueueProcessor implements Runnable {
 		this.factory = factory;
 		this.queue = queue;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	public void run() {
 		boolean trace = log.isTraceEnabled();
 		List<LuceneWork> filteredQueue = new ArrayList<LuceneWork>( queue );
 		if ( trace ) {
-			log.trace( "Preparing {} Lucene works to be sent to master node.", filteredQueue.size() );
+			log.tracef( "Preparing %d Lucene works to be sent to master node.", filteredQueue.size() );
 		}
 
 		for ( LuceneWork work : queue ) {
@@ -69,8 +68,8 @@ public class JGroupsBackendQueueProcessor implements Runnable {
 			}
 		}
 		if ( trace ) {
-			log.trace(
-				"Filtering: optimized Lucene works are not going to be sent to master node. There is {} Lucene works after filtering.",
+			log.tracef(
+				"Filtering: optimized Lucene works are not going to be sent to master node. There is %d Lucene works after filtering.",
 				filteredQueue.size()
 			);
 		}
@@ -88,7 +87,7 @@ public class JGroupsBackendQueueProcessor implements Runnable {
 			Message message = new Message( null, factory.getAddress(), ( Serializable ) filteredQueue );
 			factory.getChannel().send( message );
 			if ( trace ) {
-				log.trace( "Lucene works have been sent from slave {} to master node.", factory.getAddress() );
+				log.tracef( "Lucene works have been sent from slave {} to master node.", factory.getAddress() );
 			}
 		}
 		catch ( ChannelNotConnectedException e ) {

@@ -136,6 +136,7 @@
         <hibernateCommonsAnnotationVersion>3.2.0.Final</hibernateCommonsAnnotationVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <bytemanVersion>1.5.1</bytemanVersion>
+        <jbossLoggingVersion>3.0.0.Beta5</jbossLoggingVersion>
     </properties>
 
     <dependencies>
@@ -252,6 +253,11 @@
                 <version>0.11.4</version>
             </dependency>
             <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging</artifactId>
+                <version>${jbossLoggingVersion}</version>
+            </dependency>
+             <dependency>
                 <groupId>org.jboss.byteman</groupId>
                 <artifactId>byteman</artifactId>
                 <version>${bytemanVersion}</version>

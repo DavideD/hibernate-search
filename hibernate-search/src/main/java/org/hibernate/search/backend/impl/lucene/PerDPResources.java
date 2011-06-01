@@ -30,8 +30,8 @@ import org.hibernate.search.backend.Workspace;
 import org.hibernate.search.backend.impl.lucene.works.LuceneWorkVisitor;
 import org.hibernate.search.exception.ErrorHandler;
 import org.hibernate.search.store.DirectoryProvider;
-import org.hibernate.search.util.LoggerFactory;
-import org.slf4j.Logger;
+import org.hibernate.search.util.logging.LoggerFactory;
+import org.hibernate.search.util.logging.Log;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
  */
 class PerDPResources {
 	
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 	
 	private final ExecutorService executor;
 	private final LuceneWorkVisitor visitor;

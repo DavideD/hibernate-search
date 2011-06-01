@@ -23,6 +23,10 @@
  */
 package org.hibernate.search.test.configuration.mutablefactory;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -34,15 +38,13 @@ import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
-import org.hibernate.search.spi.SearchFactoryBuilder;
-import org.slf4j.Logger;
-
 import org.hibernate.annotations.common.util.ReflectHelper;
 import org.hibernate.search.backend.Work;
 import org.hibernate.search.backend.WorkType;
 import org.hibernate.search.batchindexing.impl.Executors;
 import org.hibernate.search.engine.SearchFactoryImplementor;
 import org.hibernate.search.impl.MutableSearchFactory;
+import org.hibernate.search.spi.SearchFactoryBuilder;
 import org.hibernate.search.spi.SearchFactoryIntegrator;
 import org.hibernate.search.store.DirectoryProvider;
 import org.hibernate.search.store.RAMDirectoryProvider;
@@ -50,17 +52,16 @@ import org.hibernate.search.test.SearchTestCase;
 import org.hibernate.search.test.configuration.mutablefactory.generated.Generated;
 import org.hibernate.search.test.util.ManualConfiguration;
 import org.hibernate.search.test.util.ManualTransactionContext;
-import org.hibernate.search.util.LoggerFactory;
-
+import org.hibernate.search.util.logging.Log;
+import org.hibernate.search.util.logging.LoggerFactory;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * @author Emmanuel Bernard
  */
 public class MutableFactoryTest {
 
-	public static final Logger log = LoggerFactory.make();
+	public static final Log log = LoggerFactory.make();
 
 	@Test
 	public void testCreateEmptyFactory() throws Exception {

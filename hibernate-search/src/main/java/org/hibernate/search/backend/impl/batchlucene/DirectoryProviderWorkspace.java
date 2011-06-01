@@ -27,19 +27,18 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.slf4j.Logger;
-
-import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.SearchException;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.Workspace;
 import org.hibernate.search.backend.impl.lucene.works.LuceneWorkDelegate;
 import org.hibernate.search.backend.impl.lucene.works.LuceneWorkVisitor;
-import org.hibernate.search.batchindexing.impl.Executors;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
+import org.hibernate.search.batchindexing.impl.Executors;
 import org.hibernate.search.exception.ErrorHandler;
+import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.store.DirectoryProvider;
-import org.hibernate.search.util.LoggerFactory;
+import org.hibernate.search.util.logging.Log;
+import org.hibernate.search.util.logging.LoggerFactory;
 
 /**
  * Collects all resources needed to apply changes to one index.
@@ -53,7 +52,7 @@ import org.hibernate.search.util.LoggerFactory;
  */
 class DirectoryProviderWorkspace {
 	
-	private static final Logger log = LoggerFactory.make();
+	private static final Log log = LoggerFactory.make();
 	
 	private final ExecutorService executor;
 	private final LuceneWorkVisitor visitor;
