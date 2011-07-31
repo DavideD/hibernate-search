@@ -45,6 +45,10 @@ import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.bridge.AppliedOnTypeAwareBridge;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.ParameterizedBridge;
+import org.hibernate.search.bridge.builtin.impl.BuiltinArrayBridge;
+import org.hibernate.search.bridge.builtin.impl.BuiltinIterableBridge;
+import org.hibernate.search.bridge.builtin.impl.BuiltinNumericArrayBridge;
+import org.hibernate.search.bridge.builtin.impl.BuiltinNumericIterableBridge;
 import org.hibernate.search.bridge.builtin.impl.String2FieldBridgeAdaptor;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
 import org.hibernate.search.bridge.builtin.impl.TwoWayString2FieldBridgeAdaptor;
@@ -111,6 +115,12 @@ public final class BridgeFactory {
 	public static final FieldBridge CALENDAR_MINUTE = new TwoWayString2FieldBridgeAdaptor( CalendarBridge.CALENDAR_MINUTE );
 	public static final FieldBridge CALENDAR_SECOND = new TwoWayString2FieldBridgeAdaptor( CalendarBridge.CALENDAR_SECOND );
 
+	public static final FieldBridge ITERABLE_BRIDGE = new BuiltinIterableBridge();
+	public static final FieldBridge NUMERIC_ITERABLE_BRIDGE = new BuiltinNumericIterableBridge();
+
+	public static final FieldBridge ARRAY_BRIDGE = new BuiltinArrayBridge();
+	public static final FieldBridge NUMERIC_ARRAY_BRIDGE = new BuiltinNumericArrayBridge();
+	
 	public static final NumericFieldBridge INT_NUMERIC = new IntegerNumericFieldBridge();
 	public static final NumericFieldBridge LONG_NUMERIC = new LongNumericFieldBridge();
 	public static final NumericFieldBridge FLOAT_NUMERIC = new FloatNumericFieldBridge();
@@ -238,6 +248,12 @@ public final class BridgeFactory {
 		}
 		else if ( numericField != null ) {
 			bridge = numericBridges.get( member.getType().getName() );
+			if ( bridge == null && isIterable( reflectionManager, member.getType() ) ) {
+ 				bridge = NUMERIC_ITERABLE_BRIDGE;
+			}
+			if ( bridge == null && isArray( reflectionManager, member.getType() ) ) {
+ 				bridge = NUMERIC_ARRAY_BRIDGE;
+			}
 		}
 		else {
 			//find in built-ins
@@ -250,12 +266,28 @@ public final class BridgeFactory {
 				populateReturnType( reflectionManager.toClass( member.getType() ), EnumBridge.class, enumBridge );
 				bridge = new TwoWayString2FieldBridgeAdaptor( enumBridge );
 			}
+			if ( bridge == null && isIterable( reflectionManager, returnType ) ) {
+				bridge = ITERABLE_BRIDGE;
+			}
+			if ( bridge == null && isArray( reflectionManager, returnType ) ) {
+ 				bridge = ARRAY_BRIDGE;
+			}
 		}
 		//TODO add classname
 		if ( bridge == null ) {
 			throw new SearchException( "Unable to guess FieldBridge for " + member.getName() );
 		}
 		return bridge;
+	}
+
+	private static boolean isIterable(ReflectionManager reflectionManager, XClass type) {
+		Class<?> typeClass = reflectionManager.toClass( type );
+		return Iterable.class.isAssignableFrom( typeClass );
+	}
+
+	private static boolean isArray(ReflectionManager reflectionManager, XClass type) {
+		Class<?> typeClass = reflectionManager.toClass( type );
+		return typeClass.isArray();
 	}
 
 	private static FieldBridge doExtractType(
