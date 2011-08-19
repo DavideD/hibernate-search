@@ -247,7 +247,7 @@ public class IterableBridgeTest extends SearchTestCase {
 				.forEntity( IterableBridgeTestEntity.class ).get();
 		Query query = null;
 		if (value == null) {
-			query = queryBuilder.keyword().onField( fieldName ).ignoreAnalyzer().matching( null ).createQuery();
+			query = queryBuilder.keyword().onField( fieldName ).matchingNull().createQuery();
 		} else {
 			query = queryBuilder.keyword().onField( fieldName ).matching( value ).createQuery();
 		}
@@ -261,7 +261,7 @@ public class IterableBridgeTest extends SearchTestCase {
 		if ( number == null ) {
 			QueryBuilder queryBuilder = fullTextSession.getSearchFactory().buildQueryBuilder()
 					.forEntity( IterableBridgeTestEntity.class ).get();
-			query = queryBuilder.keyword().onField( fieldName ).ignoreAnalyzer().matching( null ).createQuery();
+			query = queryBuilder.keyword().onField( fieldName ).matchingNull().createQuery();
 		} else {
 			query = NumericFieldUtils.createNumericRangeQuery( fieldName, number, number, true, true );
 		}
