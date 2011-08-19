@@ -64,10 +64,12 @@ import org.hibernate.search.annotations.NumericFields;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.annotations.TermVector;
 import org.hibernate.search.backend.LuceneWork;
+import org.hibernate.search.bridge.builtin.impl.NullEncodingFieldBridge;
 import org.hibernate.search.bridge.builtin.impl.NullEncodingTwoWayFieldBridge;
 import org.hibernate.search.bridge.impl.BridgeFactory;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.StringBridge;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
 import org.hibernate.search.engine.BoostStrategy;
 import org.hibernate.search.engine.DocumentBuilder;
@@ -652,6 +654,11 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 					propertiesMetadata.embeddedContainers.add( PropertiesMetadata.Container.OBJECT );
 				}
 
+				final String indexNullAs = embeddedNullToken( context, embeddedAnn );
+				PropertiesMetadata.Container container = propertiesMetadata.embeddedContainers.get( propertiesMetadata.embeddedContainers.size() - 1 );
+				propertiesMetadata.embeddedNullTokens.add( indexNullAs );				
+				propertiesMetadata.embeddedNullFields.add( embeddedNullField( localPrefix, embeddedAnn ) );
+				propertiesMetadata.embeddedNullFieldBridges.add( guessNullEmbeddedBridge( member, container, indexNullAs ) );
 				processedClasses.remove( elementClass ); //pop
 			}
 			else if ( log.isTraceEnabled() ) {
@@ -661,6 +668,29 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 
 			level--;
 			maxLevel = oldMaxLevel; //set back the the old max level
+		}
+	}
+
+	private FieldBridge guessNullEmbeddedBridge(XProperty member, PropertiesMetadata.Container container, final String indexNullAs) {
+		if ( indexNullAs == null )
+			return null;
+
+		if ( PropertiesMetadata.Container.OBJECT == container ) {
+			StringBridge stringBridge = new StringBridge() {
+				@Override
+				public String objectToString(Object object) {
+					return object.toString();
+				}
+			};
+			return new NullEncodingFieldBridge( stringBridge, indexNullAs );
+		}
+		else {
+			NumericField numericField = member.getAnnotation( NumericField.class );
+			FieldBridge fieldBridge = BridgeFactory.guessType( null, numericField, member, reflectionManager );
+			if ( indexNullAs != null && fieldBridge instanceof StringBridge ) {
+				fieldBridge = new NullEncodingFieldBridge( (StringBridge) fieldBridge, indexNullAs );
+			}
+			return fieldBridge;
 		}
 	}
 
@@ -736,6 +766,24 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 			localPrefix += embeddedAnn.prefix();
 		}
 		return localPrefix;
+	}
+
+	private String embeddedNullField(String localPrefix, IndexedEmbedded embeddedAnn) {
+		if ( localPrefix.endsWith( "." ))
+			return localPrefix.substring( 0, localPrefix.length() - 1 );
+
+		return localPrefix;
+	}
+
+	private String embeddedNullToken(ConfigContext context, IndexedEmbedded embeddedAnn) {
+		String indexNullAs = embeddedAnn.indexNullAs();
+		if ( org.hibernate.search.annotations.IndexedEmbedded.DO_NOT_INDEX_NULL.equals( indexNullAs ) ) {
+			return null;
+		}
+		if ( org.hibernate.search.annotations.IndexedEmbedded.DEFAULT_NULL_TOKEN.equals( indexNullAs ) ) {
+			return context.getDefaultNullToken();
+		}
+		return indexNullAs;
 	}
 
 	private float getBoost(XClass element) {
@@ -876,6 +924,9 @@ public abstract class AbstractDocumentBuilder<T> implements DocumentBuilder {
 
 		public final List<Field.TermVector> fieldTermVectors = new ArrayList<Field.TermVector>();
 		public final List<XMember> embeddedGetters = new ArrayList<XMember>();
+		public final List<String> embeddedNullTokens = new ArrayList<String>();
+		public final List<String> embeddedNullFields = new ArrayList<String>();
+		public final List<FieldBridge> embeddedNullFieldBridges = new ArrayList<FieldBridge>();
 		public final List<PropertiesMetadata> embeddedPropertiesMetadata = new ArrayList<PropertiesMetadata>();
 		public final List<Container> embeddedContainers = new ArrayList<Container>();
 		public final List<XMember> containedInGetters = new ArrayList<XMember>();
