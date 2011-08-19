@@ -37,6 +37,11 @@ public interface TermMatchingContext extends FieldCustomization<TermMatchingCont
 	TermTermination matching(Object value);
 
 	/**
+	 * Search for the null representation of the field.
+	 */
+	TermTermination matchingNull();
+
+	/**
 	 * field / property the term query is executed on
 	 */
 	TermMatchingContext andField(String field);

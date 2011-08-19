@@ -66,6 +66,11 @@ public class ConnectedTermMatchingContext implements TermMatchingContext {
 		return new ConnectedMultiFieldsTermQueryBuilder( termContext, value, fieldContexts, queryCustomizer, queryContext);
 	}
 
+	public TermTermination matchingNull() {
+		ignoreAnalyzer();
+		return matching( null );
+	}
+
 	public TermMatchingContext andField(String field) {
 		this.fieldContexts.add( new FieldContext( field ) );
 		this.firstOfContext = fieldContexts.size() - 1;
