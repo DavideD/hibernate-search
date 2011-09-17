@@ -146,7 +146,7 @@ public abstract class AbstractDocumentBuilder<T> {
 
 		Set<XClass> processedClasses = new HashSet<XClass>();
 		processedClasses.add( xClass );
-		initializeClass( xClass, metadata, true, "", processedClasses, context, optimizationBlackList, false );
+		initializeClass( xClass, metadata, true, "", processedClasses, context, optimizationBlackList, false, null );
 
 		this.analyzer.setGlobalAnalyzer( metadata.analyzer );
 
@@ -382,7 +382,7 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private void initializeClass(XClass clazz, PropertiesMetadata propertiesMetadata, boolean isRoot, String prefix,
-								 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizationsArg) {
+								 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizationsArg, Set<String> paths) {
 		List<XClass> hierarchy = new LinkedList<XClass>();
 		XClass next;
 		for ( XClass previousClass = clazz; previousClass != null; previousClass = next ) {
@@ -418,7 +418,8 @@ public abstract class AbstractDocumentBuilder<T> {
 						processedClasses,
 						context,
 						optimizationBlackList,
-						disableOptimizations
+						disableOptimizations,
+						paths
 				);
 			}
 
@@ -433,7 +434,8 @@ public abstract class AbstractDocumentBuilder<T> {
 						processedClasses,
 						context,
 						optimizationBlackList,
-						disableOptimizations
+						disableOptimizations,
+						paths
 				);
 			}
 		}
@@ -484,9 +486,9 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private void initializeMemberLevelAnnotations(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata, boolean isRoot,
-												  String prefix, Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizations) {
-		checkForField( member, propertiesMetadata, prefix, context );
-		checkForFields( member, propertiesMetadata, prefix, context );
+												  String prefix, Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizations, Set<String> paths) {
+		checkForField( member, propertiesMetadata, prefix, context, paths );
+		checkForFields( member, propertiesMetadata, prefix, context, paths );
 		checkForAnalyzerDefs( member, context );
 		checkForAnalyzerDiscriminator( member, propertiesMetadata );
 		checkForIndexedEmbedded(
@@ -497,7 +499,8 @@ public abstract class AbstractDocumentBuilder<T> {
 				processedClasses,
 				context,
 				optimizationBlackList,
-				disableOptimizations
+				disableOptimizations,
+				paths
 		);
 		checkForContainedIn( classHostingMember, member, propertiesMetadata );
 		documentBuilderSpecificChecks( member, propertiesMetadata, isRoot, prefix, context );
@@ -568,20 +571,22 @@ public abstract class AbstractDocumentBuilder<T> {
 		}
 	}
 
-	private void checkForFields(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context) {
+	private void checkForFields(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context, Set<String> paths) {
 		org.hibernate.search.annotations.Fields fieldsAnn =
 				member.getAnnotation( org.hibernate.search.annotations.Fields.class );
 		NumericFields numericAnns = member.getAnnotation( NumericFields.class );
 		if ( fieldsAnn != null ) {
-			for ( org.hibernate.search.annotations.Field fieldAnn : fieldsAnn.value() ) {
-				bindFieldAnnotation(
-						member,
-						propertiesMetadata,
-						prefix,
-						fieldAnn,
-						getNumericExtension( fieldAnn, numericAnns ),
-						context
-				);
+			if (level <= maxLevel || isFieldInPath( member, paths, prefix )) {
+				for ( org.hibernate.search.annotations.Field fieldAnn : fieldsAnn.value() ) {
+					bindFieldAnnotation(
+							member,
+							propertiesMetadata,
+							prefix,
+							fieldAnn,
+							getNumericExtension( fieldAnn, numericAnns ),
+							context
+					);
+				}
 			}
 		}
 	}
@@ -617,17 +622,29 @@ public abstract class AbstractDocumentBuilder<T> {
 		}
 	}
 
-	private void checkForField(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context) {
+	private void checkForField(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context, Set<String> paths) {
 		org.hibernate.search.annotations.Field fieldAnn =
 				member.getAnnotation( org.hibernate.search.annotations.Field.class );
 		NumericField numericFieldAnn = member.getAnnotation( NumericField.class );
 		DocumentId idAnn = member.getAnnotation( DocumentId.class );
 		if ( fieldAnn != null ) {
-			bindFieldAnnotation( member, propertiesMetadata, prefix, fieldAnn, numericFieldAnn, context );
+			if (level <= maxLevel || isFieldInPath( member, paths, prefix )) {
+				bindFieldAnnotation( member, propertiesMetadata, prefix, fieldAnn, numericFieldAnn, context );
+			}
 		}
 		if ( ( fieldAnn == null && idAnn == null ) && numericFieldAnn != null ) {
 			throw new SearchException( "@NumericField without a @Field on property '" + member.getName() + "'" );
 		}
+	}
+
+	private boolean isFieldInPath(XProperty member, Set<String> paths, String prefix) {
+		if ( paths == null )
+			return false;
+
+		if ( paths.contains( prefix + member.getName() ) )
+			return true;
+
+		return false;
 	}
 
 	private void checkForContainedIn(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata) {
@@ -642,14 +659,14 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private void checkForIndexedEmbedded(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata, String prefix,
-										 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizations) {
+										 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizations, Set<String> paths) {
 		IndexedEmbedded embeddedAnn = member.getAnnotation( IndexedEmbedded.class );
 		if ( embeddedAnn != null ) {
 			//collection role in Hibernate is made of the actual hosting class of the member (see HSEARCH-780)
 			this.indexedEmbeddedCollectionRoles
 					.add( StringHelper.qualify( classHostingMember.getName(), member.getName() ) );
 			int oldMaxLevel = maxLevel;
-			int potentialLevel = embeddedAnn.depth() + level;
+			int potentialLevel = depth( embeddedAnn ) + level;
 			if ( potentialLevel < 0 ) {
 				potentialLevel = Integer.MAX_VALUE;
 			}
@@ -673,7 +690,10 @@ public abstract class AbstractDocumentBuilder<T> {
 								+ "#" + buildEmbeddedPrefix( prefix, embeddedAnn, member )
 				);
 			}
-			if ( level <= maxLevel ) {
+
+			String localPrefix = buildEmbeddedPrefix( prefix, embeddedAnn, member );
+			Set<String> updatedPaths = updatePaths( localPrefix, paths, embeddedAnn );
+			if ( level <= maxLevel || isInPath( localPrefix, updatedPaths, embeddedAnn )) {
 				processedClasses.add( elementClass ); //push
 
 				ReflectionHelper.setAccessible( member );
@@ -684,7 +704,6 @@ public abstract class AbstractDocumentBuilder<T> {
 				//property > entity analyzer
 				Analyzer analyzer = getAnalyzer( member, context );
 				metadata.analyzer = analyzer != null ? analyzer : propertiesMetadata.analyzer;
-				String localPrefix = buildEmbeddedPrefix( prefix, embeddedAnn, member );
 
 				if ( disableOptimizations ) {
 					optimizationBlackList.add( elementClass );
@@ -698,7 +717,8 @@ public abstract class AbstractDocumentBuilder<T> {
 						processedClasses,
 						context,
 						optimizationBlackList,
-						disableOptimizations
+						disableOptimizations,
+						updatedPaths
 				);
 				/**
 				 * We will only index the "expected" type but that's OK, HQL cannot do down-casting either
@@ -729,13 +749,46 @@ public abstract class AbstractDocumentBuilder<T> {
 				processedClasses.remove( elementClass ); //pop
 			}
 			else if ( log.isTraceEnabled() ) {
-				String localPrefix = buildEmbeddedPrefix( prefix, embeddedAnn, member );
 				log.tracef( "depth reached, ignoring %s", localPrefix );
 			}
 
 			level--;
 			maxLevel = oldMaxLevel; //set back the the old max level
 		}
+	}
+
+	private int depth(IndexedEmbedded embeddedAnn) {
+		if ( isDepthNotSet( embeddedAnn ) && embeddedAnn.paths().length > 0 )
+			return 0;
+
+		return embeddedAnn.depth();
+	}
+
+	private boolean isDepthNotSet(IndexedEmbedded embeddedAnn) {
+		return Integer.MAX_VALUE == embeddedAnn.depth();
+	}
+
+	private Set<String> updatePaths(String localPrefix, Set<String> paths, IndexedEmbedded embeddedAnn) {
+		if ( paths != null )
+			return paths;
+
+		HashSet<String> newPaths = new HashSet<String>();
+		for ( String path : embeddedAnn.paths() ) {
+			newPaths.add( localPrefix + path );
+		}
+		return newPaths;
+	}
+
+	private boolean isInPath(String localPrefix, Set<String> paths, IndexedEmbedded embeddedAnn) {
+		boolean defaultPrefix = isDefaultPrefix( embeddedAnn );
+		for ( String path : paths ) {
+			String app = path;
+			if ( defaultPrefix )
+				app += ".";
+			if ( app.startsWith( localPrefix ) )
+				return true;
+		}
+		return false;
 	}
 
 	private FieldBridge guessNullEmbeddedBridge(XProperty member, PropertiesMetadata.Container container, final String indexNullAs) {
@@ -822,7 +875,7 @@ public abstract class AbstractDocumentBuilder<T> {
 
 	private String buildEmbeddedPrefix(String prefix, IndexedEmbedded embeddedAnn, XProperty member) {
 		String localPrefix = prefix;
-		if ( ".".equals( embeddedAnn.prefix() ) ) {
+		if ( isDefaultPrefix( embeddedAnn ) ) {
 			//default to property name
 			localPrefix += member.getName() + '.';
 		}
@@ -830,6 +883,10 @@ public abstract class AbstractDocumentBuilder<T> {
 			localPrefix += embeddedAnn.prefix();
 		}
 		return localPrefix;
+	}
+
+	private boolean isDefaultPrefix(IndexedEmbedded embeddedAnn) {
+		return ".".equals( embeddedAnn.prefix() );
 	}
 
 	private String embeddedNullField(String localPrefix) {
