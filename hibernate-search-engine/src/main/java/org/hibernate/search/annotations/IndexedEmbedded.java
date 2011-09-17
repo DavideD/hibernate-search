@@ -56,6 +56,11 @@ public @interface IndexedEmbedded {
 	String prefix() default ".";
 
 	/**
+	 * Ignore depth and index the fields at the specified paths.
+	 */
+	String[] paths() default {};
+	
+	/**
 	 * Stop indexing embedded elements when depth is reached
 	 * depth=1 means the associated element is index, but not its embedded elements
 	 * Default: infinite (an exception will be raised if a class circular reference occurs while infinite is chosen)
