@@ -29,6 +29,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,6 @@ import java.util.TreeSet;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.search.Similarity;
-
 import org.hibernate.annotations.common.AssertionFailure;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.annotations.common.reflection.XAnnotatedElement;
@@ -382,7 +382,8 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private void initializeClass(XClass clazz, PropertiesMetadata propertiesMetadata, boolean isRoot, String prefix,
-								 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizationsArg, Set<String> paths) {
+								 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, 
+								 boolean disableOptimizationsArg, PathsContext pathsContext) {
 		List<XClass> hierarchy = new LinkedList<XClass>();
 		XClass next;
 		for ( XClass previousClass = clazz; previousClass != null; previousClass = next ) {
@@ -419,7 +420,7 @@ public abstract class AbstractDocumentBuilder<T> {
 						context,
 						optimizationBlackList,
 						disableOptimizations,
-						paths
+						pathsContext
 				);
 			}
 
@@ -435,7 +436,7 @@ public abstract class AbstractDocumentBuilder<T> {
 						context,
 						optimizationBlackList,
 						disableOptimizations,
-						paths
+						pathsContext
 				);
 			}
 		}
@@ -486,9 +487,10 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private void initializeMemberLevelAnnotations(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata, boolean isRoot,
-												  String prefix, Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizations, Set<String> paths) {
-		checkForField( member, propertiesMetadata, prefix, context, paths );
-		checkForFields( member, propertiesMetadata, prefix, context, paths );
+												  String prefix, Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, 
+												  boolean disableOptimizations, PathsContext pathsContext) {
+		checkForField( member, propertiesMetadata, prefix, context, pathsContext );
+		checkForFields( member, propertiesMetadata, prefix, context, pathsContext );
 		checkForAnalyzerDefs( member, context );
 		checkForAnalyzerDiscriminator( member, propertiesMetadata );
 		checkForIndexedEmbedded(
@@ -500,7 +502,7 @@ public abstract class AbstractDocumentBuilder<T> {
 				context,
 				optimizationBlackList,
 				disableOptimizations,
-				paths
+				pathsContext
 		);
 		checkForContainedIn( classHostingMember, member, propertiesMetadata );
 		documentBuilderSpecificChecks( member, propertiesMetadata, isRoot, prefix, context );
@@ -570,21 +572,21 @@ public abstract class AbstractDocumentBuilder<T> {
 			}
 		}
 	}
-
-	private void checkForFields(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context, Set<String> paths) {
-		org.hibernate.search.annotations.Fields fieldsAnn =
-				member.getAnnotation( org.hibernate.search.annotations.Fields.class );
+	
+	private void checkForFields(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context, PathsContext pathsContext) {
+		org.hibernate.search.annotations.Fields fieldsAnn = member.getAnnotation( org.hibernate.search.annotations.Fields.class );
 		NumericFields numericAnns = member.getAnnotation( NumericFields.class );
 		if ( fieldsAnn != null ) {
-			if (level <= maxLevel || isFieldInPath( member, paths, prefix )) {
+			if ( isFieldInPath( member, pathsContext, prefix ) || level <= maxLevel ) {
+
 				for ( org.hibernate.search.annotations.Field fieldAnn : fieldsAnn.value() ) {
 					bindFieldAnnotation(
-							member,
-							propertiesMetadata,
-							prefix,
-							fieldAnn,
-							getNumericExtension( fieldAnn, numericAnns ),
-							context
+						member,
+						propertiesMetadata,
+						prefix,
+						fieldAnn,
+						getNumericExtension( fieldAnn, numericAnns ),
+						context
 					);
 				}
 			}
@@ -622,19 +624,32 @@ public abstract class AbstractDocumentBuilder<T> {
 		}
 	}
 
-	private void checkForField(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context, Set<String> paths) {
+	private void checkForField(XProperty member, PropertiesMetadata propertiesMetadata, String prefix, ConfigContext context, PathsContext pathsContext) {
 		org.hibernate.search.annotations.Field fieldAnn =
 				member.getAnnotation( org.hibernate.search.annotations.Field.class );
 		NumericField numericFieldAnn = member.getAnnotation( NumericField.class );
 		DocumentId idAnn = member.getAnnotation( DocumentId.class );
 		if ( fieldAnn != null ) {
-			if (level <= maxLevel || isFieldInPath( member, paths, prefix )) {
+			if ( isFieldInPath( member, pathsContext, prefix ) || level <= maxLevel ) {
 				bindFieldAnnotation( member, propertiesMetadata, prefix, fieldAnn, numericFieldAnn, context );
 			}
 		}
 		if ( ( fieldAnn == null && idAnn == null ) && numericFieldAnn != null ) {
 			throw new SearchException( "@NumericField without a @Field on property '" + member.getName() + "'" );
 		}
+	}
+	
+	private boolean isFieldInPath(XProperty member, PathsContext pathsContext, String prefix) {
+		if ( pathsContext == null )
+			return false;
+		
+		String path = prefix + member.getName();
+		if ( pathsContext.containsPath( path ) ){
+			pathsContext.markEncounteredPath( path );
+			return true;
+		}
+		return false;
+
 	}
 
 	private boolean isFieldInPath(XProperty member, Set<String> paths, String prefix) {
@@ -659,7 +674,8 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private void checkForIndexedEmbedded(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata, String prefix,
-										 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, boolean disableOptimizations, Set<String> paths) {
+										 Set<XClass> processedClasses, ConfigContext context, Set<XClass> optimizationBlackList, 
+										 boolean disableOptimizations, PathsContext pathsContext ) {
 		IndexedEmbedded embeddedAnn = member.getAnnotation( IndexedEmbedded.class );
 		if ( embeddedAnn != null ) {
 			//collection role in Hibernate is made of the actual hosting class of the member (see HSEARCH-780)
@@ -692,8 +708,16 @@ public abstract class AbstractDocumentBuilder<T> {
 			}
 
 			String localPrefix = buildEmbeddedPrefix( prefix, embeddedAnn, member );
-			Set<String> updatedPaths = updatePaths( localPrefix, paths, embeddedAnn );
-			if ( level <= maxLevel || isInPath( localPrefix, updatedPaths, embeddedAnn )) {
+			PathsContext updatedPathsContext = updatePaths( localPrefix, pathsContext, embeddedAnn );
+			
+			boolean pathsCreatedAtThisLevel = false;
+			if ( pathsContext == null && updatedPathsContext != null ) {
+				//after this level if not all paths are traversed, then the paths
+				//either don't exist in the object graph, or aren't indexed paths
+				pathsCreatedAtThisLevel = true;
+			}
+			
+			if ( level <= maxLevel || isInPath( localPrefix, updatedPathsContext, embeddedAnn )) {
 				processedClasses.add( elementClass ); //push
 
 				ReflectionHelper.setAccessible( member );
@@ -718,7 +742,7 @@ public abstract class AbstractDocumentBuilder<T> {
 						context,
 						optimizationBlackList,
 						disableOptimizations,
-						updatedPaths
+						updatedPathsContext
 				);
 				/**
 				 * We will only index the "expected" type but that's OK, HQL cannot do down-casting either
@@ -754,7 +778,53 @@ public abstract class AbstractDocumentBuilder<T> {
 
 			level--;
 			maxLevel = oldMaxLevel; //set back the the old max level
+			
+			if ( pathsCreatedAtThisLevel ) {
+				validateAllPathsEncountered( classHostingMember, member, updatedPathsContext );
+			}
 		}
+	}
+	
+	private void validateAllPathsEncountered(XClass classHostingMember, XProperty member,
+			PathsContext updatedPathsContext) {
+		Set<String> unencounteredPaths = updatedPathsContext.getUnencounteredPaths();
+		if ( unencounteredPaths.size() > 0 ) {
+			StringBuilder sb = new StringBuilder( "Found invalid @IndexedEmbedded->paths configured on class " );
+			sb.append( classHostingMember.getName() );
+			sb.append( ", member " );
+			sb.append( member.getName() );
+			sb.append( ": " );
+
+			Iterator<String> pathIterator = unencounteredPaths.iterator();
+			while ( pathIterator.hasNext() ) {
+				String path = pathIterator.next();
+				// remove the leading prefix so it is clear how paths was incorrectly configured
+				path = removeLeadingPrefixFromPath( path, updatedPathsContext.embeddedAnn );
+				sb.append( path );
+				// iterator as a clean way to know if we are on the last path, if not, no ','
+				if ( pathIterator.hasNext() ) {
+					sb.append( ',' );
+				}
+			}
+			throw new SearchException( sb.toString() );
+		}
+	}
+
+	private String removeLeadingPrefixFromPath(String path, IndexedEmbedded embeddedAnn) {
+
+		// if the leading prefix is the default prefix, then we just need to strip of everything
+		// up to and including the first '.'
+		if ( isDefaultPrefix( embeddedAnn ) ) {
+			if ( path.contains( "." ) ) {
+				path = path.substring( path.indexOf( "." ) + 1 );
+			}
+		}
+		else {
+			// if not the default prefix, then we just need to remove the first occurrence
+			// of the prefix specified in the enclosing embedded annotation
+			path = path.substring( path.indexOf( embeddedAnn.prefix() ) + 1 );
+		}
+		return path;
 	}
 
 	private int depth(IndexedEmbedded embeddedAnn) {
@@ -768,25 +838,27 @@ public abstract class AbstractDocumentBuilder<T> {
 		return Integer.MAX_VALUE == embeddedAnn.depth();
 	}
 
-	private Set<String> updatePaths(String localPrefix, Set<String> paths, IndexedEmbedded embeddedAnn) {
-		if ( paths != null )
-			return paths;
+	private PathsContext updatePaths(String localPrefix, PathsContext pathsContext, IndexedEmbedded embeddedAnn) {
+		if ( pathsContext != null )
+			return pathsContext;
 
-		HashSet<String> newPaths = new HashSet<String>();
+		PathsContext newPathsContext = new PathsContext(embeddedAnn);
 		for ( String path : embeddedAnn.paths() ) {
-			newPaths.add( localPrefix + path );
+			newPathsContext.addPath( localPrefix + path );
 		}
-		return newPaths;
+		return newPathsContext;
 	}
 
-	private boolean isInPath(String localPrefix, Set<String> paths, IndexedEmbedded embeddedAnn) {
-		boolean defaultPrefix = isDefaultPrefix( embeddedAnn );
-		for ( String path : paths ) {
-			String app = path;
-			if ( defaultPrefix )
-				app += ".";
-			if ( app.startsWith( localPrefix ) )
-				return true;
+	private boolean isInPath(String localPrefix, PathsContext pathsContext, IndexedEmbedded embeddedAnn) {
+		if(pathsContext != null){
+			boolean defaultPrefix = isDefaultPrefix( embeddedAnn );
+			for ( String path : pathsContext.pathsEncounteredState.keySet() ) {
+				String app = path;
+				if ( defaultPrefix )
+					app += ".";
+				if ( app.startsWith( localPrefix ) )
+					return true;
+			}
 		}
 		return false;
 	}
@@ -1014,6 +1086,44 @@ public abstract class AbstractDocumentBuilder<T> {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Container class for information about the current set of paths as 
+	 * well as tracking which paths have been encountered to validate the
+	 * existence of all configured paths.
+	 */
+	protected static class PathsContext {
+		
+		IndexedEmbedded embeddedAnn;
+		
+		public PathsContext(IndexedEmbedded embeddedAnn){
+			this.embeddedAnn=embeddedAnn;
+		}
+		
+		public final Map<String, Boolean> pathsEncounteredState = new HashMap<String, Boolean>();
+
+		public boolean containsPath(String path) {
+			return pathsEncounteredState.keySet().contains( path );
+		}
+
+		public void addPath(String path) {
+			pathsEncounteredState.put( path, Boolean.FALSE );
+		}
+
+		public void markEncounteredPath(String path) {
+			pathsEncounteredState.put( path, Boolean.TRUE );
+		}
+
+		public Set<String> getUnencounteredPaths() {
+			Set<String> unencounteredPaths = new HashSet<String>();
+			for ( String path : pathsEncounteredState.keySet() ) {
+				if ( !pathsEncounteredState.get( path ) ) {
+					unencounteredPaths.add( path );
+				}
+			}
+			return unencounteredPaths;
+		}
 	}
 
 	/**
