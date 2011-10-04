@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -642,24 +641,14 @@ public abstract class AbstractDocumentBuilder<T> {
 	private boolean isFieldInPath(XProperty member, PathsContext pathsContext, String prefix) {
 		if ( pathsContext == null )
 			return false;
-		
+
 		String path = prefix + member.getName();
-		if ( pathsContext.containsPath( path ) ){
+		if ( pathsContext.containsPath( path ) ) {
 			pathsContext.markEncounteredPath( path );
 			return true;
 		}
 		return false;
 
-	}
-
-	private boolean isFieldInPath(XProperty member, Set<String> paths, String prefix) {
-		if ( paths == null )
-			return false;
-
-		if ( paths.contains( prefix + member.getName() ) )
-			return true;
-
-		return false;
 	}
 
 	private void checkForContainedIn(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata) {
@@ -795,34 +784,21 @@ public abstract class AbstractDocumentBuilder<T> {
 			sb.append( member.getName() );
 			sb.append( ": " );
 
-			Iterator<String> pathIterator = unencounteredPaths.iterator();
-			while ( pathIterator.hasNext() ) {
-				String path = pathIterator.next();
-				// remove the leading prefix so it is clear how paths was incorrectly configured
-				path = removeLeadingPrefixFromPath( path, updatedPathsContext.embeddedAnn );
+			for ( String path : unencounteredPaths ) {
+				String prefix = updatedPathsContext.embeddedAnn.prefix();
+				path = removeLeadingPrefixFromPath( path, prefix );
 				sb.append( path );
-				// iterator as a clean way to know if we are on the last path, if not, no ','
-				if ( pathIterator.hasNext() ) {
-					sb.append( ',' );
-				}
+				sb.append( ',' );
 			}
-			throw new SearchException( sb.toString() );
+			String message = sb.substring( 0, sb.length() - 1 );
+			throw new SearchException( message );
 		}
 	}
 
-	private String removeLeadingPrefixFromPath(String path, IndexedEmbedded embeddedAnn) {
-
-		// if the leading prefix is the default prefix, then we just need to strip of everything
-		// up to and including the first '.'
-		if ( isDefaultPrefix( embeddedAnn ) ) {
-			if ( path.contains( "." ) ) {
-				path = path.substring( path.indexOf( "." ) + 1 );
-			}
-		}
-		else {
-			// if not the default prefix, then we just need to remove the first occurrence
-			// of the prefix specified in the enclosing embedded annotation
-			path = path.substring( path.indexOf( embeddedAnn.prefix() ) + 1 );
+	private String removeLeadingPrefixFromPath(String path, String prefix) {
+		int prefixIndex = path.indexOf( prefix );
+		if ( prefixIndex >= 0 ) {
+			path = path.substring( prefixIndex + 1 );
 		}
 		return path;
 	}
@@ -842,7 +818,7 @@ public abstract class AbstractDocumentBuilder<T> {
 		if ( pathsContext != null )
 			return pathsContext;
 
-		PathsContext newPathsContext = new PathsContext(embeddedAnn);
+		PathsContext newPathsContext = new PathsContext( embeddedAnn );
 		for ( String path : embeddedAnn.paths() ) {
 			newPathsContext.addPath( localPrefix + path );
 		}
@@ -850,7 +826,7 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private boolean isInPath(String localPrefix, PathsContext pathsContext, IndexedEmbedded embeddedAnn) {
-		if(pathsContext != null){
+		if ( pathsContext != null ) {
 			boolean defaultPrefix = isDefaultPrefix( embeddedAnn );
 			for ( String path : pathsContext.pathsEncounteredState.keySet() ) {
 				String app = path;
@@ -1089,18 +1065,18 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 	
 	/**
-	 * Container class for information about the current set of paths as 
+	 * Container class for information about the current set of paths as
 	 * well as tracking which paths have been encountered to validate the
 	 * existence of all configured paths.
 	 */
 	protected static class PathsContext {
-		
+
 		IndexedEmbedded embeddedAnn;
-		
-		public PathsContext(IndexedEmbedded embeddedAnn){
-			this.embeddedAnn=embeddedAnn;
+
+		public PathsContext(IndexedEmbedded embeddedAnn) {
+			this.embeddedAnn = embeddedAnn;
 		}
-		
+
 		public final Map<String, Boolean> pathsEncounteredState = new HashMap<String, Boolean>();
 
 		public boolean containsPath(String path) {
