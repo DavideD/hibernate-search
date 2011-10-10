@@ -59,7 +59,11 @@ public class MemberRegistrationIT {
 				.addAsLibraries(
 						DependencyResolvers.use( MavenDependencyResolver.class )
 								.artifact( "org.hibernate:hibernate-search-orm:" + currentVersion )
-								.exclusion( "dom4j:dom4j" )
+								.exclusion( "org.hibernate:hibernate-entitymanager" )
+								.exclusion( "org.hibernate:hibernate-core" )
+								.exclusion( "org.hibernate:hibernate-search-analyzers" )
+								.exclusion( "org.hibernate.common:hibernate-commons-annotations" )
+								.exclusion( "org.jboss.logging:jboss-logging" )
 								.resolveAs( JavaArchive.class ) )
 				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" );
 	}
