@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import org.hibernate.search.Version;
 import org.hibernate.search.test.integration.jbossas7.controller.MemberRegistration;
 import org.hibernate.search.test.integration.jbossas7.model.Member;
 import org.hibernate.search.test.integration.jbossas7.util.Resources;
@@ -50,13 +51,14 @@ public class MemberRegistrationIT {
 
 	@Deployment
 	public static Archive<?> createTestArchive() {
+		String currentVersion = Version.getVersionString();
 		return ShrinkWrap
 				.create( WebArchive.class, MemberRegistrationIT.class.getSimpleName() + ".war" )
 				.addClasses( Member.class, MemberRegistration.class, Resources.class )
 				.addAsResource( "jbossas7/META-INF/persistence.xml", "META-INF/persistence.xml" )
 				.addAsLibraries(
 						DependencyResolvers.use( MavenDependencyResolver.class )
-								.artifact( "org.hibernate:hibernate-search-orm:4.0.0-SNAPSHOT" )
+								.artifact( "org.hibernate:hibernate-search-orm:" + currentVersion )
 								.exclusion( "dom4j:dom4j" )
 								.resolveAs( JavaArchive.class ) )
 				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" );
