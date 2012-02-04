@@ -46,11 +46,22 @@ public class EntityC {
 	@ContainedIn
 	public EntityB b2;
 
+	@OneToOne(mappedBy = "overridden")
+	@ContainedIn
+	public EntityB b3;
+
+	@OneToOne(mappedBy = "overridden")
+	@ContainedIn
+	public EntityB b4;
+
 	@Field
 	public String indexed;
 
 	@Field
 	public String indexedNot = "notIndexed";
+
+	@Field(name = "overridden")
+	public String wrongName;
 
 	@Fields({ @Field(name = "fieldOne"), @Field(name = "fieldTwo") })
 	public String multiFieldsIndexed = "indexed twice";

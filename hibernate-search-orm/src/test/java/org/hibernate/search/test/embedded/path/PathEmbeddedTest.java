@@ -44,16 +44,31 @@ public class PathEmbeddedTest extends SearchTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 		EntityC entityC = new EntityC( "C1" );
-		EntityC cPrefixed = new EntityC( "prefixed" );
+		EntityC prefixed = new EntityC( "prefixed" );
 		EntityC skipped = new EntityC( "skipped" );
+		EntityC renamed = new EntityC();
+		renamed.wrongName = "renamed";
+		EntityC renamedAndPrefixed = new EntityC();
+		renamedAndPrefixed.wrongName = "renamedAndPrefixed";
 
-		EntityB entityB = new EntityB( entityC, skipped );
-		EntityB bPrefixed = new EntityB( cPrefixed, null );
+		EntityB b1 = new EntityB( entityC, skipped );
+		EntityB b2 = new EntityB( prefixed, null );
+		EntityB b3 = new EntityB();
+		b3.overridden = renamed;
+		renamed.b3 = b3;
+		b3.a3 = entityA;
 
-		entityA = new EntityA( entityB, bPrefixed );
+		EntityB b4 = new EntityB();
+		b4.overridden = renamedAndPrefixed;
+		renamedAndPrefixed.b4 = b4;
+		b4.a4 = entityA;
+
+		entityA = new EntityA( b1, b2 );
+		entityA.b3 = b3;
+		entityA.b4 = b4;
 
 		s = openSession();
-		persistEntity( s, entityC, skipped, cPrefixed, entityB, bPrefixed, entityA );
+		persistEntity( s, entityC, skipped, prefixed, renamed, renamedAndPrefixed, b1, b2, b3, b4, entityA );
 	}
 
 	@Override
@@ -65,8 +80,22 @@ public class PathEmbeddedTest extends SearchTestCase {
 		super.tearDown();
 	}
 
+	public void testPathWithOverriddenFieldIsIndexed() throws Exception {
+		List<EntityA> result = search( s, "b3.overridden.overridden", "renamed" );
+
+		Assert.assertEquals( 1, result.size() );
+		Assert.assertEquals( entityA.id, result.get( 0 ).id );
+	}
+
 	public void testPathIsIndexed() throws Exception {
 		List<EntityA> result = search( s, "b.c.indexed", "C1" );
+
+		Assert.assertEquals( 1, result.size() );
+		Assert.assertEquals( entityA.id, result.get( 0 ).id );
+	}
+
+	public void testPathIsIndexedWithPrefixAndFieldRenamed() throws Exception {
+		List<EntityA> result = search( s, "px_overridden.overridden", "renamedAndPrefixed" );
 
 		Assert.assertEquals( 1, result.size() );
 		Assert.assertEquals( entityA.id, result.get( 0 ).id );

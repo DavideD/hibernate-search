@@ -46,6 +46,14 @@ public class EntityA {
 	@IndexedEmbedded(prefix = "prefixed", paths = { "c.indexed" })
 	public EntityB b2;
 
+	@OneToOne
+	@IndexedEmbedded(paths = {"overridden.overridden"})
+	public EntityB b3;
+
+	@OneToOne
+	@IndexedEmbedded(prefix = "px_", paths = {"overridden.overridden"})
+	public EntityB b4;
+
 	public EntityA() {
 	}
 

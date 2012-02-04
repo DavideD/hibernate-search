@@ -45,6 +45,14 @@ public class EntityB {
 	@ContainedIn
 	public EntityA a2;
 
+	@OneToOne(mappedBy = "b3")
+	@ContainedIn
+	public EntityA a3;
+
+	@OneToOne(mappedBy = "b4")
+	@ContainedIn
+	public EntityA a4;
+
 	@OneToOne
 	@IndexedEmbedded
 	public EntityC c;
@@ -52,6 +60,10 @@ public class EntityB {
 	@OneToOne
 	@IndexedEmbedded
 	public EntityC skipped;
+
+	@OneToOne
+	@IndexedEmbedded
+	public EntityC overridden;
 
 	public EntityB() {
 	}
