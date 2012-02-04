@@ -502,9 +502,8 @@ public abstract class AbstractDocumentBuilder<T> {
 		org.hibernate.search.annotations.Fields fieldsAnn = member.getAnnotation( org.hibernate.search.annotations.Fields.class );
 		NumericFields numericAnns = member.getAnnotation( NumericFields.class );
 		if ( fieldsAnn != null ) {
-			if ( isFieldInPath( member, pathsContext, prefix ) || level <= maxLevel ) {
-
-				for ( org.hibernate.search.annotations.Field fieldAnn : fieldsAnn.value() ) {
+			for ( org.hibernate.search.annotations.Field fieldAnn : fieldsAnn.value() ) {
+				if ( isFieldInPath( fieldAnn, member, pathsContext, prefix ) || level <= maxLevel ) {
 					bindFieldAnnotation(
 							classHostingMember,
 							member,
@@ -556,7 +555,7 @@ public abstract class AbstractDocumentBuilder<T> {
 		NumericField numericFieldAnn = member.getAnnotation( NumericField.class );
 		DocumentId idAnn = member.getAnnotation( DocumentId.class );
 		if ( fieldAnn != null ) {
-			if ( isFieldInPath( member, pathsContext, prefix ) || level <= maxLevel ) {
+			if ( isFieldInPath( fieldAnn, member, pathsContext, prefix ) || level <= maxLevel ) {
 				bindFieldAnnotation( classHostingMember, member, propertiesMetadata, prefix, fieldAnn, numericFieldAnn, context );
 			}
 		}
@@ -565,17 +564,26 @@ public abstract class AbstractDocumentBuilder<T> {
 		}
 	}
 
-	private boolean isFieldInPath(XProperty member, PathsContext pathsContext, String prefix) {
-		if ( pathsContext == null )
-			return false;
-
-		String path = prefix + member.getName();
-		if ( pathsContext.containsPath( path ) ) {
-			pathsContext.markEncounteredPath( path );
-			return true;
+	private boolean isFieldInPath(org.hibernate.search.annotations.Field fieldAnn, XProperty member,
+			PathsContext pathsContext, String prefix) {
+		if ( pathsContext != null ) {
+			String path = prefix + fieldName( fieldAnn, member );
+			if ( pathsContext.containsPath( path ) ) {
+				pathsContext.markEncounteredPath( path );
+				return true;
+			}
 		}
-
 		return false;
+	}
+
+	private String fieldName(org.hibernate.search.annotations.Field fieldAnn, XProperty member) {
+		if (fieldAnn == null)
+			return member.getName();
+
+		if (fieldAnn.name().isEmpty())
+			return member.getName();
+
+		return fieldAnn.name();
 	}
 
 	private void checkForContainedIn(XClass classHostingMember, XProperty member, PropertiesMetadata propertiesMetadata) {
