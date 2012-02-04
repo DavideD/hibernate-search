@@ -56,7 +56,8 @@ public @interface IndexedEmbedded {
 	String prefix() default ".";
 
 	/**
-	 * Ignore depth and index the fields at the specified paths.
+	 * Defined paths are going to be indexed even if they exceed the depth threshold.
+	 * When paths is not empty, the default value for depth is 0.
 	 */
 	String[] paths() default {};
 	
