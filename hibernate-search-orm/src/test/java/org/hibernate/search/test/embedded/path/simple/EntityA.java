@@ -17,65 +17,37 @@
  * MA  02110-1301, USA.
  */
 
-package org.hibernate.search.test.embedded.path;
+package org.hibernate.search.test.embedded.path.simple;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-import org.hibernate.search.annotations.ContainedIn;
+import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
 
 /**
  * @author Davide D'Alto
  */
 @Entity
-public class EntityB {
+@Indexed
+class EntityA {
 
 	@Id
 	@GeneratedValue
 	public int id;
 
-	@OneToOne(mappedBy = "b")
-	@ContainedIn
-	public EntityA a;
-
-	@OneToOne(mappedBy = "b2")
-	@ContainedIn
-	public EntityA a2;
-
-	@OneToOne(mappedBy = "b3")
-	@ContainedIn
-	public EntityA a3;
-
-	@OneToOne(mappedBy = "b4")
-	@ContainedIn
-	public EntityA a4;
-
 	@OneToOne
-	@IndexedEmbedded
-	public EntityC c;
+	@IndexedEmbedded(depth = 0, paths = { "indexed.field" })
+	public EntityB b;
 
-	@OneToOne
-	@IndexedEmbedded
-	public EntityC skipped;
-
-	@OneToOne
-	@IndexedEmbedded
-	public EntityC overridden;
-
-	public EntityB() {
+	public EntityA() {
 	}
 
-	public EntityB(EntityC c, EntityC skipped) {
-		this.c = c;
-		c.b = this;
-
-		if ( skipped != null) {
-			this.skipped = skipped;
-			skipped.b = this;
-		}
+	public EntityA(EntityB b) {
+		this.b = b;
+		this.b.a = this;
 	}
 
 }

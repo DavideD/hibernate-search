@@ -17,7 +17,7 @@
  * MA  02110-1301, USA.
  */
 
-package org.hibernate.search.test.embedded.path;
+package org.hibernate.search.test.embedded.path.simple;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ import org.hibernate.search.test.SearchTestCase;
 /**
  * @author Davide D'Alto
  */
-public class PathEmbeddedTest extends SearchTestCase {
+public class SimplePathCaseEmbeddedTest extends SearchTestCase {
 
 	private Session s = null;
 	private EntityA entityA = null;
@@ -43,32 +43,14 @@ public class PathEmbeddedTest extends SearchTestCase {
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-		EntityC entityC = new EntityC( "C1" );
-		EntityC prefixed = new EntityC( "prefixed" );
-		EntityC skipped = new EntityC( "skipped" );
-		EntityC renamed = new EntityC();
-		renamed.wrongName = "renamed";
-		EntityC renamedAndPrefixed = new EntityC();
-		renamedAndPrefixed.wrongName = "renamedAndPrefixed";
+		EntityC indexedC = new EntityC( "indexed" );
+		EntityC skippedC = new EntityC( "indexed" );
 
-		EntityB b1 = new EntityB( entityC, skipped );
-		EntityB b2 = new EntityB( prefixed, null );
-		EntityB b3 = new EntityB();
-		b3.overridden = renamed;
-		renamed.b3 = b3;
-		b3.a3 = entityA;
+		EntityB indexedB = new EntityB( indexedC, skippedC );
 
-		EntityB b4 = new EntityB();
-		b4.overridden = renamedAndPrefixed;
-		renamedAndPrefixed.b4 = b4;
-		b4.a4 = entityA;
-
-		entityA = new EntityA( b1, b2 );
-		entityA.b3 = b3;
-		entityA.b4 = b4;
-
+		entityA = new EntityA( indexedB );
 		s = openSession();
-		persistEntity( s, entityC, skipped, prefixed, renamed, renamedAndPrefixed, b1, b2, b3, b4, entityA );
+		persistEntity( s, indexedC, skippedC, indexedB, entityA );
 	}
 
 	@Override
@@ -80,36 +62,8 @@ public class PathEmbeddedTest extends SearchTestCase {
 		super.tearDown();
 	}
 
-	public void testPathWithOverriddenFieldIsIndexed() throws Exception {
-		List<EntityA> result = search( s, "b3.overridden.overridden", "renamed" );
-
-		Assert.assertEquals( 1, result.size() );
-		Assert.assertEquals( entityA.id, result.get( 0 ).id );
-	}
-
-	public void testPathIsIndexed() throws Exception {
-		List<EntityA> result = search( s, "b.c.indexed", "C1" );
-
-		Assert.assertEquals( 1, result.size() );
-		Assert.assertEquals( entityA.id, result.get( 0 ).id );
-	}
-
-	public void testPathIsIndexedWithPrefixAndFieldRenamed() throws Exception {
-		List<EntityA> result = search( s, "px_overridden.overridden", "renamedAndPrefixed" );
-
-		Assert.assertEquals( 1, result.size() );
-		Assert.assertEquals( entityA.id, result.get( 0 ).id );
-	}
-
-	public void testPathIsIndexedWithPrefix() throws Exception {
-		List<EntityA> result = search( s, "prefixedc.indexed", "prefixed" );
-
-		Assert.assertEquals( 1, result.size() );
-		Assert.assertEquals( entityA.id, result.get( 0 ).id );
-	}
-
-	public void testMultiFieldsAreIndexedIfInPath() throws Exception {
-		List<EntityA> result = search( s, "b.c.fieldOne", "indexed twice" );
+	public void testFieldIsIndexedIfInPath() throws Exception {
+		List<EntityA> result = search( s, "b.indexed.field", "indexed" );
 
 		Assert.assertEquals( 1, result.size() );
 		Assert.assertEquals( entityA.id, result.get( 0 ).id );
@@ -117,7 +71,7 @@ public class PathEmbeddedTest extends SearchTestCase {
 
 	public void testEmbeddedNotIndexedIfNotInPath() throws Exception {
 		try {
-			search( s, "b.skipped.indexed", "skipped" );
+			search( s, "b.skipped.indexed", "indexed" );
 			fail( "Should not index embedded property if not in path and not in depth limit" );
 		}
 		catch ( SearchException e ) {
@@ -126,8 +80,8 @@ public class PathEmbeddedTest extends SearchTestCase {
 
 	public void testFieldNotIndexedIfNotInPath() throws Exception {
 		try {
-			search( s, "b.c.indexedNot", "skipped" );
-			fail( "Should not index field if not included in path and over depth limit" );
+			search( s, "b.indexed.skipped", "skipped" );
+			fail( "Should not index embedded property if not in path and not in depth limit" );
 		}
 		catch ( SearchException e ) {
 		}

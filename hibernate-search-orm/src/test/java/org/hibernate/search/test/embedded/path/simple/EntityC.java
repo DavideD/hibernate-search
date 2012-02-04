@@ -17,7 +17,7 @@
  * MA  02110-1301, USA.
  */
 
-package org.hibernate.search.test.embedded.path;
+package org.hibernate.search.test.embedded.path.simple;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -26,19 +26,18 @@ import javax.persistence.OneToOne;
 
 import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Fields;
 
 /**
  * @author Davide D'Alto
  */
 @Entity
-public class EntityC {
+class EntityC {
 
 	@Id
 	@GeneratedValue
 	public int id;
 
-	@OneToOne(mappedBy = "c")
+	@OneToOne(mappedBy = "indexed")
 	@ContainedIn
 	public EntityB b;
 
@@ -46,31 +45,17 @@ public class EntityC {
 	@ContainedIn
 	public EntityB b2;
 
-	@OneToOne(mappedBy = "overridden")
-	@ContainedIn
-	public EntityB b3;
-
-	@OneToOne(mappedBy = "overridden")
-	@ContainedIn
-	public EntityB b4;
+	@Field
+	public String field;
 
 	@Field
-	public String indexed;
-
-	@Field
-	public String indexedNot = "notIndexed";
-
-	@Field(name = "overridden")
-	public String wrongName;
-
-	@Fields({ @Field(name = "fieldOne"), @Field(name = "fieldTwo") })
-	public String multiFieldsIndexed = "indexed twice";
+	public String skipped = "skipped";
 
 	public EntityC() {
 	}
 
 	public EntityC(String indexed) {
-		this.indexed = indexed;
+		this.field = indexed;
 	}
 
 }

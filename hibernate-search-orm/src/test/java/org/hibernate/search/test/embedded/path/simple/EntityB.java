@@ -17,52 +17,49 @@
  * MA  02110-1301, USA.
  */
 
-package org.hibernate.search.test.embedded.path;
+package org.hibernate.search.test.embedded.path.simple;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToOne;
 
-import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.ContainedIn;
 import org.hibernate.search.annotations.IndexedEmbedded;
 
 /**
  * @author Davide D'Alto
  */
 @Entity
-@Indexed
-public class EntityA {
+class EntityB {
 
 	@Id
 	@GeneratedValue
 	public int id;
 
 	@OneToOne
-	@IndexedEmbedded(paths = { "c.indexed", "c.multiFieldsIndexed" })
-	public EntityB b;
+	@ContainedIn
+	public EntityA a;
 
 	@OneToOne
-	@IndexedEmbedded(prefix = "prefixed", paths = { "c.indexed" })
-	public EntityB b2;
+	@IndexedEmbedded
+	public EntityC indexed;
 
 	@OneToOne
-	@IndexedEmbedded(paths = {"overridden.overridden"})
-	public EntityB b3;
+	@IndexedEmbedded
+	public EntityC skipped;
 
-	@OneToOne
-	@IndexedEmbedded(prefix = "px_", paths = {"overridden.overridden"})
-	public EntityB b4;
-
-	public EntityA() {
+	public EntityB() {
 	}
 
-	public EntityA(EntityB b, EntityB b2) {
-		this.b = b;
-		this.b.a = this;
+	public EntityB(EntityC indexed, EntityC skipped) {
+		this.indexed = indexed;
+		indexed.b = this;
 
-		this.b2 = b2;
-		this.b2.a = this;
+		if ( skipped != null ) {
+			this.skipped = skipped;
+			skipped.b = this;
+		}
 	}
 
 }
