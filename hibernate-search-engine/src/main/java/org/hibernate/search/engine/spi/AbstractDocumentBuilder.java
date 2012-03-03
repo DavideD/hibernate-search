@@ -830,7 +830,7 @@ public abstract class AbstractDocumentBuilder<T> {
 	}
 
 	private PathsContext updatePaths(String localPrefix, PathsContext pathsContext, IndexedEmbedded embeddedAnn) {
-		if ( pathsContext != null )
+		if ( pathsContext != null && pathsContext.embeddedAnn.equals(embeddedAnn) )
 			return pathsContext;
 
 		PathsContext newPathsContext = new PathsContext( embeddedAnn );
