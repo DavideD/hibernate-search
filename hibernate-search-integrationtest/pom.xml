@@ -20,6 +20,7 @@
         <spring-release-version>3.0.6.RELEASE</spring-release-version>
         <version.jboss.as>7.1.1.Final</version.jboss.as>
         <version.arquillian>1.0.0.CR7</version.arquillian>
+        <war.dependencies.folder>${project.build.directory}/war-dependencies</war.dependencies.folder>
     </properties>
 
     <dependencyManagement>
@@ -97,6 +98,21 @@
                             </artifactItems>
                         </configuration>
                     </execution>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>pre-integration-test</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${war.dependencies.folder}</outputDirectory>
+							<overWriteReleases>true</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+							<excludeTypes>test-jar</excludeTypes>
+							<includeArtifactIds>hibernate-search-orm,hibernate-search-engine,avro,jackson-core-asl,jackson-mapper-asl,lucene-core,slf4j-api,snappy-java,paranamer</includeArtifactIds>
+						</configuration>
+					</execution>
                 </executions>
             </plugin>
         </plugins>

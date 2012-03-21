@@ -29,11 +29,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.Properties;
 
 import javax.inject.Inject;
 
-import org.hibernate.search.Version;
 import org.hibernate.search.test.integration.jbossas7.controller.MemberRegistration;
 import org.hibernate.search.test.integration.jbossas7.model.Member;
 import org.hibernate.search.test.integration.jbossas7.util.Resources;
@@ -44,13 +46,9 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.Asset;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
-import org.jboss.shrinkwrap.api.exporter.ZipExporter;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.descriptor.api.spec.jpa.persistence.PersistenceDescriptor;
-import org.jboss.shrinkwrap.resolver.api.DependencyResolvers;
-import org.jboss.shrinkwrap.resolver.api.maven.MavenDependencyResolver;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -65,25 +63,41 @@ public class MemberRegistrationIT {
 
 	@Deployment
 	public static Archive<?> createTestArchive() {
-		String currentVersion = Version.getVersionString();
 		WebArchive archive = ShrinkWrap
 				.create( WebArchive.class, MemberRegistrationIT.class.getSimpleName() + ".war" )
 				.addClasses( Member.class, MemberRegistration.class, Resources.class )
 				.addAsResource( persistenceXml(), "META-INF/persistence.xml" )
-				.addAsLibraries(
-						DependencyResolvers.use( MavenDependencyResolver.class )
-								.artifact( "org.hibernate:hibernate-search-orm:" + currentVersion )
-								.exclusion( "org.hibernate:hibernate-entitymanager" )
-								.exclusion( "org.hibernate:hibernate-core" )
-								.exclusion( "org.hibernate:hibernate-search-analyzers" )
-								.exclusion( "org.hibernate.common:hibernate-commons-annotations" )
-								.exclusion( "org.jboss.logging:jboss-logging" )
-								.goOffline()
-								.resolveAs( JavaArchive.class ) )
+				.addAsLibraries( dependencies() )
 				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" );
 		// To debug dependencies, have it dump a zip export:
 		//archive.as( ZipExporter.class ).exportTo( new File("test-app.war"), true );
 		return archive;
+	}
+
+	private static File[] dependencies() {
+		String dependenciesFolderPath = properties().getProperty( "war.dependencies.folder" );
+		File dependencyFolder = new File( dependenciesFolderPath );
+		File[] dependencyPaths = new File[dependencyFolder.list().length];
+		int i = 0;
+		for ( String file : dependencyFolder.list() ) {
+			dependencyPaths[i++] = new File( dependenciesFolderPath + File.separator + file );
+		}
+		return dependencyPaths;
+	}
+
+	private static Properties properties() {
+		try {
+			Properties properties = new Properties();
+			InputStream inStream = Thread
+					.currentThread()
+					.getContextClassLoader()
+					.getResourceAsStream( "integration-test.properties" );
+			properties.load( inStream );
+			return properties;
+		}
+		catch ( IOException e ) {
+			throw new AssertionError( "Properties file for test should exists" );
+		}
 	}
 
 	private static Asset persistenceXml() {
