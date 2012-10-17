@@ -1,6 +1,6 @@
-/* 
+/*
  * Hibernate, Relational Persistence for Idiomatic Java
- * 
+ *
  * JBoss, Home of Professional Open Source
  * Copyright 2011 Red Hat Inc. and/or its affiliates and other contributors
  * as indicated by the @authors tag. All rights reserved.
@@ -56,7 +56,7 @@ import org.hibernate.search.store.optimization.OptimizerStrategy;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class DirectoryBasedIndexManager implements IndexManager {
-    
+
     private String indexName;
     private DirectoryProvider directoryProvider;
     private Similarity similarity;
@@ -149,7 +149,7 @@ public class DirectoryBasedIndexManager implements IndexManager {
         this.boundSearchFactory = boundSearchFactory;
         triggerWorkspaceReconfiguration();
     }
-    
+
     @Override
     public void addContainedEntity(Class<?> entity) {
         containedEntityTypes.add( entity );
@@ -170,12 +170,12 @@ public class DirectoryBasedIndexManager implements IndexManager {
     public void setIndexWriterConfig(IndexWriterConfig writerConfig) {
         this.writerConfig = writerConfig;
     }
-    
+
     //Not exposed on the IndexManager interface
     public EntityIndexBinder getIndexBindingForEntity(Class<?> entityType) {
         return boundSearchFactory.getIndexBindingForEntity( entityType );
     }
-    
+
     //Not exposed on the IndexManager interface
     public Lock getDirectoryModificationLock() {
         return backend.getExclusiveWriteLock();

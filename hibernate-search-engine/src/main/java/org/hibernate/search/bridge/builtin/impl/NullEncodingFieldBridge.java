@@ -1,4 +1,4 @@
-/* 
+/*
  * JBoss, Home of Professional Open Source
  * Copyright 2011 Red Hat Inc. and/or its affiliates and other contributors
  * as indicated by the @authors tag. All rights reserved.
@@ -49,7 +49,7 @@ public class NullEncodingFieldBridge implements FieldBridge, StringBridge {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.hibernate.search.bridge.StringBridge#objectToString(java.lang.Object)
      */
     @Override

@@ -58,7 +58,7 @@ public @interface Spatial {
      * @return grid mode activation status
      */
     SpatialMode spatialMode() default SpatialMode.SIMPLE;
-    
+
     /**
      * @return top range grid level for spatial indexing
      */

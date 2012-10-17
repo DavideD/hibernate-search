@@ -151,7 +151,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
      * The member - if any - annotated with @Id
      */
     private XProperty jpaIdAnnotatedMember; //FIXME: to remove, needed only for isIdMatchingJpaId()
-    
+
     /**
      * Type of allowed FieldCache usage
      */
@@ -234,7 +234,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
     public XMember getIdGetter() {
         return idGetter;
     }
-    
+
     public FieldCacheCollectorFactory getIdFieldCacheCollectionFactory() {
         return idFieldCacheCollectorFactory;
     }
@@ -357,7 +357,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
         }
         return id;
     }
-    
+
     public void addWorkToQueue(Class<T> entityClass, T entity, Serializable id, boolean delete, boolean add, List<LuceneWork> queue, ConversionContext contextualBridge) {
         String idInString = objectToString( idBridge, idKeywordName, id, contextualBridge );
         if ( delete && !add ) {
@@ -413,7 +413,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
         }
         return addWork;
     }
-    
+
     public UpdateLuceneWork createUpdateWork(Class<T> entityClass, T entity, Serializable id, String idInString, InstanceInitializer sessionInitializer, ConversionContext contextualBridge) {
         Map<String, String> fieldToAnalyzerMap = new HashMap<String, String>();
         Document doc = getDocument( entity, id, fieldToAnalyzerMap, sessionInitializer, contextualBridge );
@@ -650,7 +650,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
     private Object unproxy(Object instance, InstanceInitializer objectInitializer) {
         if ( instance == null )
             return null;
-            
+
         return objectInitializer.unproxy( instance );
     }
 
@@ -695,7 +695,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
     public boolean allowFieldSelectionInProjection() {
         return allowFieldSelectionInProjection;
     }
-    
+
     public Set<org.hibernate.search.annotations.FieldCacheType> getFieldCacheOption() {
         return fieldCacheUsage;
     }
@@ -728,7 +728,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
         Object unproxiedEntity = this.instanceInitalizer.unproxy( entity );
         return (Serializable) ReflectionHelper.getMemberValue( unproxiedEntity, idGetter );
     }
-    
+
     public String objectToString(String fieldName, Object value, ConversionContext conversionContext) {
         if ( fieldName == null ) {
             throw new AssertionFailure( "Field name should not be null" );
@@ -857,7 +857,7 @@ public class DocumentBuilderIndexedEntity<T> extends AbstractDocumentBuilder<T> 
     public boolean requiresProvidedId() {
         return this.idProvided;
     }
-    
+
     /**
      * FIXME remove the need for such a method, we should always be able to rely on Work.id,
      * but to respect @DocumentId which is being processed in the DocumentBuilder currently

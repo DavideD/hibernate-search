@@ -33,7 +33,7 @@ import java.io.Serializable;
 public interface FullTextManager {
 
     /**
-     * Returns the entity instance of a given type and id value  
+     * Returns the entity instance of a given type and id value
      */
     public <T> T get(Class<T> entityType, Serializable id);
 
