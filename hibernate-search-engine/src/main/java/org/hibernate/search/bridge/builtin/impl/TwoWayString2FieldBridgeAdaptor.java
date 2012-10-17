@@ -37,30 +37,30 @@ import org.hibernate.search.engine.impl.DocumentBuilderHelper;
 //TODO use Generics to avoid double declaration of stringBridge 
 public class TwoWayString2FieldBridgeAdaptor extends String2FieldBridgeAdaptor implements TwoWayFieldBridge {
 
-	private final TwoWayStringBridge stringBridge;
+    private final TwoWayStringBridge stringBridge;
 
-	public TwoWayString2FieldBridgeAdaptor(TwoWayStringBridge stringBridge) {
-		super( stringBridge );
-		this.stringBridge = stringBridge;
-	}
+    public TwoWayString2FieldBridgeAdaptor(TwoWayStringBridge stringBridge) {
+        super( stringBridge );
+        this.stringBridge = stringBridge;
+    }
 
-	public String objectToString(Object object) {
-		return stringBridge.objectToString( object );
-	}
+    public String objectToString(Object object) {
+        return stringBridge.objectToString( object );
+    }
 
-	public Object get(String name, Document document) {
-		Fieldable field = document.getFieldable( name );
-		if ( field == null ) {
-			return stringBridge.stringToObject( null );
-		}
-		else {
-			String stringValue = DocumentBuilderHelper.extractStringFromFieldable(field);
-			return stringBridge.stringToObject( stringValue );
-		}
-	}
+    public Object get(String name, Document document) {
+        Fieldable field = document.getFieldable( name );
+        if ( field == null ) {
+            return stringBridge.stringToObject( null );
+        }
+        else {
+            String stringValue = DocumentBuilderHelper.extractStringFromFieldable(field);
+            return stringBridge.stringToObject( stringValue );
+        }
+    }
 
-	public TwoWayStringBridge unwrap() {
-		return stringBridge;
-	}
-	
+    public TwoWayStringBridge unwrap() {
+        return stringBridge;
+    }
+    
 }

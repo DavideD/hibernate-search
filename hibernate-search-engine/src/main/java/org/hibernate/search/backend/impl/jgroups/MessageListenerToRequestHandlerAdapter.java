@@ -35,14 +35,14 @@ import org.jgroups.blocks.RequestHandler;
  */
 class MessageListenerToRequestHandlerAdapter implements RequestHandler {
 
-	private final MessageListener delegate;
+    private final MessageListener delegate;
 
-	MessageListenerToRequestHandlerAdapter(final MessageListener delegate) {
-		this.delegate = delegate;
-	}
+    MessageListenerToRequestHandlerAdapter(final MessageListener delegate) {
+        this.delegate = delegate;
+    }
 
-	public Object handle(final Message msg) throws Exception {
-		delegate.receive( msg );
-		return null;
-	}
+    public Object handle(final Message msg) throws Exception {
+        delegate.receive( msg );
+        return null;
+    }
 }

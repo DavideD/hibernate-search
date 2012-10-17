@@ -38,37 +38,37 @@ import org.hibernate.search.indexes.spi.IndexManager;
  */
 public interface IndexShardingStrategy {
 
-	/**
-	 * provides access to sharding properties (under the suffix sharding_strategy)
-	 * and provide access to all the IndexManager for a given index
-	 */
-	void initialize(Properties properties, IndexManager[] providers);
+    /**
+     * provides access to sharding properties (under the suffix sharding_strategy)
+     * and provide access to all the IndexManager for a given index
+     */
+    void initialize(Properties properties, IndexManager[] providers);
 
-	/**
-	 * Ask for all shards (eg to query or optimize)
-	 */
-	IndexManager[] getIndexManagersForAllShards();
+    /**
+     * Ask for all shards (eg to query or optimize)
+     */
+    IndexManager[] getIndexManagersForAllShards();
 
-	/**
-	 * return the IndexManager where the given entity will be indexed
-	 */
-	IndexManager getIndexManagerForAddition(Class<?> entity, Serializable id, String idInString, Document document);
+    /**
+     * return the IndexManager where the given entity will be indexed
+     */
+    IndexManager getIndexManagerForAddition(Class<?> entity, Serializable id, String idInString, Document document);
 
-	/**
-	 * return the IndexManager(s) where the given entity is stored and where the deletion operation needs to be applied
-	 * id and idInString could be null. If null, all the IndexManagers containing entity types should be returned
-	 * @param entity the type of the deleted entity
-	 * @param id the id in object form
-	 * @param idInString the id as transformed by the used TwoWayStringBridge
-	 */
-	IndexManager[] getIndexManagersForDeletion(Class<?> entity, Serializable id, String idInString);
+    /**
+     * return the IndexManager(s) where the given entity is stored and where the deletion operation needs to be applied
+     * id and idInString could be null. If null, all the IndexManagers containing entity types should be returned
+     * @param entity the type of the deleted entity
+     * @param id the id in object form
+     * @param idInString the id as transformed by the used TwoWayStringBridge
+     */
+    IndexManager[] getIndexManagersForDeletion(Class<?> entity, Serializable id, String idInString);
 
-	/**
-	 * return the set of IndexManager(s) where the entities matching the filters are stored
-	 * this optional optimization allows queries to hit a subset of all shards, which may be useful for some datasets
-	 * if this optimization is not needed, return getIndexManagersForAllShards()
-	 *
-	 * fullTextFilters can be empty if no filter is applied
-	 */
-	IndexManager[] getIndexManagersForQuery(FullTextFilterImplementor[] fullTextFilters);
+    /**
+     * return the set of IndexManager(s) where the entities matching the filters are stored
+     * this optional optimization allows queries to hit a subset of all shards, which may be useful for some datasets
+     * if this optimization is not needed, return getIndexManagersForAllShards()
+     *
+     * fullTextFilters can be empty if no filter is applied
+     */
+    IndexManager[] getIndexManagersForQuery(FullTextFilterImplementor[] fullTextFilters);
 }

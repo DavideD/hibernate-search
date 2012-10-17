@@ -34,20 +34,20 @@ import org.hibernate.search.SearchException;
  */
 public class EmptyQueryException extends SearchException {
 
-	public EmptyQueryException() {
-		super();
-	}
+    public EmptyQueryException() {
+        super();
+    }
 
-	public EmptyQueryException(String message) {
-		super( message );
-	}
+    public EmptyQueryException(String message) {
+        super( message );
+    }
 
-	public EmptyQueryException(String message, Throwable cause) {
-		super( message, cause );
-	}
+    public EmptyQueryException(String message, Throwable cause) {
+        super( message, cause );
+    }
 
-	public EmptyQueryException(Throwable cause) {
-		super( cause );
-	}
+    public EmptyQueryException(Throwable cause) {
+        super( cause );
+    }
 
 }

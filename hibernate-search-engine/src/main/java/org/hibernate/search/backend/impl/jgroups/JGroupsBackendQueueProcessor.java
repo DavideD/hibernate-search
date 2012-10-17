@@ -51,103 +51,103 @@ import org.jgroups.Address;
  */
 public class JGroupsBackendQueueProcessor implements BackendQueueProcessor {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final NodeSelectorStrategy selectionStrategy;
+    private final NodeSelectorStrategy selectionStrategy;
 
-	protected MessageSender messageSender;
-	protected String indexName;
-	protected DirectoryBasedIndexManager indexManager;
+    protected MessageSender messageSender;
+    protected String indexName;
+    protected DirectoryBasedIndexManager indexManager;
 
-	private Address address;
-	private ServiceManager serviceManager;
+    private Address address;
+    private ServiceManager serviceManager;
 
-	private JGroupsBackendQueueTask jgroupsProcessor;
-	private LuceneBackendQueueProcessor luceneBackendQueueProcessor;
+    private JGroupsBackendQueueTask jgroupsProcessor;
+    private LuceneBackendQueueProcessor luceneBackendQueueProcessor;
 
 
-	public JGroupsBackendQueueProcessor(NodeSelectorStrategy selectionStrategy) {
-		this.selectionStrategy = selectionStrategy;
-	}
+    public JGroupsBackendQueueProcessor(NodeSelectorStrategy selectionStrategy) {
+        this.selectionStrategy = selectionStrategy;
+    }
 
-	@Override
-	public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
-		this.indexName = indexManager.getIndexName();
-		assertLegacyOptionsNotUsed( props, indexName );
-		this.indexManager = indexManager;
-		serviceManager = context.getServiceManager();
-		this.messageSender = serviceManager.requestService( JGroupsChannelProvider.class, context );
-		NodeSelectorStrategyHolder masterNodeSelector = serviceManager.requestService( MasterSelectorServiceProvider.class, context );
-		masterNodeSelector.setNodeSelectorStrategy( indexName, selectionStrategy );
-		selectionStrategy.viewAccepted( messageSender.getView() ); // set current view?
-		jgroupsProcessor = new JGroupsBackendQueueTask( this, indexManager, masterNodeSelector );
-		luceneBackendQueueProcessor = new LuceneBackendQueueProcessor();
-		luceneBackendQueueProcessor.initialize( props, context, indexManager );
-	}
+    @Override
+    public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
+        this.indexName = indexManager.getIndexName();
+        assertLegacyOptionsNotUsed( props, indexName );
+        this.indexManager = indexManager;
+        serviceManager = context.getServiceManager();
+        this.messageSender = serviceManager.requestService( JGroupsChannelProvider.class, context );
+        NodeSelectorStrategyHolder masterNodeSelector = serviceManager.requestService( MasterSelectorServiceProvider.class, context );
+        masterNodeSelector.setNodeSelectorStrategy( indexName, selectionStrategy );
+        selectionStrategy.viewAccepted( messageSender.getView() ); // set current view?
+        jgroupsProcessor = new JGroupsBackendQueueTask( this, indexManager, masterNodeSelector );
+        luceneBackendQueueProcessor = new LuceneBackendQueueProcessor();
+        luceneBackendQueueProcessor.initialize( props, context, indexManager );
+    }
 
-	public void close() {
-		serviceManager.releaseService( MasterSelectorServiceProvider.class );
-		serviceManager.releaseService( JGroupsChannelProvider.class );
-		luceneBackendQueueProcessor.close();
-	}
+    public void close() {
+        serviceManager.releaseService( MasterSelectorServiceProvider.class );
+        serviceManager.releaseService( JGroupsChannelProvider.class );
+        luceneBackendQueueProcessor.close();
+    }
 
-	MessageSender getMessageSender() {
-		return messageSender;
-	}
+    MessageSender getMessageSender() {
+        return messageSender;
+    }
 
-	/**
-	 * Cluster's node address
-	 *
-	 * @return Address
-	 */
-	public Address getAddress() {
-		if ( address == null && messageSender != null ) {
-			address = messageSender.getAddress();
-		}
-		return address;
-	}
+    /**
+     * Cluster's node address
+     *
+     * @return Address
+     */
+    public Address getAddress() {
+        if ( address == null && messageSender != null ) {
+            address = messageSender.getAddress();
+        }
+        return address;
+    }
 
-	@Override
-	public void indexMappingChanged() {
-		// no-op
-	}
+    @Override
+    public void indexMappingChanged() {
+        // no-op
+    }
 
-	@Override
-	public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
-		if ( selectionStrategy.isIndexOwnerLocal() ) {
-			luceneBackendQueueProcessor.applyWork( workList, monitor );
-		}
-		else {
-			if ( workList == null ) {
-				throw new IllegalArgumentException( "workList should not be null" );
-			}
-			jgroupsProcessor.sendLuceneWorkList( workList );
-		}
-	}
+    @Override
+    public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
+        if ( selectionStrategy.isIndexOwnerLocal() ) {
+            luceneBackendQueueProcessor.applyWork( workList, monitor );
+        }
+        else {
+            if ( workList == null ) {
+                throw new IllegalArgumentException( "workList should not be null" );
+            }
+            jgroupsProcessor.sendLuceneWorkList( workList );
+        }
+    }
 
-	@Override
-	public void applyStreamWork(LuceneWork singleOperation, IndexingMonitor monitor) {
-		if ( selectionStrategy.isIndexOwnerLocal() ) {
-			luceneBackendQueueProcessor.applyStreamWork( singleOperation, monitor );
-		}
-		else {
-			//TODO optimize for single operation?
-			jgroupsProcessor.sendLuceneWorkList( Collections.singletonList( singleOperation ) );
-		}
-	}
+    @Override
+    public void applyStreamWork(LuceneWork singleOperation, IndexingMonitor monitor) {
+        if ( selectionStrategy.isIndexOwnerLocal() ) {
+            luceneBackendQueueProcessor.applyStreamWork( singleOperation, monitor );
+        }
+        else {
+            //TODO optimize for single operation?
+            jgroupsProcessor.sendLuceneWorkList( Collections.singletonList( singleOperation ) );
+        }
+    }
 
-	@Override
-	public Lock getExclusiveWriteLock() {
-		return luceneBackendQueueProcessor.getExclusiveWriteLock();
-	}
+    @Override
+    public Lock getExclusiveWriteLock() {
+        return luceneBackendQueueProcessor.getExclusiveWriteLock();
+    }
 
-	private static void assertLegacyOptionsNotUsed(Properties props, String indexName) {
-		MaskedProperty jgroupsCfg = new MaskedProperty( props, "worker.backend.jgroups" );
-		if ( jgroupsCfg.containsKey( "configurationFile" )
-				|| jgroupsCfg.containsKey( "configurationXml" )
-				|| jgroupsCfg.containsKey( "configurationString" )
-				|| jgroupsCfg.containsKey( "clusterName" ) ) {
-			throw log.legacyJGroupsConfigurationDefined( indexName );
-		}
-	}
+    private static void assertLegacyOptionsNotUsed(Properties props, String indexName) {
+        MaskedProperty jgroupsCfg = new MaskedProperty( props, "worker.backend.jgroups" );
+        if ( jgroupsCfg.containsKey( "configurationFile" )
+                || jgroupsCfg.containsKey( "configurationXml" )
+                || jgroupsCfg.containsKey( "configurationString" )
+                || jgroupsCfg.containsKey( "clusterName" ) ) {
+            throw log.legacyJGroupsConfigurationDefined( indexName );
+        }
+    }
 }

@@ -44,64 +44,64 @@ import java.lang.annotation.Target;
 @Target({ ElementType.METHOD, ElementType.FIELD })
 @Documented
 public @interface Field {
-	/**
-	 * Default value for {@link #indexNullAs} parameter. Indicates that {@code null} values should not be indexed.
-	 */
-	public static final String DO_NOT_INDEX_NULL = "__DO_NOT_INDEX_NULL__";
+    /**
+     * Default value for {@link #indexNullAs} parameter. Indicates that {@code null} values should not be indexed.
+     */
+    public static final String DO_NOT_INDEX_NULL = "__DO_NOT_INDEX_NULL__";
 
-	/**
-	 * Value for {@link #indexNullAs} parameter indicating that {@code null} values should not indexed using the
-	 */
-	public static final String DEFAULT_NULL_TOKEN = "__DEFAULT_NULL_TOKEN__";
+    /**
+     * Value for {@link #indexNullAs} parameter indicating that {@code null} values should not indexed using the
+     */
+    public static final String DEFAULT_NULL_TOKEN = "__DEFAULT_NULL_TOKEN__";
 
-	/**
-	 * @return Returns the field name. Defaults to the JavaBean property name.
-	 */
-	String name() default "";
+    /**
+     * @return Returns the field name. Defaults to the JavaBean property name.
+     */
+    String name() default "";
 
-	/**
-	 * @return Returns a {@code Store} enum type indicating whether the value should be stored in the document. Defaults to {@code Store.NO}.
-	 */
-	Store store() default Store.NO;
+    /**
+     * @return Returns a {@code Store} enum type indicating whether the value should be stored in the document. Defaults to {@code Store.NO}.
+     */
+    Store store() default Store.NO;
 
-	/**
-	 * @return Returns a {@code Index} enum defining whether the value should be indexed or not. Defaults to {@code Index.YES}.
-	 */
-	Index index() default Index.YES;
+    /**
+     * @return Returns a {@code Index} enum defining whether the value should be indexed or not. Defaults to {@code Index.YES}.
+     */
+    Index index() default Index.YES;
 
-	/**
-	 * @return Returns a {@code Analyze} enum defining whether the value should be analyzed or not. Defaults to {@code Analyze.YES}.
-	 */
-	Analyze analyze() default Analyze.YES;
+    /**
+     * @return Returns a {@code Analyze} enum defining whether the value should be analyzed or not. Defaults to {@code Analyze.YES}.
+     */
+    Analyze analyze() default Analyze.YES;
 
-	/**
-	 * @return Returns a {@code Norms} enum defining whether the norms should be stored in the index or not. Defaults to {@code Norms.YES}.
-	 */
-	Norms norms() default Norms.YES;
+    /**
+     * @return Returns a {@code Norms} enum defining whether the norms should be stored in the index or not. Defaults to {@code Norms.YES}.
+     */
+    Norms norms() default Norms.YES;
 
-	/**
-	 * @return Returns a {@code TermVector} enum defining if and how term vectors are stored. Defaults to {@code TermVector.NO}.
-	 */
-	TermVector termVector() default TermVector.NO;
+    /**
+     * @return Returns a {@code TermVector} enum defining if and how term vectors are stored. Defaults to {@code TermVector.NO}.
+     */
+    TermVector termVector() default TermVector.NO;
 
-	/**
-	 * @return Returns the analyzer for the field. Defaults to the inherited analyzer.
-	 */
-	Analyzer analyzer() default @Analyzer;
+    /**
+     * @return Returns the analyzer for the field. Defaults to the inherited analyzer.
+     */
+    Analyzer analyzer() default @Analyzer;
 
-	/**
-	 * @return Returns the boost factor for the field. Default boost factor is 1.0.
-	 */
-	Boost boost() default @Boost(value = 1.0F);
+    /**
+     * @return Returns the boost factor for the field. Default boost factor is 1.0.
+     */
+    Boost boost() default @Boost(value = 1.0F);
 
-	/**
-	 * @return Returns the field bridge used for this field. Default is auto-wired.
-	 */
-	FieldBridge bridge() default @FieldBridge;
+    /**
+     * @return Returns the field bridge used for this field. Default is auto-wired.
+     */
+    FieldBridge bridge() default @FieldBridge;
 
-	/**
-	 * @return Returns the value to be used for indexing {@code null}. Per default {@code Field.NO_NULL_INDEXING} is returned indicating that
-	 *         null values are not indexed.
-	 */
-	String indexNullAs() default DO_NOT_INDEX_NULL;
+    /**
+     * @return Returns the value to be used for indexing {@code null}. Per default {@code Field.NO_NULL_INDEXING} is returned indicating that
+     *         null values are not indexed.
+     */
+    String indexNullAs() default DO_NOT_INDEX_NULL;
 }

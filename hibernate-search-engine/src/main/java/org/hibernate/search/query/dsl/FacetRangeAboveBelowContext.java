@@ -27,9 +27,9 @@ package org.hibernate.search.query.dsl;
  * @author Hardy Ferentschik
  */
 public interface FacetRangeAboveBelowContext<T> extends FacetRangeStartContext<T> {
-	FacetRangeBelowContinuationContext<T> below(T min);
+    FacetRangeBelowContinuationContext<T> below(T min);
 
-	FacetRangeAboveContext<T> above(T max);
+    FacetRangeAboveContext<T> above(T max);
 }
 
 

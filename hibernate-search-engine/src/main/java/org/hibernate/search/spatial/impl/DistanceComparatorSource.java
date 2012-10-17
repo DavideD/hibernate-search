@@ -27,16 +27,16 @@ import org.apache.lucene.search.FieldComparatorSource;
 
 public class DistanceComparatorSource extends FieldComparatorSource {
 
-	private final Point center;
+    private final Point center;
 
-	public DistanceComparatorSource(Point center) {
-		this.center = center;
-	}
+    public DistanceComparatorSource(Point center) {
+        this.center = center;
+    }
 
-	@Override
-	public FieldComparator<?> newComparator(String fieldname, int numHits, int sortPos, boolean reversed)
-			throws IOException {
-		return new DistanceComparator( center, numHits, fieldname );
-	}
+    @Override
+    public FieldComparator<?> newComparator(String fieldname, int numHits, int sortPos, boolean reversed)
+            throws IOException {
+        return new DistanceComparator( center, numHits, fieldname );
+    }
 }
 

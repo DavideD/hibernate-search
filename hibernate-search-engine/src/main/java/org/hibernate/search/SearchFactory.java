@@ -38,54 +38,54 @@ import org.hibernate.search.stat.Statistics;
  */
 public interface SearchFactory {
 
-	/**
-	 * Optimize all indexes
-	 */
-	void optimize();
+    /**
+     * Optimize all indexes
+     */
+    void optimize();
 
-	/**
-	 * Optimize the index holding <code>entityType</code>
-	 *
-	 * @param entityType the entity type (index) to optimize
-	 */
-	void optimize(Class entityType);
+    /**
+     * Optimize the index holding <code>entityType</code>
+     *
+     * @param entityType the entity type (index) to optimize
+     */
+    void optimize(Class entityType);
 
-	/**
-	 * Retrieve an analyzer instance by its definition name
-	 *
-	 * @param name the name of the analyzer
-	 * @return analyzer with the specified name
-	 * @throws org.hibernate.search.SearchException if the definition name is unknown
-	 */
-	Analyzer getAnalyzer(String name);
+    /**
+     * Retrieve an analyzer instance by its definition name
+     *
+     * @param name the name of the analyzer
+     * @return analyzer with the specified name
+     * @throws org.hibernate.search.SearchException if the definition name is unknown
+     */
+    Analyzer getAnalyzer(String name);
 
-	/**
-	 * Retrieves the scoped analyzer for a given class.
-	 *
-	 * @param clazz The class for which to retrieve the analyzer.
-	 * @return The scoped analyzer for the specified class.
-	 * @throws java.lang.IllegalArgumentException in case <code>clazz == null</code> or the specified
-	 *                                  class is not an indexed entity.
-	 */
-	Analyzer getAnalyzer(Class<?> clazz);
+    /**
+     * Retrieves the scoped analyzer for a given class.
+     *
+     * @param clazz The class for which to retrieve the analyzer.
+     * @return The scoped analyzer for the specified class.
+     * @throws java.lang.IllegalArgumentException in case <code>clazz == null</code> or the specified
+     *                                  class is not an indexed entity.
+     */
+    Analyzer getAnalyzer(Class<?> clazz);
 
-	/**
-	 * @return return a query builder providing a fluent API to create Lucene queries
-	 */
-	QueryContextBuilder buildQueryBuilder();
+    /**
+     * @return return a query builder providing a fluent API to create Lucene queries
+     */
+    QueryContextBuilder buildQueryBuilder();
 
-	/**
-	 * Retrieve the statistics instance for this factory.
-	 *
-	 * @return The statistics.
-	 */
-	Statistics getStatistics();
+    /**
+     * Retrieve the statistics instance for this factory.
+     *
+     * @return The statistics.
+     */
+    Statistics getStatistics();
 
-	/**
-	 * Provides access to the IndexReader API
-	 *
-	 * @return the IndexReaderAccessor for this SearchFactory
-	 */
-	IndexReaderAccessor getIndexReaderAccessor();
+    /**
+     * Provides access to the IndexReader API
+     *
+     * @return the IndexReaderAccessor for this SearchFactory
+     */
+    IndexReaderAccessor getIndexReaderAccessor();
 
 }

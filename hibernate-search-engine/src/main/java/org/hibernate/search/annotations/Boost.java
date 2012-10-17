@@ -38,5 +38,5 @@ import java.lang.annotation.Target;
 @Target( {ElementType.TYPE, ElementType.METHOD, ElementType.FIELD} )
 @Documented
 public @interface Boost {
-	float value();
+    float value();
 }

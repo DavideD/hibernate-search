@@ -46,42 +46,42 @@ import org.hibernate.search.backend.impl.WorkVisitor;
  */
 public abstract class LuceneWork implements Serializable {
 
-	private final Document document;
-	private final Class<?> entityClass;
-	private final Serializable id;
-	private final String idInString;
+    private final Document document;
+    private final Class<?> entityClass;
+    private final Serializable id;
+    private final String idInString;
 
-	public LuceneWork(Serializable id, String idInString, Class<?> entity) {
-		this( id, idInString, entity, null );
-	}
+    public LuceneWork(Serializable id, String idInString, Class<?> entity) {
+        this( id, idInString, entity, null );
+    }
 
-	public LuceneWork(Serializable id, String idInString, Class<?> entity, Document document) {
-		this.id = id;
-		this.idInString = idInString;
-		this.entityClass = entity;
-		this.document = document;
-	}
+    public LuceneWork(Serializable id, String idInString, Class<?> entity, Document document) {
+        this.id = id;
+        this.idInString = idInString;
+        this.entityClass = entity;
+        this.document = document;
+    }
 
-	public Document getDocument() {
-		return document;
-	}
+    public Document getDocument() {
+        return document;
+    }
 
-	public Class<?> getEntityClass() {
-		return entityClass;
-	}
+    public Class<?> getEntityClass() {
+        return entityClass;
+    }
 
-	public Serializable getId() {
-		return id;
-	}
+    public Serializable getId() {
+        return id;
+    }
 
-	public String getIdInString() {
-		return idInString;
-	}
-	
-	public abstract <T> T getWorkDelegate(WorkVisitor<T> visitor);
+    public String getIdInString() {
+        return idInString;
+    }
+    
+    public abstract <T> T getWorkDelegate(WorkVisitor<T> visitor);
 
-	public Map<String, String> getFieldToAnalyzerMap() {
-		return null;
-	}
+    public Map<String, String> getFieldToAnalyzerMap() {
+        return null;
+    }
 
 }

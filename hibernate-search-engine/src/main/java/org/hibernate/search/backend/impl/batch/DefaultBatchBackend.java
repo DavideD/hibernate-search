@@ -49,66 +49,66 @@ import org.hibernate.search.store.IndexShardingStrategy;
  */
 public class DefaultBatchBackend implements BatchBackend {
 
-	private final SearchFactoryIntegrator searchFactoryImplementor;
-	private final MassIndexerProgressMonitor progressMonitor;
+    private final SearchFactoryIntegrator searchFactoryImplementor;
+    private final MassIndexerProgressMonitor progressMonitor;
 
-	public DefaultBatchBackend(SearchFactoryIntegrator searchFactoryImplementor, MassIndexerProgressMonitor progressMonitor) {
-		this.searchFactoryImplementor = searchFactoryImplementor;
-		this.progressMonitor = progressMonitor;
-	}
+    public DefaultBatchBackend(SearchFactoryIntegrator searchFactoryImplementor, MassIndexerProgressMonitor progressMonitor) {
+        this.searchFactoryImplementor = searchFactoryImplementor;
+        this.progressMonitor = progressMonitor;
+    }
 
-	public void enqueueAsyncWork(LuceneWork work) throws InterruptedException {
-		sendWorkToShards( work, true );
-	}
+    public void enqueueAsyncWork(LuceneWork work) throws InterruptedException {
+        sendWorkToShards( work, true );
+    }
 
-	public void doWorkInSync(LuceneWork work) {
-		sendWorkToShards( work, false );
-	}
+    public void doWorkInSync(LuceneWork work) {
+        sendWorkToShards( work, false );
+    }
 
-	private void sendWorkToShards(LuceneWork work, boolean forceAsync) {
-		final Class<?> entityType = work.getEntityClass();
-		EntityIndexBinder entityIndexBinding = searchFactoryImplementor.getIndexBindingForEntity( entityType );
-		IndexShardingStrategy shardingStrategy = entityIndexBinding.getSelectionStrategy();
-		if ( forceAsync ) {
-			work.getWorkDelegate( StreamingSelectionVisitor.INSTANCE )
-					.performStreamOperation( work, shardingStrategy, progressMonitor, forceAsync );
-		}
-		else {
-			WorkQueuePerIndexSplitter workContext = new WorkQueuePerIndexSplitter();
-			work.getWorkDelegate( TransactionalSelectionVisitor.INSTANCE )
-					.performOperation( work, shardingStrategy, workContext );
-			workContext.commitOperations( progressMonitor ); //FIXME I need a "Force sync" actually for when using PurgeAll before the indexing starts
-		}
-	}
+    private void sendWorkToShards(LuceneWork work, boolean forceAsync) {
+        final Class<?> entityType = work.getEntityClass();
+        EntityIndexBinder entityIndexBinding = searchFactoryImplementor.getIndexBindingForEntity( entityType );
+        IndexShardingStrategy shardingStrategy = entityIndexBinding.getSelectionStrategy();
+        if ( forceAsync ) {
+            work.getWorkDelegate( StreamingSelectionVisitor.INSTANCE )
+                    .performStreamOperation( work, shardingStrategy, progressMonitor, forceAsync );
+        }
+        else {
+            WorkQueuePerIndexSplitter workContext = new WorkQueuePerIndexSplitter();
+            work.getWorkDelegate( TransactionalSelectionVisitor.INSTANCE )
+                    .performOperation( work, shardingStrategy, workContext );
+            workContext.commitOperations( progressMonitor ); //FIXME I need a "Force sync" actually for when using PurgeAll before the indexing starts
+        }
+    }
 
-	@Override
-	public void flush(Set<Class<?>> entityTypes) {
-		Collection<IndexManager> uniqueIndexManagers = uniqueIndexManagerForTypes( entityTypes );
-		for ( IndexManager indexManager : uniqueIndexManagers ) {
-			indexManager.performStreamOperation( FlushLuceneWork.INSTANCE, progressMonitor, false );
-		}
-	}
+    @Override
+    public void flush(Set<Class<?>> entityTypes) {
+        Collection<IndexManager> uniqueIndexManagers = uniqueIndexManagerForTypes( entityTypes );
+        for ( IndexManager indexManager : uniqueIndexManagers ) {
+            indexManager.performStreamOperation( FlushLuceneWork.INSTANCE, progressMonitor, false );
+        }
+    }
 
-	@Override
-	public void optimize(Set<Class<?>> entityTypes) {
-		Collection<IndexManager> uniqueIndexManagers = uniqueIndexManagerForTypes( entityTypes );
-		for ( IndexManager indexManager : uniqueIndexManagers ) {
-			indexManager.performStreamOperation( OptimizeLuceneWork.INSTANCE, progressMonitor, false );
-		}
-	}
+    @Override
+    public void optimize(Set<Class<?>> entityTypes) {
+        Collection<IndexManager> uniqueIndexManagers = uniqueIndexManagerForTypes( entityTypes );
+        for ( IndexManager indexManager : uniqueIndexManagers ) {
+            indexManager.performStreamOperation( OptimizeLuceneWork.INSTANCE, progressMonitor, false );
+        }
+    }
 
-	private Collection<IndexManager> uniqueIndexManagerForTypes(Collection<Class<?>> entityTypes) {
-		HashMap<String,IndexManager> uniqueBackends = new HashMap<String, IndexManager>( entityTypes.size() );
-		for ( Class<?> type : entityTypes ) {
-			EntityIndexBinder indexBindingForEntity = searchFactoryImplementor.getIndexBindingForEntity( type );
-			if ( indexBindingForEntity != null ) {
-				IndexManager[] indexManagers = indexBindingForEntity.getIndexManagers();
-				for ( IndexManager im : indexManagers ) {
-					uniqueBackends.put( im.getIndexName(), im );
-				}
-			}
-		}
-		return uniqueBackends.values();
-	}
+    private Collection<IndexManager> uniqueIndexManagerForTypes(Collection<Class<?>> entityTypes) {
+        HashMap<String,IndexManager> uniqueBackends = new HashMap<String, IndexManager>( entityTypes.size() );
+        for ( Class<?> type : entityTypes ) {
+            EntityIndexBinder indexBindingForEntity = searchFactoryImplementor.getIndexBindingForEntity( type );
+            if ( indexBindingForEntity != null ) {
+                IndexManager[] indexManagers = indexBindingForEntity.getIndexManagers();
+                for ( IndexManager im : indexManagers ) {
+                    uniqueBackends.put( im.getIndexName(), im );
+                }
+            }
+        }
+        return uniqueBackends.values();
+    }
 
 }

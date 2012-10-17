@@ -34,37 +34,37 @@ import org.junit.rules.ExternalResource;
  */
 public class TestingSearchFactoryHolder extends ExternalResource {
 
-	private final SearchMapping buildMappingDefinition;
-	private SearchFactoryImplementor sf;
-	private final Class<?>[] entities;
+    private final SearchMapping buildMappingDefinition;
+    private SearchFactoryImplementor sf;
+    private final Class<?>[] entities;
 
-	public TestingSearchFactoryHolder(Class<?>... entities) {
-		this( null, entities );
-	}
+    public TestingSearchFactoryHolder(Class<?>... entities) {
+        this( null, entities );
+    }
 
-	public TestingSearchFactoryHolder(SearchMapping buildMappingDefinition, Class<?>... entities) {
-		this.buildMappingDefinition = buildMappingDefinition;
-		this.entities = entities;
-	}
+    public TestingSearchFactoryHolder(SearchMapping buildMappingDefinition, Class<?>... entities) {
+        this.buildMappingDefinition = buildMappingDefinition;
+        this.entities = entities;
+    }
 
-	public SearchFactoryImplementor getSearchFactory() {
-		return sf;
-	}
+    public SearchFactoryImplementor getSearchFactory() {
+        return sf;
+    }
 
-	@Override
-	protected void before() throws Throwable {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.setProgrammaticMapping( buildMappingDefinition );
-		cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		for ( Class<?> c : entities ) {
-			cfg.addClass( c );
-		}
-		sf = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
-	}
+    @Override
+    protected void before() throws Throwable {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.setProgrammaticMapping( buildMappingDefinition );
+        cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        for ( Class<?> c : entities ) {
+            cfg.addClass( c );
+        }
+        sf = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+    }
 
-	@Override
-	protected void after() {
-		sf.close();
-	}
+    @Override
+    protected void after() {
+        sf.close();
+    }
 
 }

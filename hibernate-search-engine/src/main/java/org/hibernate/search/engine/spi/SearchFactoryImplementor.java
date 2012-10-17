@@ -39,45 +39,45 @@ import org.hibernate.search.stat.spi.StatisticsImplementor;
  * @author Hardy Ferentschik
  */
 public interface SearchFactoryImplementor extends SearchFactoryIntegrator {
-	
-	Map<Class<?>, EntityIndexBinder> getIndexBindingForEntity();
+    
+    Map<Class<?>, EntityIndexBinder> getIndexBindingForEntity();
 
-	<T> DocumentBuilderContainedEntity<T> getDocumentBuilderContainedEntity(Class<T> entityType);
+    <T> DocumentBuilderContainedEntity<T> getDocumentBuilderContainedEntity(Class<T> entityType);
 
-	FilterCachingStrategy getFilterCachingStrategy();
+    FilterCachingStrategy getFilterCachingStrategy();
 
-	FilterDef getFilterDefinition(String name);
+    FilterDef getFilterDefinition(String name);
 
-	String getIndexingStrategy();
+    String getIndexingStrategy();
 
-	int getFilterCacheBitResultsSize();
+    int getFilterCacheBitResultsSize();
 
-	Set<Class<?>> getIndexedTypesPolymorphic(Class<?>[] classes);
+    Set<Class<?>> getIndexedTypesPolymorphic(Class<?>[] classes);
 
-	BatchBackend makeBatchBackend(MassIndexerProgressMonitor progressMonitor);
+    BatchBackend makeBatchBackend(MassIndexerProgressMonitor progressMonitor);
 
-	boolean isJMXEnabled();
+    boolean isJMXEnabled();
 
-	/**
-	 * Retrieve the statistics implementor instance for this factory.
-	 *
-	 * @return The statistics implementor.
-	 */
-	public StatisticsImplementor getStatisticsImplementor();
+    /**
+     * Retrieve the statistics implementor instance for this factory.
+     *
+     * @return The statistics implementor.
+     */
+    public StatisticsImplementor getStatisticsImplementor();
 
-	/**
-	 * @return true if we are allowed to inspect entity state to
-	 * potentially skip some indexing operations.
-	 * Can be disabled to get pre-3.4 behavior (always rebuild document)
-	 */
-	boolean isDirtyChecksEnabled();
-	
-	IndexManagerHolder getAllIndexesManager();
+    /**
+     * @return true if we are allowed to inspect entity state to
+     * potentially skip some indexing operations.
+     * Can be disabled to get pre-3.4 behavior (always rebuild document)
+     */
+    boolean isDirtyChecksEnabled();
+    
+    IndexManagerHolder getAllIndexesManager();
 
-	/**
-	 * @return returns an instance of {@code InstanceInitializer} for class/object initialization.
-	 */
-	InstanceInitializer getInstanceInitializer();
+    /**
+     * @return returns an instance of {@code InstanceInitializer} for class/object initialization.
+     */
+    InstanceInitializer getInstanceInitializer();
 
-	TimingSource getTimingSource();
+    TimingSource getTimingSource();
 }

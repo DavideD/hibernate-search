@@ -46,52 +46,52 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class JmsBackendQueueTask implements Runnable {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	public static final String INDEX_NAME_JMS_PROPERTY = "HSearchIndexName";
+    public static final String INDEX_NAME_JMS_PROPERTY = "HSearchIndexName";
 
-	private final Collection<LuceneWork> queue;
-	private final JmsBackendQueueProcessor processor;
-	private final String indexName;
-	private final IndexManager indexManager;
+    private final Collection<LuceneWork> queue;
+    private final JmsBackendQueueProcessor processor;
+    private final String indexName;
+    private final IndexManager indexManager;
 
-	public JmsBackendQueueTask(String indexName, Collection<LuceneWork> queue, IndexManager indexManager,
-					JmsBackendQueueProcessor jmsBackendQueueProcessor) {
-		this.indexName = indexName;
-		this.queue = queue;
-		this.indexManager = indexManager;
-		this.processor = jmsBackendQueueProcessor;
-	}
+    public JmsBackendQueueTask(String indexName, Collection<LuceneWork> queue, IndexManager indexManager,
+                    JmsBackendQueueProcessor jmsBackendQueueProcessor) {
+        this.indexName = indexName;
+        this.queue = queue;
+        this.indexManager = indexManager;
+        this.processor = jmsBackendQueueProcessor;
+    }
 
-	public void run() {
-		List<LuceneWork> filteredQueue = new ArrayList<LuceneWork>(queue);
-		for (LuceneWork work : queue) {
-			if ( work instanceof OptimizeLuceneWork ) {
-				//we don't want optimization to be propagated
-				filteredQueue.remove( work );
-			}
-		}
-		if ( filteredQueue.size() == 0) return;
-		LuceneWorkSerializer serializer = indexManager.getSerializer();
-		byte[] data = serializer.toSerializedModel( filteredQueue );
-		QueueSender sender;
-		QueueSession session;
-		QueueConnection connection;
-		try {
-			connection = processor.getJMSConnection();
-			//TODO make transacted parameterized
-			session = connection.createQueueSession( false, QueueSession.AUTO_ACKNOWLEDGE );
-			ObjectMessage message = session.createObjectMessage();
-			message.setObject( data );
-			message.setStringProperty( INDEX_NAME_JMS_PROPERTY, indexName );
+    public void run() {
+        List<LuceneWork> filteredQueue = new ArrayList<LuceneWork>(queue);
+        for (LuceneWork work : queue) {
+            if ( work instanceof OptimizeLuceneWork ) {
+                //we don't want optimization to be propagated
+                filteredQueue.remove( work );
+            }
+        }
+        if ( filteredQueue.size() == 0) return;
+        LuceneWorkSerializer serializer = indexManager.getSerializer();
+        byte[] data = serializer.toSerializedModel( filteredQueue );
+        QueueSender sender;
+        QueueSession session;
+        QueueConnection connection;
+        try {
+            connection = processor.getJMSConnection();
+            //TODO make transacted parameterized
+            session = connection.createQueueSession( false, QueueSession.AUTO_ACKNOWLEDGE );
+            ObjectMessage message = session.createObjectMessage();
+            message.setObject( data );
+            message.setStringProperty( INDEX_NAME_JMS_PROPERTY, indexName );
 
-			sender = session.createSender( processor.getJmsQueue() );
-			sender.send( message );
+            sender = session.createSender( processor.getJmsQueue() );
+            sender.send( message );
 
-			session.close();
-		}
-		catch (JMSException e) {
-			throw log.unableToSendJMSWork( indexName, processor.getJmsQueueName(), e );
-		}
-	}
+            session.close();
+        }
+        catch (JMSException e) {
+            throw log.unableToSendJMSWork( indexName, processor.getJmsQueueName(), e );
+        }
+    }
 }

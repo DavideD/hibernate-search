@@ -38,17 +38,17 @@ import org.apache.lucene.search.TopDocs;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface DocumentExtractor {
-	EntityInfo extract(int index) throws IOException;
+    EntityInfo extract(int index) throws IOException;
 
-	int getFirstIndex();
+    int getFirstIndex();
 
-	int getMaxIndex();
+    int getMaxIndex();
 
-	void close();
+    void close();
 
-	/**
-	 * @experimental We are thinking at ways to encapsulate needs for exposing TopDocs (and whether or not it makes sense)
-	 * Try to avoid it if you can
-	 */
-	TopDocs getTopDocs();
+    /**
+     * @experimental We are thinking at ways to encapsulate needs for exposing TopDocs (and whether or not it makes sense)
+     * Try to avoid it if you can
+     */
+    TopDocs getTopDocs();
 }

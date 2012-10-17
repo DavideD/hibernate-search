@@ -36,32 +36,32 @@ import org.hibernate.search.indexes.spi.IndexManager;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class WorkQueuePerIndexSplitter {
-	
-	private IdentityHashMap<IndexManager,List<LuceneWork>> queues = new IdentityHashMap<IndexManager,List<LuceneWork>>();
+    
+    private IdentityHashMap<IndexManager,List<LuceneWork>> queues = new IdentityHashMap<IndexManager,List<LuceneWork>>();
 
-	/**
-	 * @param indexManager
-	 */
-	public List<LuceneWork> getIndexManagerQueue(IndexManager indexManager) {
-		List<LuceneWork> list = queues.get( indexManager );
-		if ( list == null ) {
-			list = new LinkedList<LuceneWork>();
-			queues.put( indexManager, list );
-		}
-		return list;
-	}
+    /**
+     * @param indexManager
+     */
+    public List<LuceneWork> getIndexManagerQueue(IndexManager indexManager) {
+        List<LuceneWork> list = queues.get( indexManager );
+        if ( list == null ) {
+            list = new LinkedList<LuceneWork>();
+            queues.put( indexManager, list );
+        }
+        return list;
+    }
 
-	/**
-	 * Send all operations stored so far to the backend to be performed, atomically and/or transactionally
-	 * if supported/enabled by each specific backend.
-	 *
-	 * @param monitor a {@link org.hibernate.search.backend.IndexingMonitor} object.
-	 */
-	public void commitOperations(IndexingMonitor monitor) {
-		// FIXME move executor here to parallel work - optionally? See HSEARCH-826
-		for ( Entry<IndexManager,List<LuceneWork>> entry : queues.entrySet() ) {
-			entry.getKey().performOperations( entry.getValue(), monitor );
-		}
-	}
+    /**
+     * Send all operations stored so far to the backend to be performed, atomically and/or transactionally
+     * if supported/enabled by each specific backend.
+     *
+     * @param monitor a {@link org.hibernate.search.backend.IndexingMonitor} object.
+     */
+    public void commitOperations(IndexingMonitor monitor) {
+        // FIXME move executor here to parallel work - optionally? See HSEARCH-826
+        for ( Entry<IndexManager,List<LuceneWork>> entry : queues.entrySet() ) {
+            entry.getKey().performOperations( entry.getValue(), monitor );
+        }
+    }
 
 }

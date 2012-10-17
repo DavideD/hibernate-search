@@ -28,5 +28,5 @@ package org.hibernate.search.query.dsl;
  * @author Hardy Ferentschik
  */
 public interface FacetRangeStartContext<T> {
-	FacetRangeLimitContext<T> from(T rangeStart);
+    FacetRangeLimitContext<T> from(T rangeStart);
 }

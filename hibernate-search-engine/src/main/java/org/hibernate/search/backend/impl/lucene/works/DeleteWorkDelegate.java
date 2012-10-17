@@ -57,47 +57,47 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 class DeleteWorkDelegate implements LuceneWorkDelegate {
 
-	private static final Log log = LoggerFactory.make();	
-	protected final Workspace workspace;
+    private static final Log log = LoggerFactory.make();    
+    protected final Workspace workspace;
 
-	DeleteWorkDelegate(Workspace workspace) {
-		this.workspace = workspace;
-	}
+    DeleteWorkDelegate(Workspace workspace) {
+        this.workspace = workspace;
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		final Class<?> entityType = work.getEntityClass();
-		final Serializable id = work.getId();
-		log.tracef( "Removing %s#%s by query.", entityType, id );
-		DocumentBuilderIndexedEntity<?> builder = workspace.getDocumentBuilder( entityType );
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        final Class<?> entityType = work.getEntityClass();
+        final Serializable id = work.getId();
+        log.tracef( "Removing %s#%s by query.", entityType, id );
+        DocumentBuilderIndexedEntity<?> builder = workspace.getDocumentBuilder( entityType );
 
-		BooleanQuery entityDeletionQuery = new BooleanQuery();
+        BooleanQuery entityDeletionQuery = new BooleanQuery();
 
-		Query idQueryTerm;
-		if ( isIdNumeric( builder ) ) {
-			idQueryTerm = NumericFieldUtils.createExactMatchQuery( builder.getIdKeywordName(), id );
-		} else {
-			Term idTerm = new Term( builder.getIdKeywordName(), work.getIdInString() );
-			idQueryTerm = new TermQuery( idTerm );
-		}
-		entityDeletionQuery.add( idQueryTerm, BooleanClause.Occur.MUST );
+        Query idQueryTerm;
+        if ( isIdNumeric( builder ) ) {
+            idQueryTerm = NumericFieldUtils.createExactMatchQuery( builder.getIdKeywordName(), id );
+        } else {
+            Term idTerm = new Term( builder.getIdKeywordName(), work.getIdInString() );
+            idQueryTerm = new TermQuery( idTerm );
+        }
+        entityDeletionQuery.add( idQueryTerm, BooleanClause.Occur.MUST );
 
-		Term classNameQueryTerm =  new Term( ProjectionConstants.OBJECT_CLASS, entityType.getName() );
-		TermQuery classNameQuery = new TermQuery( classNameQueryTerm );
-		entityDeletionQuery.add( classNameQuery, BooleanClause.Occur.MUST );
+        Term classNameQueryTerm =  new Term( ProjectionConstants.OBJECT_CLASS, entityType.getName() );
+        TermQuery classNameQuery = new TermQuery( classNameQueryTerm );
+        entityDeletionQuery.add( classNameQuery, BooleanClause.Occur.MUST );
 
-		try {
-			writer.deleteDocuments( entityDeletionQuery );
-		}
-		catch ( Exception e ) {
-			String message = "Unable to remove " + entityType + "#" + id + " from index.";
-			throw new SearchException( message, e );
-		}
-		workspace.incrementModificationCounter( 1 );
-	}
+        try {
+            writer.deleteDocuments( entityDeletionQuery );
+        }
+        catch ( Exception e ) {
+            String message = "Unable to remove " + entityType + "#" + id + " from index.";
+            throw new SearchException( message, e );
+        }
+        workspace.incrementModificationCounter( 1 );
+    }
 
-	protected static boolean isIdNumeric(DocumentBuilderIndexedEntity<?> documentBuilder) {
-		TwoWayFieldBridge idBridge = documentBuilder.getIdBridge();
-		return idBridge instanceof NumericFieldBridge;
-	}
+    protected static boolean isIdNumeric(DocumentBuilderIndexedEntity<?> documentBuilder) {
+        TwoWayFieldBridge idBridge = documentBuilder.getIdBridge();
+        return idBridge instanceof NumericFieldBridge;
+    }
 
 }

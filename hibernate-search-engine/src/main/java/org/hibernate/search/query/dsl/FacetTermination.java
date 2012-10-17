@@ -30,8 +30,8 @@ import org.hibernate.search.query.facet.FacetingRequest;
  * @author Hardy Ferentschik
  */
 public interface FacetTermination {
-	/**
-	 * @return the {@link org.hibernate.search.query.facet.FacetingRequest} produced by the building process.
-	 */
-	FacetingRequest createFacetingRequest();
+    /**
+     * @return the {@link org.hibernate.search.query.facet.FacetingRequest} produced by the building process.
+     */
+    FacetingRequest createFacetingRequest();
 }

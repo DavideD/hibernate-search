@@ -26,17 +26,17 @@ package org.hibernate.search.query;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public enum DatabaseRetrievalMethod {
-	/**
-	 * Use a criteria query to load the objects.
-	 * This is done in batch to minimize the number of queries
-	 *
-	 * Default approach
-	 */
-	QUERY,
+    /**
+     * Use a criteria query to load the objects.
+     * This is done in batch to minimize the number of queries
+     *
+     * Default approach
+     */
+    QUERY,
 
-	/**
-	 * Load each object by its identifier one by one.
-	 * Useful if a batch size is set in the entity's mapping
-	 */
-	FIND_BY_ID
+    /**
+     * Load each object by its identifier one by one.
+     * Useful if a batch size is set in the entity's mapping
+     */
+    FIND_BY_ID
 }

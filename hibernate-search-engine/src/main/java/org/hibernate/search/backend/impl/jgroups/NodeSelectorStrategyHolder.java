@@ -35,12 +35,12 @@ import org.jgroups.View;
  */
 public interface NodeSelectorStrategyHolder {
 
-	NodeSelectorStrategy getMasterNodeSelector(String indexName);
+    NodeSelectorStrategy getMasterNodeSelector(String indexName);
 
-	void setNodeSelectorStrategy(String indexName, NodeSelectorStrategy selector);
+    void setNodeSelectorStrategy(String indexName, NodeSelectorStrategy selector);
 
-	void setLocalAddress(Address address);
+    void setLocalAddress(Address address);
 
-	void viewAccepted(View view);
+    void viewAccepted(View view);
 
 }

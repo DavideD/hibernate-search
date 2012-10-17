@@ -36,10 +36,10 @@ import java.lang.annotation.Target;
 @Target( ElementType.TYPE )
 @Documented
 public @interface ClassBridges {
-	/**
-	 * An array of ClassBridge annotations each of
-	 * which is to be applied to the class containing
-	 * this annotation.
-	 */
-	ClassBridge[] value() default {};
+    /**
+     * An array of ClassBridge annotations each of
+     * which is to be applied to the class containing
+     * this annotation.
+     */
+    ClassBridge[] value() default {};
 }

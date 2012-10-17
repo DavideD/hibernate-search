@@ -39,16 +39,16 @@ import org.hibernate.search.indexes.interceptor.EntityIndexingInterceptor;
  * Specifies that an entity is to be indexed by Lucene
  */
 public @interface Indexed {
-	/**
-	 * @return The filename of the index
-	 */
-	String index() default "";
+    /**
+     * @return The filename of the index
+     */
+    String index() default "";
 
-	/**
-	 * Custom converter to change operations upon indexing
-	 * Useful for soft deletes and similar patterns
-	 * 
-	 * @experimental : This feature is experimental
-	 */
-	Class<? extends EntityIndexingInterceptor> interceptor() default DefaultEntityInterceptor.class;
+    /**
+     * Custom converter to change operations upon indexing
+     * Useful for soft deletes and similar patterns
+     * 
+     * @experimental : This feature is experimental
+     */
+    Class<? extends EntityIndexingInterceptor> interceptor() default DefaultEntityInterceptor.class;
 }

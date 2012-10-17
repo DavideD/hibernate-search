@@ -31,23 +31,23 @@ package org.hibernate.search.query;
  */
 public enum ObjectLookupMethod {
 
-	/**
-	 * skip checking (default)
-	 */
-	SKIP,
-	
-	/**
-	 * check whether an object is already in the persistence context
-	 * before initializing it
-	 */
-	PERSISTENCE_CONTEXT,
+    /**
+     * skip checking (default)
+     */
+    SKIP,
+    
+    /**
+     * check whether an object is already in the persistence context
+     * before initializing it
+     */
+    PERSISTENCE_CONTEXT,
 
-	/**
-	 * check whether an object is already either :
-	 *  - in the persistence context
-	 *  - in the second level cache
-	 * before loading it.
-	 */
-	SECOND_LEVEL_CACHE
+    /**
+     * check whether an object is already either :
+     *  - in the persistence context
+     *  - in the second level cache
+     * before loading it.
+     */
+    SECOND_LEVEL_CACHE
 
 }

@@ -45,98 +45,98 @@ import org.hibernate.search.query.dsl.RangeTerminationExcludable;
  * @author Emmanuel Bernard
  */
 public class ConnectedMultiFieldsRangeQueryBuilder implements RangeTerminationExcludable {
-	private final RangeQueryContext rangeContext;
-	private final QueryCustomizer queryCustomizer;
-	private final List<FieldContext> fieldContexts;
-	private final QueryBuildingContext queryContext;
+    private final RangeQueryContext rangeContext;
+    private final QueryCustomizer queryCustomizer;
+    private final List<FieldContext> fieldContexts;
+    private final QueryBuildingContext queryContext;
 
-	public ConnectedMultiFieldsRangeQueryBuilder(RangeQueryContext rangeContext,
-												 QueryCustomizer queryCustomizer, List<FieldContext> fieldContexts,
-												 QueryBuildingContext queryContext) {
-		this.rangeContext = rangeContext;
-		this.queryCustomizer = queryCustomizer;
-		this.fieldContexts = fieldContexts;
-		this.queryContext = queryContext;
-	}
+    public ConnectedMultiFieldsRangeQueryBuilder(RangeQueryContext rangeContext,
+                                                 QueryCustomizer queryCustomizer, List<FieldContext> fieldContexts,
+                                                 QueryBuildingContext queryContext) {
+        this.rangeContext = rangeContext;
+        this.queryCustomizer = queryCustomizer;
+        this.fieldContexts = fieldContexts;
+        this.queryContext = queryContext;
+    }
 
-	public RangeTerminationExcludable excludeLimit() {
-		if ( rangeContext.getFrom() != null && rangeContext.getTo() != null ) {
-			rangeContext.setExcludeTo( true );
-		}
-		else if ( rangeContext.getFrom() != null ) {
-			rangeContext.setExcludeFrom( true );
-		}
-		else if ( rangeContext.getTo() != null ) {
-			rangeContext.setExcludeTo( true );
-		}
-		else {
-			throw new AssertionFailure( "Both from and to clause of a range query are null" );
-		}
-		return this;
-	}
+    public RangeTerminationExcludable excludeLimit() {
+        if ( rangeContext.getFrom() != null && rangeContext.getTo() != null ) {
+            rangeContext.setExcludeTo( true );
+        }
+        else if ( rangeContext.getFrom() != null ) {
+            rangeContext.setExcludeFrom( true );
+        }
+        else if ( rangeContext.getTo() != null ) {
+            rangeContext.setExcludeTo( true );
+        }
+        else {
+            throw new AssertionFailure( "Both from and to clause of a range query are null" );
+        }
+        return this;
+    }
 
-	public Query createQuery() {
-		final int size = fieldContexts.size();
-		final ConversionContext conversionContext = new ContextualExceptionBridgeHelper();
-		if ( size == 1 ) {
-			return queryCustomizer.setWrappedQuery( createQuery( fieldContexts.get( 0 ), conversionContext ) ).createQuery();
-		}
-		else {
-			BooleanQuery aggregatedFieldsQuery = new BooleanQuery( );
-			for ( FieldContext fieldContext : fieldContexts ) {
-				aggregatedFieldsQuery.add( createQuery( fieldContext, conversionContext ), BooleanClause.Occur.SHOULD );
-			}
-			return  queryCustomizer.setWrappedQuery( aggregatedFieldsQuery ).createQuery();
-		}
-	}
+    public Query createQuery() {
+        final int size = fieldContexts.size();
+        final ConversionContext conversionContext = new ContextualExceptionBridgeHelper();
+        if ( size == 1 ) {
+            return queryCustomizer.setWrappedQuery( createQuery( fieldContexts.get( 0 ), conversionContext ) ).createQuery();
+        }
+        else {
+            BooleanQuery aggregatedFieldsQuery = new BooleanQuery( );
+            for ( FieldContext fieldContext : fieldContexts ) {
+                aggregatedFieldsQuery.add( createQuery( fieldContext, conversionContext ), BooleanClause.Occur.SHOULD );
+            }
+            return  queryCustomizer.setWrappedQuery( aggregatedFieldsQuery ).createQuery();
+        }
+    }
 
-	private Query createQuery(FieldContext fieldContext, ConversionContext conversionContext) {
-		Query perFieldQuery;
-		final String fieldName = fieldContext.getField();
-		final Analyzer queryAnalyzer = queryContext.getQueryAnalyzer();
+    private Query createQuery(FieldContext fieldContext, ConversionContext conversionContext) {
+        Query perFieldQuery;
+        final String fieldName = fieldContext.getField();
+        final Analyzer queryAnalyzer = queryContext.getQueryAnalyzer();
 
-		final DocumentBuilderIndexedEntity<?> documentBuilder = Helper.getDocumentBuilder( queryContext );
+        final DocumentBuilderIndexedEntity<?> documentBuilder = Helper.getDocumentBuilder( queryContext );
 
-		FieldBridge fieldBridge = documentBuilder.getBridge(fieldContext.getField());
-
-
-		final Object fromObject = rangeContext.getFrom();
-		final Object toObject = rangeContext.getTo();
-
-		if (fieldBridge!=null && NumericFieldBridge.class.isAssignableFrom(fieldBridge.getClass())) {
-			perFieldQuery = NumericFieldUtils.createNumericRangeQuery(
-					fieldName,
-					fromObject,
-					toObject,
-					!rangeContext.isExcludeTo(),
-					!rangeContext.isExcludeFrom()
-			);
-		} else {
-			final String fromString  = fieldContext.isIgnoreFieldBridge() ?
-					fromObject == null ? null : fromObject.toString() :
-					documentBuilder.objectToString( fieldName, fromObject, conversionContext );
-			final String lowerTerm = fromString == null ?
-					null :
-					Helper.getAnalyzedTerm( fieldName, fromString, "from", queryAnalyzer, fieldContext );
-
-			final String toString  = fieldContext.isIgnoreFieldBridge() ?
-					toObject == null ? null : toObject.toString() :
-					documentBuilder.objectToString( fieldName, toObject, conversionContext );
-			final String upperTerm = toString == null ?
-					null :
-					Helper.getAnalyzedTerm( fieldName, toString, "to", queryAnalyzer, fieldContext );
-
-			perFieldQuery = new TermRangeQuery(
-					fieldName,
-					lowerTerm,
-					upperTerm,
-					!rangeContext.isExcludeFrom(),
-					!rangeContext.isExcludeTo()
-			);
-		}
+        FieldBridge fieldBridge = documentBuilder.getBridge(fieldContext.getField());
 
 
-		return fieldContext.getFieldCustomizer().setWrappedQuery( perFieldQuery ).createQuery();
-	}
+        final Object fromObject = rangeContext.getFrom();
+        final Object toObject = rangeContext.getTo();
+
+        if (fieldBridge!=null && NumericFieldBridge.class.isAssignableFrom(fieldBridge.getClass())) {
+            perFieldQuery = NumericFieldUtils.createNumericRangeQuery(
+                    fieldName,
+                    fromObject,
+                    toObject,
+                    !rangeContext.isExcludeTo(),
+                    !rangeContext.isExcludeFrom()
+            );
+        } else {
+            final String fromString  = fieldContext.isIgnoreFieldBridge() ?
+                    fromObject == null ? null : fromObject.toString() :
+                    documentBuilder.objectToString( fieldName, fromObject, conversionContext );
+            final String lowerTerm = fromString == null ?
+                    null :
+                    Helper.getAnalyzedTerm( fieldName, fromString, "from", queryAnalyzer, fieldContext );
+
+            final String toString  = fieldContext.isIgnoreFieldBridge() ?
+                    toObject == null ? null : toObject.toString() :
+                    documentBuilder.objectToString( fieldName, toObject, conversionContext );
+            final String upperTerm = toString == null ?
+                    null :
+                    Helper.getAnalyzedTerm( fieldName, toString, "to", queryAnalyzer, fieldContext );
+
+            perFieldQuery = new TermRangeQuery(
+                    fieldName,
+                    lowerTerm,
+                    upperTerm,
+                    !rangeContext.isExcludeFrom(),
+                    !rangeContext.isExcludeTo()
+            );
+        }
+
+
+        return fieldContext.getFieldCustomizer().setWrappedQuery( perFieldQuery ).createQuery();
+    }
 
 }

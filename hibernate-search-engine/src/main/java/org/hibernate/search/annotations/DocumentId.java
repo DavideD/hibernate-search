@@ -40,5 +40,5 @@ import java.lang.annotation.Target;
 @Target( {ElementType.METHOD, ElementType.FIELD} )
 @Documented
 public @interface DocumentId {
-	String name() default "";
+    String name() default "";
 }

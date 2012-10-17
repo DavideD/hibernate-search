@@ -29,60 +29,60 @@ import org.apache.lucene.search.Scorer;
 
 public class DistanceCollector extends Collector {
 
-	private Collector delegate;
-	private boolean acceptsDocsOutOfOrder;
+    private Collector delegate;
+    private boolean acceptsDocsOutOfOrder;
 
-	private Point center;
-	private String latitudeField;
-	private String longitudeField;
-	private int docBase = 0;
-	private double[] distances;
-	private double[] latitudeValues;
-	private double[] longitudeValues;
+    private Point center;
+    private String latitudeField;
+    private String longitudeField;
+    private int docBase = 0;
+    private double[] distances;
+    private double[] latitudeValues;
+    private double[] longitudeValues;
 
-	public DistanceCollector(Collector delegate, Point center, int hitsCount, String fieldname) {
-		this.delegate= delegate;
-		this.acceptsDocsOutOfOrder = delegate.acceptsDocsOutOfOrder();
-		this.center = center;
-		this.distances = new double[hitsCount];
-		this.latitudeValues = new double[hitsCount];
-		this.longitudeValues = new double[hitsCount];
-		this.latitudeField = GridHelper.formatLatitude( fieldname );
-		this.longitudeField = GridHelper.formatLongitude(  fieldname );
-	}
+    public DistanceCollector(Collector delegate, Point center, int hitsCount, String fieldname) {
+        this.delegate= delegate;
+        this.acceptsDocsOutOfOrder = delegate.acceptsDocsOutOfOrder();
+        this.center = center;
+        this.distances = new double[hitsCount];
+        this.latitudeValues = new double[hitsCount];
+        this.longitudeValues = new double[hitsCount];
+        this.latitudeField = GridHelper.formatLatitude( fieldname );
+        this.longitudeField = GridHelper.formatLongitude(  fieldname );
+    }
 
-	@Override
-	public void setScorer(final Scorer scorer) throws IOException {
-		delegate.setScorer( scorer );
-		return;
-	}
+    @Override
+    public void setScorer(final Scorer scorer) throws IOException {
+        delegate.setScorer( scorer );
+        return;
+    }
 
-	@Override
-	public void collect(final int doc) throws IOException {
-		delegate.collect( doc );
-		final int absolute = docBase + doc;
-		distances[absolute] = center.getDistanceTo( latitudeValues[absolute], longitudeValues[absolute] );
-	}
+    @Override
+    public void collect(final int doc) throws IOException {
+        delegate.collect( doc );
+        final int absolute = docBase + doc;
+        distances[absolute] = center.getDistanceTo( latitudeValues[absolute], longitudeValues[absolute] );
+    }
 
-	@Override
-	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		delegate.setNextReader( reader, docBase );
-		double[] unbasedLatitudeValues = FieldCache.DEFAULT.getDoubles( reader, latitudeField );
-		double[] unbasedLongitudeValues = FieldCache.DEFAULT.getDoubles( reader, longitudeField );
-		this.docBase = docBase;
-		for ( int i = 0 ; i < unbasedLatitudeValues.length ; i ++ ) {
-			latitudeValues[this.docBase + i] = unbasedLatitudeValues[i];
-			longitudeValues[this.docBase + i] = unbasedLongitudeValues[i];
-		}
-		return;
-	}
+    @Override
+    public void setNextReader(IndexReader reader, int docBase) throws IOException {
+        delegate.setNextReader( reader, docBase );
+        double[] unbasedLatitudeValues = FieldCache.DEFAULT.getDoubles( reader, latitudeField );
+        double[] unbasedLongitudeValues = FieldCache.DEFAULT.getDoubles( reader, longitudeField );
+        this.docBase = docBase;
+        for ( int i = 0 ; i < unbasedLatitudeValues.length ; i ++ ) {
+            latitudeValues[this.docBase + i] = unbasedLatitudeValues[i];
+            longitudeValues[this.docBase + i] = unbasedLongitudeValues[i];
+        }
+        return;
+    }
 
-	@Override
-	public boolean acceptsDocsOutOfOrder() {
-		return acceptsDocsOutOfOrder;
-	}
+    @Override
+    public boolean acceptsDocsOutOfOrder() {
+        return acceptsDocsOutOfOrder;
+    }
 
-	public double getDistance(final int index) {
-		return distances[index];
-	}
+    public double getDistance(final int index) {
+        return distances[index];
+    }
 }

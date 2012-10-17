@@ -40,63 +40,63 @@ import org.hibernate.search.store.DirectoryProvider;
  */
 public class RAMDirectoryProvider implements DirectoryProvider<RAMDirectory> {
 
-	private final RAMDirectory directory = makeRAMDirectory();
+    private final RAMDirectory directory = makeRAMDirectory();
 
-	private String indexName;
-	private Properties properties;
+    private String indexName;
+    private Properties properties;
 
-	@Override
-	public void initialize(String directoryProviderName, Properties properties, BuildContext context) {
-		indexName = directoryProviderName;
-		this.properties = properties;
-	}
+    @Override
+    public void initialize(String directoryProviderName, Properties properties, BuildContext context) {
+        indexName = directoryProviderName;
+        this.properties = properties;
+    }
 
-	@Override
-	public void start(DirectoryBasedIndexManager indexManager) {
-		try {
-			directory.setLockFactory( DirectoryProviderHelper.createLockFactory( null, properties ) );
-			properties = null;
-			DirectoryProviderHelper.initializeIndexIfNeeded( directory );
-		}
-		catch (IOException e) {
-			throw new SearchException( "Unable to initialize index: " + indexName, e );
-		}
-	}
+    @Override
+    public void start(DirectoryBasedIndexManager indexManager) {
+        try {
+            directory.setLockFactory( DirectoryProviderHelper.createLockFactory( null, properties ) );
+            properties = null;
+            DirectoryProviderHelper.initializeIndexIfNeeded( directory );
+        }
+        catch (IOException e) {
+            throw new SearchException( "Unable to initialize index: " + indexName, e );
+        }
+    }
 
 
-	public RAMDirectory getDirectory() {
-		return directory;
-	}
+    public RAMDirectory getDirectory() {
+        return directory;
+    }
 
-	public void stop() {
-		directory.close();
-	}
+    public void stop() {
+        directory.close();
+    }
 
-	/**
-	 * To allow extensions to create different RAMDirectory flavours:
-	 * @return the RAMDirectory this provider is going to manage
-	 */
-	protected RAMDirectory makeRAMDirectory() {
-		return new RAMDirectory();
-	}
+    /**
+     * To allow extensions to create different RAMDirectory flavours:
+     * @return the RAMDirectory this provider is going to manage
+     */
+    protected RAMDirectory makeRAMDirectory() {
+        return new RAMDirectory();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		// this code is actually broken since the value change after initialize call
-		// but from a practical POV this is fine since we only call this method
-		// after initialize call
-		if ( obj == this ) return true;
-		if ( obj == null || !( obj instanceof RAMDirectoryProvider ) ) return false;
-		return indexName.equals( ( (RAMDirectoryProvider) obj ).indexName );
-	}
+    @Override
+    public boolean equals(Object obj) {
+        // this code is actually broken since the value change after initialize call
+        // but from a practical POV this is fine since we only call this method
+        // after initialize call
+        if ( obj == this ) return true;
+        if ( obj == null || !( obj instanceof RAMDirectoryProvider ) ) return false;
+        return indexName.equals( ( (RAMDirectoryProvider) obj ).indexName );
+    }
 
-	@Override
-	public int hashCode() {
-		// this code is actually broken since the value change after initialize call
-		// but from a practical POV this is fine since we only call this method
-		// after initialize call
-		int hash = 7;
-		return 29 * hash + indexName.hashCode();
-	}
+    @Override
+    public int hashCode() {
+        // this code is actually broken since the value change after initialize call
+        // but from a practical POV this is fine since we only call this method
+        // after initialize call
+        int hash = 7;
+        return 29 * hash + indexName.hashCode();
+    }
 
 }

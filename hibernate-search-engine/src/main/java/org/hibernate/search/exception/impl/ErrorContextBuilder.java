@@ -35,51 +35,51 @@ import org.hibernate.search.exception.ErrorContext;
  */
 public class ErrorContextBuilder {
 
-	private Throwable th;
-	private List<LuceneWork> workToBeDone;
-	private List<LuceneWork> failingOperations = new ArrayList<LuceneWork>();
-	private List<LuceneWork> operationsThatWorked = new ArrayList<LuceneWork>();
+    private Throwable th;
+    private List<LuceneWork> workToBeDone;
+    private List<LuceneWork> failingOperations = new ArrayList<LuceneWork>();
+    private List<LuceneWork> operationsThatWorked = new ArrayList<LuceneWork>();
 
-	public ErrorContextBuilder errorThatOccurred(Throwable th) {
-		this.th = th;
-		return this;
-	}
+    public ErrorContextBuilder errorThatOccurred(Throwable th) {
+        this.th = th;
+        return this;
+    }
 
-	public ErrorContextBuilder addAllWorkThatFailed(List<LuceneWork> worksThatFailed) {
-		this.failingOperations.addAll( worksThatFailed );
-		return this;
-	}
+    public ErrorContextBuilder addAllWorkThatFailed(List<LuceneWork> worksThatFailed) {
+        this.failingOperations.addAll( worksThatFailed );
+        return this;
+    }
 
-	public ErrorContextBuilder workCompleted(LuceneWork luceneWork) {
-		this.operationsThatWorked.add( luceneWork );
-		return this;
+    public ErrorContextBuilder workCompleted(LuceneWork luceneWork) {
+        this.operationsThatWorked.add( luceneWork );
+        return this;
 
-	}
+    }
 
-	public ErrorContextBuilder allWorkToBeDone(List<LuceneWork> workOnWriter) {
-		this.workToBeDone = new ArrayList<LuceneWork>( workOnWriter );
-		return this;
-	}
+    public ErrorContextBuilder allWorkToBeDone(List<LuceneWork> workOnWriter) {
+        this.workToBeDone = new ArrayList<LuceneWork>( workOnWriter );
+        return this;
+    }
 
-	public ErrorContext createErrorContext() {
-		ErrorContextImpl context = new ErrorContextImpl();
+    public ErrorContext createErrorContext() {
+        ErrorContextImpl context = new ErrorContextImpl();
 
-		context.setThrowable( th );
+        context.setThrowable( th );
 
-		// for situation when there is a primary failure
-		if ( workToBeDone != null ) {
-			List<LuceneWork> workLeft = new ArrayList<LuceneWork>( workToBeDone );
-			if ( !operationsThatWorked.isEmpty() ) {
-				workLeft.removeAll( operationsThatWorked );
-			}
+        // for situation when there is a primary failure
+        if ( workToBeDone != null ) {
+            List<LuceneWork> workLeft = new ArrayList<LuceneWork>( workToBeDone );
+            if ( !operationsThatWorked.isEmpty() ) {
+                workLeft.removeAll( operationsThatWorked );
+            }
 
-			if ( !workLeft.isEmpty() ) {
-				context.setOperationAtFault( workLeft.remove( 0 ) );
-				failingOperations.addAll( workLeft );
-			}
-		}
-		context.setFailingOperations( failingOperations );
-		return context;
-	}
+            if ( !workLeft.isEmpty() ) {
+                context.setOperationAtFault( workLeft.remove( 0 ) );
+                failingOperations.addAll( workLeft );
+            }
+        }
+        context.setFailingOperations( failingOperations );
+        return context;
+    }
 
 }

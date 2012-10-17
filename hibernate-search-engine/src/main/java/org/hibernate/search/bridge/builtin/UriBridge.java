@@ -36,23 +36,23 @@ import org.hibernate.search.bridge.TwoWayStringBridge;
  * @author Emmanuel Bernard
  */
 public class UriBridge implements TwoWayStringBridge {
-	public Object stringToObject(String stringValue) {
-		if ( StringHelper.isEmpty( stringValue ) ) {
-			return null;
-		}
-		else {
-			try {
-				return new URI( stringValue );
-			}
-			catch (URISyntaxException e) {
-				throw new SearchException( "Unable to build URI: " + stringValue, e );
-			}
-		}
-	}
+    public Object stringToObject(String stringValue) {
+        if ( StringHelper.isEmpty( stringValue ) ) {
+            return null;
+        }
+        else {
+            try {
+                return new URI( stringValue );
+            }
+            catch (URISyntaxException e) {
+                throw new SearchException( "Unable to build URI: " + stringValue, e );
+            }
+        }
+    }
 
-	public String objectToString(Object object) {
-		return object == null ?
-				null :
-				object.toString();
-	}
+    public String objectToString(Object object) {
+        return object == null ?
+                null :
+                object.toString();
+    }
 }

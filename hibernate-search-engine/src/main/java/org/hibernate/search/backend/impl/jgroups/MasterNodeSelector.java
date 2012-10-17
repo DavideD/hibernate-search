@@ -40,24 +40,24 @@ import org.jgroups.View;
  */
 public class MasterNodeSelector implements NodeSelectorStrategy {
 
-	@Override
-	public boolean isIndexOwnerLocal() {
-		return true;
-	}
+    @Override
+    public boolean isIndexOwnerLocal() {
+        return true;
+    }
 
-	@Override
-	public void setLocalAddress(Address address) {
-		//not needed
-	}
+    @Override
+    public void setLocalAddress(Address address) {
+        //not needed
+    }
 
-	@Override
-	public void viewAccepted(View view) {
-		//nothing to do
-	}
+    @Override
+    public void viewAccepted(View view) {
+        //nothing to do
+    }
 
-	@Override
-	public Message createMessage(byte[] data) {
-		throw new AssertionFailure( "A Master node should never create new Messages" );
-	}
+    @Override
+    public Message createMessage(byte[] data) {
+        throw new AssertionFailure( "A Master node should never create new Messages" );
+    }
 
 }

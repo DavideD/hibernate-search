@@ -35,40 +35,40 @@ import org.jgroups.View;
  */
 final class NodeSelectorStrategyHolderImplementation implements NodeSelectorStrategyHolder {
 
-	private ConcurrentHashMap<String,NodeSelectorStrategy> register = new ConcurrentHashMap<String,NodeSelectorStrategy>( 16, 0.75f, 2 );
-	private Address address;
-	private View view;
+    private ConcurrentHashMap<String,NodeSelectorStrategy> register = new ConcurrentHashMap<String,NodeSelectorStrategy>( 16, 0.75f, 2 );
+    private Address address;
+    private View view;
 
-	@Override
-	public NodeSelectorStrategy getMasterNodeSelector(String indexName) {
-		return register.get( indexName );
-	}
+    @Override
+    public NodeSelectorStrategy getMasterNodeSelector(String indexName) {
+        return register.get( indexName );
+    }
 
-	@Override
-	public synchronized void setNodeSelectorStrategy(String indexName, NodeSelectorStrategy selector) {
-		register.put( indexName, selector );
-		if ( address != null ) {
-			selector.setLocalAddress( address );
-		}
-		if ( view != null ) {
-			selector.viewAccepted( view );
-		}
-	}
+    @Override
+    public synchronized void setNodeSelectorStrategy(String indexName, NodeSelectorStrategy selector) {
+        register.put( indexName, selector );
+        if ( address != null ) {
+            selector.setLocalAddress( address );
+        }
+        if ( view != null ) {
+            selector.viewAccepted( view );
+        }
+    }
 
-	@Override
-	public synchronized void setLocalAddress(Address address) {
-		this.address = address;
-		for ( NodeSelectorStrategy s : register.values() ) {
-			s.setLocalAddress( address );
-		}
-	}
+    @Override
+    public synchronized void setLocalAddress(Address address) {
+        this.address = address;
+        for ( NodeSelectorStrategy s : register.values() ) {
+            s.setLocalAddress( address );
+        }
+    }
 
-	@Override
-	public synchronized void viewAccepted(View view) {
-		this.view = view;
-		for ( NodeSelectorStrategy s : register.values() ) {
-			s.viewAccepted( view );
-		}
-	}
+    @Override
+    public synchronized void viewAccepted(View view) {
+        this.view = view;
+        for ( NodeSelectorStrategy s : register.values() ) {
+            s.viewAccepted( view );
+        }
+    }
 
 }

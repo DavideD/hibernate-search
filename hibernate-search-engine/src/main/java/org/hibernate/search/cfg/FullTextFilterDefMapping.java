@@ -34,38 +34,38 @@ import org.hibernate.search.annotations.FilterCacheModeType;
  * FullTextFilterDef annotation.
  */
 public class FullTextFilterDefMapping {
-	
-	private final SearchMapping mapping;
-	private final Map<String,Object> fullTextFilterDef;
-	
-	public FullTextFilterDefMapping(SearchMapping mapping, String name, Class<?> impl) {
-		this.mapping = mapping;
-		this.fullTextFilterDef =new HashMap<String, Object>();
-		this.fullTextFilterDef.put("name", name);
-		this.fullTextFilterDef.put("impl", impl);
-		mapping.addFulltextFilterDef(fullTextFilterDef);
-	}
-	
-	/**
-	 * Add cache implementation for fulltextfilterdef mapping
-	 *
-	 * @param cache a {@link org.hibernate.search.annotations.FilterCacheModeType} object.
-	 * @return FullTextFilterDefMapping
-	 */
-	public FullTextFilterDefMapping cache(FilterCacheModeType cache) {
-		this.fullTextFilterDef.put("cache", cache);
-		return this;
-	}
+    
+    private final SearchMapping mapping;
+    private final Map<String,Object> fullTextFilterDef;
+    
+    public FullTextFilterDefMapping(SearchMapping mapping, String name, Class<?> impl) {
+        this.mapping = mapping;
+        this.fullTextFilterDef =new HashMap<String, Object>();
+        this.fullTextFilterDef.put("name", name);
+        this.fullTextFilterDef.put("impl", impl);
+        mapping.addFulltextFilterDef(fullTextFilterDef);
+    }
+    
+    /**
+     * Add cache implementation for fulltextfilterdef mapping
+     *
+     * @param cache a {@link org.hibernate.search.annotations.FilterCacheModeType} object.
+     * @return FullTextFilterDefMapping
+     */
+    public FullTextFilterDefMapping cache(FilterCacheModeType cache) {
+        this.fullTextFilterDef.put("cache", cache);
+        return this;
+    }
 
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping(mapping, name, impl);
-	}
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping(mapping, name, impl);
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping(name, tokenizerFactory, mapping);
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping(name, tokenizerFactory, mapping);
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping(entityType, mapping);
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping(entityType, mapping);
+    }
 }

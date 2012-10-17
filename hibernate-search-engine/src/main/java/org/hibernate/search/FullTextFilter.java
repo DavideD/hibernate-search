@@ -30,6 +30,6 @@ package org.hibernate.search;
  * @author Emmanuel Bernard
  */
 public interface FullTextFilter {
-	FullTextFilter setParameter(String name, Object value);
-	Object getParameter(String name);
+    FullTextFilter setParameter(String name, Object value);
+    Object getParameter(String name);
 }

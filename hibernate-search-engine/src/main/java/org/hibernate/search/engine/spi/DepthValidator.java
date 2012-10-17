@@ -31,31 +31,31 @@ package org.hibernate.search.engine.spi;
  */
 public class DepthValidator {
 
-	private final int maxDepth;
-	private int depth;
+    private final int maxDepth;
+    private int depth;
 
-	public DepthValidator(int maxDepth) {
-		this.maxDepth = maxDepth;
-	}
+    public DepthValidator(int maxDepth) {
+        this.maxDepth = maxDepth;
+    }
 
-	public int getDepth() {
-		return depth;
-	}
+    public int getDepth() {
+        return depth;
+    }
 
-	public void increaseDepth() {
-		depth++;
-	}
+    public void increaseDepth() {
+        depth++;
+    }
 
-	public boolean isMaxDepthReached() {
-		return depth > maxDepth;
-	}
+    public boolean isMaxDepthReached() {
+        return depth > maxDepth;
+    }
 
-	public boolean isMaxDepthInfinite() {
-		return maxDepth == Integer.MAX_VALUE;
-	}
+    public boolean isMaxDepthInfinite() {
+        return maxDepth == Integer.MAX_VALUE;
+    }
 
-	@Override
-	public String toString() {
-		return "[maxDepth=" + maxDepth + ", level=" + depth + "]";
-	}
+    @Override
+    public String toString() {
+        return "[maxDepth=" + maxDepth + ", level=" + depth + "]";
+    }
 }

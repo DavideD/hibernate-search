@@ -38,15 +38,15 @@ import static org.junit.Assert.*;
  * @author Sanne Grinovero
  */
 public class TextProductionTest {
-	
-	@Test
-	public void testSomeWordsGetBuilt() {
-		SentenceInventor wi = new SentenceInventor( 7L, 200 );
-		String randomPeriod = wi.nextPeriod();
-		// randomPeriod will be some random sentence like "Qoswo, orrmi ag ybwp bbtb kw qgtqaon lyhk nbv: qrqm flyui hyshm jmpqyb qmolml fjxw gnumocv Twwg."
-		// but exact string contents depends on environment
-		assertNotNull( randomPeriod );
-		assertTrue( randomPeriod.length() > 0 );
-	}
+    
+    @Test
+    public void testSomeWordsGetBuilt() {
+        SentenceInventor wi = new SentenceInventor( 7L, 200 );
+        String randomPeriod = wi.nextPeriod();
+        // randomPeriod will be some random sentence like "Qoswo, orrmi ag ybwp bbtb kw qgtqaon lyhk nbv: qrqm flyui hyshm jmpqyb qmolml fjxw gnumocv Twwg."
+        // but exact string contents depends on environment
+        assertNotNull( randomPeriod );
+        assertTrue( randomPeriod.length() > 0 );
+    }
 
 }

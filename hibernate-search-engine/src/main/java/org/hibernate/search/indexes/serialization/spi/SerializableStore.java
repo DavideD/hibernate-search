@@ -24,6 +24,6 @@ package org.hibernate.search.indexes.serialization.spi;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public enum SerializableStore {
-	YES,
-	NO
+    YES,
+    NO
 }

@@ -46,6 +46,6 @@ package org.hibernate.search.indexes.serialization.spi;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface SerializationProvider {
-	Serializer getSerializer();
-	Deserializer getDeserializer();
+    Serializer getSerializer();
+    Deserializer getDeserializer();
 }

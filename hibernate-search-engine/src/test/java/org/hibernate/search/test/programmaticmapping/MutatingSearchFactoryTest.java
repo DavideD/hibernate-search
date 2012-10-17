@@ -41,88 +41,88 @@ import org.junit.Test;
  */
 public class MutatingSearchFactoryTest {
 
-	@Rule
-	public TestingSearchFactoryHolder sfHolder = new TestingSearchFactoryHolder( buildMappingDefinition() );
+    @Rule
+    public TestingSearchFactoryHolder sfHolder = new TestingSearchFactoryHolder( buildMappingDefinition() );
 
-	@Test
-	public void mutationTest() {
-		SearchFactoryImplementor searchFactory = sfHolder.getSearchFactory();
+    @Test
+    public void mutationTest() {
+        SearchFactoryImplementor searchFactory = sfHolder.getSearchFactory();
 
-		Assert.assertNull( searchFactory.getAllIndexesManager().getIndexManager( "phoneNumbersIndex" ) );
-		searchFactory.addClasses( TelephoneRecord.class );
-		Assert.assertNotNull( searchFactory.getAllIndexesManager().getIndexManager( "phoneNumbersIndex" ) );
+        Assert.assertNull( searchFactory.getAllIndexesManager().getIndexManager( "phoneNumbersIndex" ) );
+        searchFactory.addClasses( TelephoneRecord.class );
+        Assert.assertNotNull( searchFactory.getAllIndexesManager().getIndexManager( "phoneNumbersIndex" ) );
 
-		Assert.assertNull( searchFactory.getAllIndexesManager().getIndexManager( "addressBookIndex" ) );
-		searchFactory.addClasses( AddressBook.class );
-		Assert.assertNotNull( searchFactory.getAllIndexesManager().getIndexManager( "addressBookIndex" ) );
-	}
+        Assert.assertNull( searchFactory.getAllIndexesManager().getIndexManager( "addressBookIndex" ) );
+        searchFactory.addClasses( AddressBook.class );
+        Assert.assertNotNull( searchFactory.getAllIndexesManager().getIndexManager( "addressBookIndex" ) );
+    }
 
-	static SearchMapping buildMappingDefinition() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( TelephoneRecord.class )
-				.indexed()
-					.indexName( "phoneNumbersIndex" )
-				.property( "id", ElementType.FIELD ).documentId()
-				.property( "phone", ElementType.FIELD ).field().analyze( Analyze.NO ).store( Store.YES )
-			.entity( AddressBook.class )
-				.indexed()
-					.indexName( "addressBookIndex" )
-				.property( "id", ElementType.FIELD ).documentId()
-				.property( "name", ElementType.FIELD ).field().store( Store.YES )
-			;
-		return mapping;
-	}
+    static SearchMapping buildMappingDefinition() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( TelephoneRecord.class )
+                .indexed()
+                    .indexName( "phoneNumbersIndex" )
+                .property( "id", ElementType.FIELD ).documentId()
+                .property( "phone", ElementType.FIELD ).field().analyze( Analyze.NO ).store( Store.YES )
+            .entity( AddressBook.class )
+                .indexed()
+                    .indexName( "addressBookIndex" )
+                .property( "id", ElementType.FIELD ).documentId()
+                .property( "name", ElementType.FIELD ).field().store( Store.YES )
+            ;
+        return mapping;
+    }
 
-	public static final class TelephoneRecord {
+    public static final class TelephoneRecord {
 
-		private long id;
-		private String phone;
+        private long id;
+        private String phone;
 
-		public TelephoneRecord(long id, String phone) {
-			this.id = id;
-			this.phone = phone;
-		}
+        public TelephoneRecord(long id, String phone) {
+            this.id = id;
+            this.phone = phone;
+        }
 
-		public long getId() {
-			return id;
-		}
+        public long getId() {
+            return id;
+        }
 
-		public void setId(long id) {
-			this.id = id;
-		}
+        public void setId(long id) {
+            this.id = id;
+        }
 
-		public String getPhone() {
-			return phone;
-		}
+        public String getPhone() {
+            return phone;
+        }
 
-		public void setPhone(String phone) {
-			this.phone = phone;
-		}
+        public void setPhone(String phone) {
+            this.phone = phone;
+        }
 
-	}
+    }
 
-	public static final class AddressBook {
+    public static final class AddressBook {
 
-		private long id;
-		private String name;
+        private long id;
+        private String name;
 
-		public long getId() {
-			return id;
-		}
+        public long getId() {
+            return id;
+        }
 
-		public void setId(long id) {
-			this.id = id;
-		}
+        public void setId(long id) {
+            this.id = id;
+        }
 
-		public String getName() {
-			return name;
-		}
+        public String getName() {
+            return name;
+        }
 
-		public void setName(String name) {
-			this.name = name;
-		}
+        public void setName(String name) {
+            this.name = name;
+        }
 
-	}
+    }
 
 }

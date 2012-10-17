@@ -28,60 +28,60 @@ import org.apache.lucene.search.FieldComparator;
 
 public final class DistanceComparator extends FieldComparator<Double> {
 
-	private final Point center;
-	private final String latitudeField;
-	private final String longitudeField;
-	private final double[] distances;
-	private final double[] latitudeValues;
-	private final double[] longitudeValues;
+    private final Point center;
+    private final String latitudeField;
+    private final String longitudeField;
+    private final double[] distances;
+    private final double[] latitudeValues;
+    private final double[] longitudeValues;
 
-	private Double bottomDistance;
-	private int docBase = 0;
+    private Double bottomDistance;
+    private int docBase = 0;
 
-	public DistanceComparator(Point center, int hitsCount, String fieldname) {
-		this.center = center;
-		this.distances = new double[ hitsCount ];
-		this.latitudeValues = new double[ hitsCount ];
-		this.longitudeValues = new double[ hitsCount ];
-		this.latitudeField = GridHelper.formatLatitude( fieldname );
-		this.longitudeField = GridHelper.formatLongitude(  fieldname );
-	}
+    public DistanceComparator(Point center, int hitsCount, String fieldname) {
+        this.center = center;
+        this.distances = new double[ hitsCount ];
+        this.latitudeValues = new double[ hitsCount ];
+        this.longitudeValues = new double[ hitsCount ];
+        this.latitudeField = GridHelper.formatLatitude( fieldname );
+        this.longitudeField = GridHelper.formatLongitude(  fieldname );
+    }
 
-	@Override
-	public int compare(final int slot1, final int slot2) {
-		return Double.compare( distances[slot1], distances[slot2] );
-	}
+    @Override
+    public int compare(final int slot1, final int slot2) {
+        return Double.compare( distances[slot1], distances[slot2] );
+    }
 
-	@Override
-	public void setBottom(final int slot) {
-		bottomDistance = center.getDistanceTo( latitudeValues[slot], longitudeValues[slot] );
-	}
+    @Override
+    public void setBottom(final int slot) {
+        bottomDistance = center.getDistanceTo( latitudeValues[slot], longitudeValues[slot] );
+    }
 
-	@Override
-	public int compareBottom(final int doc) throws IOException {
-		return Double.compare( bottomDistance, distances[doc] );
-	}
+    @Override
+    public int compareBottom(final int doc) throws IOException {
+        return Double.compare( bottomDistance, distances[doc] );
+    }
 
-	@Override
-	public void copy(final int slot, final int doc) throws IOException {
-		distances[ slot ] = center.getDistanceTo( latitudeValues[doc], longitudeValues[doc] );
-		return;
-	}
+    @Override
+    public void copy(final int slot, final int doc) throws IOException {
+        distances[ slot ] = center.getDistanceTo( latitudeValues[doc], longitudeValues[doc] );
+        return;
+    }
 
-	@Override
-	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		double[] unbasedLatitudeValues = FieldCache.DEFAULT.getDoubles( reader, latitudeField );
-		double[] unbasedLongitudeValues = FieldCache.DEFAULT.getDoubles( reader, longitudeField );
-		this.docBase = docBase;
-		for ( int i = 0; i < unbasedLatitudeValues.length; i++ ) {
-			latitudeValues[this.docBase + i] = unbasedLatitudeValues[i];
-			longitudeValues[this.docBase + i] = unbasedLongitudeValues[i];
-		}
-		return;
-	}
+    @Override
+    public void setNextReader(IndexReader reader, int docBase) throws IOException {
+        double[] unbasedLatitudeValues = FieldCache.DEFAULT.getDoubles( reader, latitudeField );
+        double[] unbasedLongitudeValues = FieldCache.DEFAULT.getDoubles( reader, longitudeField );
+        this.docBase = docBase;
+        for ( int i = 0; i < unbasedLatitudeValues.length; i++ ) {
+            latitudeValues[this.docBase + i] = unbasedLatitudeValues[i];
+            longitudeValues[this.docBase + i] = unbasedLongitudeValues[i];
+        }
+        return;
+    }
 
-	@Override
-	public Double value(final int slot) {
-		return center.getDistanceTo( latitudeValues[slot], longitudeValues[slot] );
-	}
+    @Override
+    public Double value(final int slot) {
+        return center.getDistanceTo( latitudeValues[slot], longitudeValues[slot] );
+    }
 }

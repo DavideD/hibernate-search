@@ -34,30 +34,30 @@ import org.hibernate.search.spi.InstanceInitializer;
  */
 public abstract class SearchConfigurationBase implements SearchConfiguration {
 
-	/**
-	 * Safest to default to true.
-	 */
-	@Override
-	public boolean isTransactionManagerExpected() {
-		return true;
-	}
+    /**
+     * Safest to default to true.
+     */
+    @Override
+    public boolean isTransactionManagerExpected() {
+        return true;
+    }
 
-	/**
-	 * Safest to default to false.
-	 */
-	@Override
-	public boolean isIndexMetadataComplete() {
-		return false;
-	}
+    /**
+     * Safest to default to false.
+     */
+    @Override
+    public boolean isIndexMetadataComplete() {
+        return false;
+    }
 
-	@Override
-	public InstanceInitializer getInstanceInitializer() {
-		return SimpleInitializer.INSTANCE;
-	}
+    @Override
+    public InstanceInitializer getInstanceInitializer() {
+        return SimpleInitializer.INSTANCE;
+    }
 
-	@Override
-	public boolean isIdProvidedImplicit() {
-		return false;
-	}
+    @Override
+    public boolean isIdProvidedImplicit() {
+        return false;
+    }
 
 }

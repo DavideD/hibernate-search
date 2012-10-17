@@ -41,61 +41,61 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class DefaultIndexReaderAccessor implements IndexReaderAccessor {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final ImmutableSearchFactory searchFactory;
+    private final ImmutableSearchFactory searchFactory;
 
-	public DefaultIndexReaderAccessor(ImmutableSearchFactory immutableSearchFactory) {
-		this.searchFactory = immutableSearchFactory;
-	}
+    public DefaultIndexReaderAccessor(ImmutableSearchFactory immutableSearchFactory) {
+        this.searchFactory = immutableSearchFactory;
+    }
 
-	@Override
-	public void close(IndexReader indexReader) {
-		MultiReaderFactory.closeReader( indexReader );
-	}
+    @Override
+    public void close(IndexReader indexReader) {
+        MultiReaderFactory.closeReader( indexReader );
+    }
 
-	@Override
-	public IndexReader open(Class<?>... entities) {
-		if(entities.length == 0) {
-			throw log.needAtLeastOneIndexedEntityType();
-		}
+    @Override
+    public IndexReader open(Class<?>... entities) {
+        if(entities.length == 0) {
+            throw log.needAtLeastOneIndexedEntityType();
+        }
 
-		HashMap<String, IndexManager> indexManagers = new HashMap<String, IndexManager>();
-		for ( Class<?> type : entities ) {
-			EntityIndexBinder entityIndexBinding = searchFactory.getSafeIndexBindingForEntity( type );
-			IndexManager[] indexManagersForAllShards = entityIndexBinding.getSelectionStrategy()
-					.getIndexManagersForAllShards();
-			for ( IndexManager im : indexManagersForAllShards ) {
-				indexManagers.put( im.getIndexName(), im );
-			}
-		}
-		IndexManager[] uniqueIndexManagers = indexManagers.values().toArray( new IndexManager[indexManagers.size()] );
-		return MultiReaderFactory.openReader( uniqueIndexManagers );
-	}
+        HashMap<String, IndexManager> indexManagers = new HashMap<String, IndexManager>();
+        for ( Class<?> type : entities ) {
+            EntityIndexBinder entityIndexBinding = searchFactory.getSafeIndexBindingForEntity( type );
+            IndexManager[] indexManagersForAllShards = entityIndexBinding.getSelectionStrategy()
+                    .getIndexManagersForAllShards();
+            for ( IndexManager im : indexManagersForAllShards ) {
+                indexManagers.put( im.getIndexName(), im );
+            }
+        }
+        IndexManager[] uniqueIndexManagers = indexManagers.values().toArray( new IndexManager[indexManagers.size()] );
+        return MultiReaderFactory.openReader( uniqueIndexManagers );
+    }
 
-	@Override
-	public IndexReader open(String... indexNames) {
-		TreeSet<String> names = new TreeSet<String>();
-		for ( String name : indexNames ) {
-			if ( name != null ) {
-				names.add( name );
-			}
-		}
-		final int size = names.size();
-		if ( size == 0 ) {
-			throw log.needAtLeastOneIndexName();
-		}
-		String[] indexManagerNames = names.toArray( new String[size] );
-		IndexManagerHolder managerSource = searchFactory.getAllIndexesManager();
-		IndexManager[] managers = new IndexManager[size];
-		for ( int i = 0; i < size; i++ ) {
-			String indexName = indexManagerNames[i];
-			managers[i] = managerSource.getIndexManager( indexName );
-			if ( managers[i] == null ) {
-				throw log.requestedIndexNotDefined( indexName );
-			}
-		}
-		return MultiReaderFactory.openReader( managers );
-	}
+    @Override
+    public IndexReader open(String... indexNames) {
+        TreeSet<String> names = new TreeSet<String>();
+        for ( String name : indexNames ) {
+            if ( name != null ) {
+                names.add( name );
+            }
+        }
+        final int size = names.size();
+        if ( size == 0 ) {
+            throw log.needAtLeastOneIndexName();
+        }
+        String[] indexManagerNames = names.toArray( new String[size] );
+        IndexManagerHolder managerSource = searchFactory.getAllIndexesManager();
+        IndexManager[] managers = new IndexManager[size];
+        for ( int i = 0; i < size; i++ ) {
+            String indexName = indexManagerNames[i];
+            managers[i] = managerSource.getIndexManager( indexName );
+            if ( managers[i] == null ) {
+                throw log.requestedIndexNotDefined( indexName );
+            }
+        }
+        return MultiReaderFactory.openReader( managers );
+    }
 
 }

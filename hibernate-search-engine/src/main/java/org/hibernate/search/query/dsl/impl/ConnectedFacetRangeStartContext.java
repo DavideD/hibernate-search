@@ -31,16 +31,16 @@ import org.hibernate.search.query.dsl.FacetRangeStartContext;
  * @author Hardy Ferentschik
  */
 public class ConnectedFacetRangeStartContext<T> implements FacetRangeStartContext<T> {
-	private final FacetBuildingContext context;
+    private final FacetBuildingContext context;
 
-	public ConnectedFacetRangeStartContext(FacetBuildingContext context) {
-		this.context = context;
-	}
+    public ConnectedFacetRangeStartContext(FacetBuildingContext context) {
+        this.context = context;
+    }
 
-	public FacetRangeLimitContext<T> from(T rangeStart) {
-		context.setRangeStart( rangeStart );
-		return new ConnectedFacetRangeLimitContext<T>( context );
-	}
+    public FacetRangeLimitContext<T> from(T rangeStart) {
+        context.setRangeStart( rangeStart );
+        return new ConnectedFacetRangeLimitContext<T>( context );
+    }
 }
 
 

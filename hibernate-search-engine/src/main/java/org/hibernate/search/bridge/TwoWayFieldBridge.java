@@ -33,21 +33,21 @@ import org.apache.lucene.document.Document;
  */
 // FIXME rework the interface inheritance there are some common concepts with StringBridge
 public interface TwoWayFieldBridge extends FieldBridge {
-	/**
-	 * Build the element object from the <code>Document</code>
-	 *
-	 * @param name field name
-	 * @param document document
-	 * @return The return value is the entity property value.
-	 */
-	Object get(String name, Document document);
+    /**
+     * Build the element object from the <code>Document</code>
+     *
+     * @param name field name
+     * @param document document
+     * @return The return value is the entity property value.
+     */
+    Object get(String name, Document document);
 
-	/**
-	 * Convert the object representation to a string.
-	 *
-	 * @param object The object to index.
-	 * @return string (index) representation of the specified object. Must not be <code>null</code>, but
-	 *         can be empty.
-	 */
-	String objectToString(Object object);
+    /**
+     * Convert the object representation to a string.
+     *
+     * @param object The object to index.
+     * @return string (index) representation of the specified object. Must not be <code>null</code>, but
+     *         can be empty.
+     */
+    String objectToString(Object object);
 }

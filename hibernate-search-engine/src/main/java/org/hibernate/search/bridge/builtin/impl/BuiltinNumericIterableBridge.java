@@ -30,29 +30,29 @@ import org.hibernate.search.bridge.LuceneOptions;
  */
 public class BuiltinNumericIterableBridge extends BuiltinIterableBridge {
 
-	public BuiltinNumericIterableBridge(FieldBridge fieldBridge) {
-		super( fieldBridge );
-	}
+    public BuiltinNumericIterableBridge(FieldBridge fieldBridge) {
+        super( fieldBridge );
+    }
 
-	public BuiltinNumericIterableBridge() {
-		super( new FieldBridge() {
+    public BuiltinNumericIterableBridge() {
+        super( new FieldBridge() {
 
-			@Override
-			public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-				if ( value == null ) {
-					manageNull( name, document, luceneOptions );
-				}
-				else {
-					luceneOptions.addNumericFieldToDocument( name, value, document );
-				}
-			}
+            @Override
+            public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+                if ( value == null ) {
+                    manageNull( name, document, luceneOptions );
+                }
+                else {
+                    luceneOptions.addNumericFieldToDocument( name, value, document );
+                }
+            }
 
-			private void manageNull(String name, Document document, LuceneOptions luceneOptions) {
-				if ( luceneOptions.indexNullAs() != null )
-					luceneOptions.addFieldToDocument( name, luceneOptions.indexNullAs(), document );
-			}
+            private void manageNull(String name, Document document, LuceneOptions luceneOptions) {
+                if ( luceneOptions.indexNullAs() != null )
+                    luceneOptions.addFieldToDocument( name, luceneOptions.indexNullAs(), document );
+            }
 
-		} );
-	}
+        } );
+    }
 
 }

@@ -33,13 +33,13 @@ import org.apache.lucene.analysis.TokenStream;
  */
 public class BarAnalyzer extends Analyzer {
 
-	private BarAnalyzer() {
-	}
+    private BarAnalyzer() {
+    }
 
-	@Override
-	public TokenStream tokenStream(String fieldName, Reader reader) {
-		return null;
-	}
+    @Override
+    public TokenStream tokenStream(String fieldName, Reader reader) {
+        return null;
+    }
 }
 
 

@@ -46,6 +46,6 @@ import java.lang.annotation.Documented;
 @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.METHOD} )
 @Documented
 public @interface Analyzer {
-	Class<?> impl() default void.class;
-	String definition() default "";
+    Class<?> impl() default void.class;
+    String definition() default "";
 }

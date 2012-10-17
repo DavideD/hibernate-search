@@ -26,14 +26,14 @@ import org.hibernate.search.spatial.Coordinates;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface WithinContext {
-	/** Coordinate object representing the center of the search */
-	SpatialTermination ofCoordinates(Coordinates coordinates);
+    /** Coordinate object representing the center of the search */
+    SpatialTermination ofCoordinates(Coordinates coordinates);
 
-	/** Latitude in degree */
-	LongitudeContext ofLatitude(double latitude);
+    /** Latitude in degree */
+    LongitudeContext ofLatitude(double latitude);
 
-	public static interface LongitudeContext {
-		/** Longitude in degree */
-		SpatialTermination andLongitude(double longitude);
-	}
+    public static interface LongitudeContext {
+        /** Longitude in degree */
+        SpatialTermination andLongitude(double longitude);
+    }
 }

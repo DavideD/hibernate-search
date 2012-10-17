@@ -32,44 +32,44 @@ import org.apache.solr.analysis.TokenizerFactory;
  * @author Emmanuel Bernard
  */
 public class TokenFilterDefMapping {
-	private Map<String, Object> filter;
-	private Map<String, Object> analyzerDef;
-	private SearchMapping mapping;
+    private Map<String, Object> filter;
+    private Map<String, Object> analyzerDef;
+    private SearchMapping mapping;
 
-	TokenFilterDefMapping(Class<? extends TokenFilterFactory> factory, Map<String, Object> analyzerDef, SearchMapping mapping) {
-		this.mapping = mapping;
-		this.analyzerDef = analyzerDef;
-		this.filter = SearchMapping.addElementToAnnotationArray( analyzerDef, "filters" );
-		filter.put( "factory", factory );
-	}
+    TokenFilterDefMapping(Class<? extends TokenFilterFactory> factory, Map<String, Object> analyzerDef, SearchMapping mapping) {
+        this.mapping = mapping;
+        this.analyzerDef = analyzerDef;
+        this.filter = SearchMapping.addElementToAnnotationArray( analyzerDef, "filters" );
+        filter.put( "factory", factory );
+    }
 
-	/**
-	 * {@code &#064;TokenFilterDef(, ... params={&#064;Parameter(name="name", value="value"), ...} }
-	 */
-	public TokenFilterDefMapping param(String name, String value) {
-		Map<String, Object> param = SearchMapping.addElementToAnnotationArray(filter, "params");
-		param.put("name", name);
-		param.put("value", value);
-		return this;
-	}
+    /**
+     * {@code &#064;TokenFilterDef(, ... params={&#064;Parameter(name="name", value="value"), ...} }
+     */
+    public TokenFilterDefMapping param(String name, String value) {
+        Map<String, Object> param = SearchMapping.addElementToAnnotationArray(filter, "params");
+        param.put("name", name);
+        param.put("value", value);
+        return this;
+    }
 
-	/**
-	 * {@code &#064;TokenFilterDef(factory=factory)}
-	 */
-	public TokenFilterDefMapping filter(Class<? extends TokenFilterFactory> factory) {
-		return new TokenFilterDefMapping(factory, analyzerDef, mapping );
-	}
+    /**
+     * {@code &#064;TokenFilterDef(factory=factory)}
+     */
+    public TokenFilterDefMapping filter(Class<? extends TokenFilterFactory> factory) {
+        return new TokenFilterDefMapping(factory, analyzerDef, mapping );
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping(entityType,  mapping);
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping(entityType,  mapping);
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping(name, tokenizerFactory, mapping);
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping(name, tokenizerFactory, mapping);
+    }
 
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping(mapping, name, impl );
-	}
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping(mapping, name, impl );
+    }
 
 }

@@ -49,118 +49,118 @@ import static junit.framework.Assert.fail;
  * @author Hardy Ferentschik
  */
 public class WorkerScopeConfigurationTest {
-	private ManualConfiguration manualConfiguration;
+    private ManualConfiguration manualConfiguration;
 
-	@Before
-	public void setUp() {
-		manualConfiguration = new ManualConfiguration();
-		SearchMapping searchMapping = new SearchMapping();
-		searchMapping.entity( Document.class ).indexed()
-				.property( "id", ElementType.FIELD ).documentId()
-				.property( "title", ElementType.FIELD ).field();
-		manualConfiguration.setProgrammaticMapping( searchMapping );
-		manualConfiguration.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		manualConfiguration.addClass( Document.class );
-	}
+    @Before
+    public void setUp() {
+        manualConfiguration = new ManualConfiguration();
+        SearchMapping searchMapping = new SearchMapping();
+        searchMapping.entity( Document.class ).indexed()
+                .property( "id", ElementType.FIELD ).documentId()
+                .property( "title", ElementType.FIELD ).field();
+        manualConfiguration.setProgrammaticMapping( searchMapping );
+        manualConfiguration.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        manualConfiguration.addClass( Document.class );
+    }
 
-	@Test
-	public void testDefaultWorker() {
-		SearchFactoryImplementor searchFactoryImplementor =
-				new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
-		assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
-		assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof TransactionalWorker );
-	}
+    @Test
+    public void testDefaultWorker() {
+        SearchFactoryImplementor searchFactoryImplementor =
+                new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
+        assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
+        assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof TransactionalWorker );
+    }
 
-	@Test
-	public void testExplicitTransactionalWorker() {
-		manualConfiguration.addProperty( "hibernate.search.worker.scope", "transaction" );
-		SearchFactoryImplementor searchFactoryImplementor =
-				new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
-		assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
-		assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof TransactionalWorker );
-	}
+    @Test
+    public void testExplicitTransactionalWorker() {
+        manualConfiguration.addProperty( "hibernate.search.worker.scope", "transaction" );
+        SearchFactoryImplementor searchFactoryImplementor =
+                new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
+        assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
+        assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof TransactionalWorker );
+    }
 
-	@Test
-	public void testCustomWorker() {
-		manualConfiguration.addProperty( "hibernate.search.worker.scope", CustomWorker.class.getName() );
-		SearchFactoryImplementor searchFactoryImplementor =
-				new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
-		assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
-		assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof CustomWorker );
-	}
+    @Test
+    public void testCustomWorker() {
+        manualConfiguration.addProperty( "hibernate.search.worker.scope", CustomWorker.class.getName() );
+        SearchFactoryImplementor searchFactoryImplementor =
+                new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
+        assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
+        assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof CustomWorker );
+    }
 
-	@Test
-	public void testCustomWorkerWithProperties() {
-		manualConfiguration.addProperty( "hibernate.search.worker.scope", CustomWorkerExpectingFooAndBar.class.getName() );
-		manualConfiguration.addProperty( "hibernate.search.worker.foo", "foo" );
-		manualConfiguration.addProperty( "hibernate.search.worker.bar", "bar" );
-		SearchFactoryImplementor searchFactoryImplementor =
-				new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
-		assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
-		assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof CustomWorkerExpectingFooAndBar );
-	}
+    @Test
+    public void testCustomWorkerWithProperties() {
+        manualConfiguration.addProperty( "hibernate.search.worker.scope", CustomWorkerExpectingFooAndBar.class.getName() );
+        manualConfiguration.addProperty( "hibernate.search.worker.foo", "foo" );
+        manualConfiguration.addProperty( "hibernate.search.worker.bar", "bar" );
+        SearchFactoryImplementor searchFactoryImplementor =
+                new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
+        assertNotNull( "Worker should have been created", searchFactoryImplementor.getWorker() );
+        assertTrue( "Wrong worker class", searchFactoryImplementor.getWorker() instanceof CustomWorkerExpectingFooAndBar );
+    }
 
-	@Test
-	public void testUnknownWorkerImplementationClass() {
-		manualConfiguration.addProperty( "hibernate.search.worker.scope", "foo" );
-		try {
-			new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
-			fail();
-		}
-		catch ( SearchException e ) {
-			assertTrue(
-					"Unexpected error message",
-					e.getMessage().contains( "Unable to find worker implementation class: foo" )
-			);
-		}
-	}
+    @Test
+    public void testUnknownWorkerImplementationClass() {
+        manualConfiguration.addProperty( "hibernate.search.worker.scope", "foo" );
+        try {
+            new SearchFactoryBuilder().configuration( manualConfiguration ).buildSearchFactory();
+            fail();
+        }
+        catch ( SearchException e ) {
+            assertTrue(
+                    "Unexpected error message",
+                    e.getMessage().contains( "Unable to find worker implementation class: foo" )
+            );
+        }
+    }
 
-	@SuppressWarnings("unused")
-	public static final class Document {
+    @SuppressWarnings("unused")
+    public static final class Document {
 
-		private long id;
-		private String title;
+        private long id;
+        private String title;
 
-	}
+    }
 
-	public static final class CustomWorker implements Worker {
-		@Override
-		public void performWork(Work<?> work, TransactionContext transactionContext) {
-		}
+    public static final class CustomWorker implements Worker {
+        @Override
+        public void performWork(Work<?> work, TransactionContext transactionContext) {
+        }
 
-		@Override
-		public void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
-		}
+        @Override
+        public void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
+        }
 
-		@Override
-		public void close() {
-		}
+        @Override
+        public void close() {
+        }
 
-		@Override
-		public void flushWorks(TransactionContext transactionContext) {
-		}
-	}
+        @Override
+        public void flushWorks(TransactionContext transactionContext) {
+        }
+    }
 
-	public static final class CustomWorkerExpectingFooAndBar implements Worker {
-		public static final String FOO = "hibernate.search.worker.foo";
-		public static final String BAR = "hibernate.search.worker.bar";
+    public static final class CustomWorkerExpectingFooAndBar implements Worker {
+        public static final String FOO = "hibernate.search.worker.foo";
+        public static final String BAR = "hibernate.search.worker.bar";
 
-		@Override
-		public void performWork(Work<?> work, TransactionContext transactionContext) {
-		}
+        @Override
+        public void performWork(Work<?> work, TransactionContext transactionContext) {
+        }
 
-		@Override
-		public void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
-			assertTrue( "Missing property: " + FOO, props.containsKey( FOO ) );
-			assertTrue( "Missing property: " + BAR, props.containsKey( BAR ) );
-		}
+        @Override
+        public void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
+            assertTrue( "Missing property: " + FOO, props.containsKey( FOO ) );
+            assertTrue( "Missing property: " + BAR, props.containsKey( BAR ) );
+        }
 
-		@Override
-		public void close() {
-		}
+        @Override
+        public void close() {
+        }
 
-		@Override
-		public void flushWorks(TransactionContext transactionContext) {
-		}
-	}
+        @Override
+        public void flushWorks(TransactionContext transactionContext) {
+        }
+    }
 }

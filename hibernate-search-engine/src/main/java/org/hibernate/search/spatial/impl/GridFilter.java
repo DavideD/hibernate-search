@@ -40,53 +40,53 @@ import java.util.List;
  */
 public final class GridFilter extends Filter {
 
-	private final List<String> gridCellsIds;
-	private final String fieldName;
+    private final List<String> gridCellsIds;
+    private final String fieldName;
 
-	public GridFilter(List<String> gridCellsIds, String fieldName) {
-		this.gridCellsIds = gridCellsIds;
-		this.fieldName = fieldName;
-	}
+    public GridFilter(List<String> gridCellsIds, String fieldName) {
+        this.gridCellsIds = gridCellsIds;
+        this.fieldName = fieldName;
+    }
 
-	/**
-	 * Returns Doc Ids by searching the index for document having the correct Grid Cell Id at given grid level
-	 *
-	 * @param reader reader to the index
-	 */
-	@Override
-	public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
-		if ( gridCellsIds.size() == 0 ) {
-			return null;
-		}
+    /**
+     * Returns Doc Ids by searching the index for document having the correct Grid Cell Id at given grid level
+     *
+     * @param reader reader to the index
+     */
+    @Override
+    public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
+        if ( gridCellsIds.size() == 0 ) {
+            return null;
+        }
 
-		OpenBitSet matchedDocumentsIds = new OpenBitSet( reader.maxDoc() );
-		Boolean found = false;
-		for ( int i = 0; i < gridCellsIds.size(); i++ ) {
-			Term gridCellTerm = new Term( fieldName, gridCellsIds.get( i ) );
-			TermDocs gridCellsDocs = reader.termDocs( gridCellTerm );
-			if ( gridCellsDocs != null ) {
-				while ( gridCellsDocs.next() ) {
-					matchedDocumentsIds.fastSet( gridCellsDocs.doc() );
-					found = true;
-				}
-			}
-		}
+        OpenBitSet matchedDocumentsIds = new OpenBitSet( reader.maxDoc() );
+        Boolean found = false;
+        for ( int i = 0; i < gridCellsIds.size(); i++ ) {
+            Term gridCellTerm = new Term( fieldName, gridCellsIds.get( i ) );
+            TermDocs gridCellsDocs = reader.termDocs( gridCellTerm );
+            if ( gridCellsDocs != null ) {
+                while ( gridCellsDocs.next() ) {
+                    matchedDocumentsIds.fastSet( gridCellsDocs.doc() );
+                    found = true;
+                }
+            }
+        }
 
-		if ( found ) {
-			return matchedDocumentsIds;
-		}
-		else {
-			return null;
-		}
-	}
+        if ( found ) {
+            return matchedDocumentsIds;
+        }
+        else {
+            return null;
+        }
+    }
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		sb.append( "GridFilter" );
-		sb.append( "{gridCellsIds=" ).append( gridCellsIds );
-		sb.append( ", fieldName='" ).append( fieldName ).append( '\'' );
-		sb.append( '}' );
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append( "GridFilter" );
+        sb.append( "{gridCellsIds=" ).append( gridCellsIds );
+        sb.append( ", fieldName='" ).append( fieldName ).append( '\'' );
+        sb.append( '}' );
+        return sb.toString();
+    }
 }

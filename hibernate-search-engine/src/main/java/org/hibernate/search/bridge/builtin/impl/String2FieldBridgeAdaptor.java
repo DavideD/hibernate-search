@@ -36,22 +36,22 @@ import org.hibernate.search.bridge.StringBridge;
  * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class String2FieldBridgeAdaptor implements FieldBridge, StringBridge {
-	private final StringBridge stringBridge;
+    private final StringBridge stringBridge;
 
-	public String2FieldBridgeAdaptor(StringBridge stringBridge) {
-		this.stringBridge = stringBridge;
-	}
+    public String2FieldBridgeAdaptor(StringBridge stringBridge) {
+        this.stringBridge = stringBridge;
+    }
 
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		String indexedString = stringBridge.objectToString( value );
-		if(indexedString == null && luceneOptions.indexNullAs() != null) {
-			indexedString = luceneOptions.indexNullAs();
-		}
-		luceneOptions.addFieldToDocument( name, indexedString, document );
-	}
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        String indexedString = stringBridge.objectToString( value );
+        if(indexedString == null && luceneOptions.indexNullAs() != null) {
+            indexedString = luceneOptions.indexNullAs();
+        }
+        luceneOptions.addFieldToDocument( name, indexedString, document );
+    }
 
-	public String objectToString(Object object) {
-		return stringBridge.objectToString( object );
-	}
+    public String objectToString(Object object) {
+        return stringBridge.objectToString( object );
+    }
 
 }

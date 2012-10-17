@@ -43,18 +43,18 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 class OptimizeWorkDelegate implements LuceneWorkDelegate {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final Workspace workspace;
+    private final Workspace workspace;
 
-	OptimizeWorkDelegate(Workspace workspace) {
-		this.workspace = workspace;
-	}
+    OptimizeWorkDelegate(Workspace workspace) {
+        this.workspace = workspace;
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		final Class<?> entityType = work.getEntityClass();
-		log.tracef( "optimize Lucene index: %s", entityType );
-		workspace.performOptimization( writer );
-	}
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        final Class<?> entityType = work.getEntityClass();
+        log.tracef( "optimize Lucene index: %s", entityType );
+        workspace.performOptimization( writer );
+    }
 
 }

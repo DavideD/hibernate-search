@@ -52,89 +52,89 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class JGroupsMasterMessageListener implements Receiver {
 
-	private static final Log log = LoggerFactory.make();
-	private final BuildContext context;
-	private final NodeSelectorStrategyHolder selector;
+    private static final Log log = LoggerFactory.make();
+    private final BuildContext context;
+    private final NodeSelectorStrategyHolder selector;
 
-	public JGroupsMasterMessageListener(BuildContext context, NodeSelectorStrategyHolder masterNodeSelector) {
-		this.context = context;
-		this.selector = masterNodeSelector;
-	}
+    public JGroupsMasterMessageListener(BuildContext context, NodeSelectorStrategyHolder masterNodeSelector) {
+        this.context = context;
+        this.selector = masterNodeSelector;
+    }
 
-	@Override
-	public void receive(Message message) {
-		final byte[] rawBuffer = message.getRawBuffer();
-		final String indexName = MessageSerializationHelper.extractIndexName( rawBuffer );
-		final NodeSelectorStrategy nodeSelector = selector.getMasterNodeSelector( indexName );
-		try {
-			if ( nodeSelector.isIndexOwnerLocal() ) {
-				byte[] serializedQueue = MessageSerializationHelper.extractSerializedQueue( rawBuffer );
-				final IndexManager indexManager = context.getAllIndexesManager().getIndexManager( indexName );
-				if ( indexManager != null ) {
-					final List<LuceneWork> queue = indexManager.getSerializer().toLuceneWorks( serializedQueue );
-					applyLuceneWorkLocally( queue, indexManager, message );
-				}
-				else {
-					log.messageReceivedForUndefinedIndex( indexName );
-				}
-			}
-			else {
-				//TODO forward to new owner or log error
-			}
-		}
-		catch ( ClassCastException e ) {
-			log.illegalObjectRetrievedFromMessage( e );
-		}
-		catch ( SearchException e ) {
-			log.illegalObjectRetrievedFromMessage( e );
-		}
-	}
+    @Override
+    public void receive(Message message) {
+        final byte[] rawBuffer = message.getRawBuffer();
+        final String indexName = MessageSerializationHelper.extractIndexName( rawBuffer );
+        final NodeSelectorStrategy nodeSelector = selector.getMasterNodeSelector( indexName );
+        try {
+            if ( nodeSelector.isIndexOwnerLocal() ) {
+                byte[] serializedQueue = MessageSerializationHelper.extractSerializedQueue( rawBuffer );
+                final IndexManager indexManager = context.getAllIndexesManager().getIndexManager( indexName );
+                if ( indexManager != null ) {
+                    final List<LuceneWork> queue = indexManager.getSerializer().toLuceneWorks( serializedQueue );
+                    applyLuceneWorkLocally( queue, indexManager, message );
+                }
+                else {
+                    log.messageReceivedForUndefinedIndex( indexName );
+                }
+            }
+            else {
+                //TODO forward to new owner or log error
+            }
+        }
+        catch ( ClassCastException e ) {
+            log.illegalObjectRetrievedFromMessage( e );
+        }
+        catch ( SearchException e ) {
+            log.illegalObjectRetrievedFromMessage( e );
+        }
+    }
 
-	private void applyLuceneWorkLocally(List<LuceneWork> queue, IndexManager indexManager, Message message) {
-		if ( queue != null && !queue.isEmpty() ) {
-			if ( log.isDebugEnabled() ) {
-				log.debugf(
-						"There are %d Lucene docs received from slave node %s to be processed by master",
-						queue.size(),
-						message.getSrc()
-				);
-			}
-			indexManager.performOperations( queue, null );
-		}
-		else {
-			log.receivedEmptyLuceneWorksInMessage();
-		}
-	}
+    private void applyLuceneWorkLocally(List<LuceneWork> queue, IndexManager indexManager, Message message) {
+        if ( queue != null && !queue.isEmpty() ) {
+            if ( log.isDebugEnabled() ) {
+                log.debugf(
+                        "There are %d Lucene docs received from slave node %s to be processed by master",
+                        queue.size(),
+                        message.getSrc()
+                );
+            }
+            indexManager.performOperations( queue, null );
+        }
+        else {
+            log.receivedEmptyLuceneWorksInMessage();
+        }
+    }
 
-	// ------------------------------------------------------------------------------------------------------------------
-	// Implementations of JGroups interfaces
-	// ------------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------------
+    // Implementations of JGroups interfaces
+    // ------------------------------------------------------------------------------------------------------------------
 
-	@Override
-	public void viewAccepted(View view) {
-		log.jGroupsReceivedNewClusterView( view );
-		selector.viewAccepted( view );
-	}
+    @Override
+    public void viewAccepted(View view) {
+        log.jGroupsReceivedNewClusterView( view );
+        selector.viewAccepted( view );
+    }
 
-	@Override
-	public void suspect(Address suspected_mbr) {
-		//no-op
-	}
+    @Override
+    public void suspect(Address suspected_mbr) {
+        //no-op
+    }
 
-	@Override
-	public void block() {
-		//no-op
-	}
+    @Override
+    public void block() {
+        //no-op
+    }
 
-	@Override
-	public void getState(OutputStream arg0) throws Exception {
-	}
+    @Override
+    public void getState(OutputStream arg0) throws Exception {
+    }
 
-	@Override
-	public void setState(InputStream arg0) throws Exception {
-	}
+    @Override
+    public void setState(InputStream arg0) throws Exception {
+    }
 
-	@Override
-	public void unblock() {
-	}
+    @Override
+    public void unblock() {
+    }
 }

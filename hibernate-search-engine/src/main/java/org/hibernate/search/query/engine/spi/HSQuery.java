@@ -65,191 +65,191 @@ import org.hibernate.search.spatial.impl.Point;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface HSQuery extends ProjectionConstants {
-	/**
-	 * Defines the underlying Lucene query
-	 *
-	 * @param query the Lucene query
-	 * @return {@code this} to allow method chaining
-	 */
-	HSQuery luceneQuery(Query query);
+    /**
+     * Defines the underlying Lucene query
+     *
+     * @param query the Lucene query
+     * @return {@code this} to allow method chaining
+     */
+    HSQuery luceneQuery(Query query);
 
-	/**
-	 * Defines the targeted entities. This helps to reduce the number of targeted indexes.
-	 *
-	 * @param classes the list of classes (indexes) targeted by this query
-	 * @return {@code this} to allow for method chaining
-	 */
-	HSQuery targetedEntities(List<Class<?>> classes);
+    /**
+     * Defines the targeted entities. This helps to reduce the number of targeted indexes.
+     *
+     * @param classes the list of classes (indexes) targeted by this query
+     * @return {@code this} to allow for method chaining
+     */
+    HSQuery targetedEntities(List<Class<?>> classes);
 
-	/**
-	 * Lets Lucene sort the results. This is useful when you have
-	 * different sort requirements than the default Lucene ranking.
-	 * Without Lucene sorting you would have to retrieve the full result set and
-	 * order the Hibernate objects.
-	 *
-	 * @param sort The Lucene sort object.
-	 * @return {@code this}  to allow for method chaining
-	 */
-	HSQuery sort(Sort sort);
+    /**
+     * Lets Lucene sort the results. This is useful when you have
+     * different sort requirements than the default Lucene ranking.
+     * Without Lucene sorting you would have to retrieve the full result set and
+     * order the Hibernate objects.
+     *
+     * @param sort The Lucene sort object.
+     * @return {@code this}  to allow for method chaining
+     */
+    HSQuery sort(Sort sort);
 
-	/**
-	 * Allows to use lucene filters.
-	 * Semi-deprecated? a preferred way is to use the @FullTextFilterDef approach
-	 *
-	 * @param filter The Lucene filter.
-	 * @return {@code this}  to allow for method chaining
-	 */
-	HSQuery filter(Filter filter);
+    /**
+     * Allows to use lucene filters.
+     * Semi-deprecated? a preferred way is to use the @FullTextFilterDef approach
+     *
+     * @param filter The Lucene filter.
+     * @return {@code this}  to allow for method chaining
+     */
+    HSQuery filter(Filter filter);
 
-	/**
-	 * Define the timeout exception factory to customize the exception returned by the user.
-	 * Defaults to returning {@link org.hibernate.search.query.engine.QueryTimeoutException}
-	 *
-	 * @param exceptionFactory the timeout exception factory to use
-	 * @return {@code this}  to allow for method chaining
-	 */
-	HSQuery timeoutExceptionFactory(TimeoutExceptionFactory exceptionFactory);
+    /**
+     * Define the timeout exception factory to customize the exception returned by the user.
+     * Defaults to returning {@link org.hibernate.search.query.engine.QueryTimeoutException}
+     *
+     * @param exceptionFactory the timeout exception factory to use
+     * @return {@code this}  to allow for method chaining
+     */
+    HSQuery timeoutExceptionFactory(TimeoutExceptionFactory exceptionFactory);
 
-	/**
-	 * Defines the Lucene field names projected and returned in a query result
-	 * Each field is converted back to it's object representation, an Object[] being returned for each "row"
-	 * (similar to an HQL or a Criteria API projection).
-	 * <p/>
-	 * A projectable field must be stored in the Lucene index and use a {@link org.hibernate.search.bridge.TwoWayFieldBridge}
-	 * Unless notified in their JavaDoc, all built-in bridges are two-way. All @DocumentId fields are projectable by design.
-	 * <p/>
-	 * If the projected field is not a projectable field, null is returned in the object[]
-	 *
-	 * @param fields the projected field names
-	 * @return {@code this}  to allow for method chaining
-	 */
-	HSQuery projection(String... fields);
+    /**
+     * Defines the Lucene field names projected and returned in a query result
+     * Each field is converted back to it's object representation, an Object[] being returned for each "row"
+     * (similar to an HQL or a Criteria API projection).
+     * <p/>
+     * A projectable field must be stored in the Lucene index and use a {@link org.hibernate.search.bridge.TwoWayFieldBridge}
+     * Unless notified in their JavaDoc, all built-in bridges are two-way. All @DocumentId fields are projectable by design.
+     * <p/>
+     * If the projected field is not a projectable field, null is returned in the object[]
+     *
+     * @param fields the projected field names
+     * @return {@code this}  to allow for method chaining
+     */
+    HSQuery projection(String... fields);
 
-	/**
-	 * Set the first element to retrieve. If not set, elements will be
-	 * retrieved beginning from element <tt>0</tt>.
-	 *
-	 * @param firstResult a element number, numbered from <tt>0</tt>
-	 * @return {@code this}  to allow for method chaining
-	 */
-	HSQuery firstResult(int firstResult);
+    /**
+     * Set the first element to retrieve. If not set, elements will be
+     * retrieved beginning from element <tt>0</tt>.
+     *
+     * @param firstResult a element number, numbered from <tt>0</tt>
+     * @return {@code this}  to allow for method chaining
+     */
+    HSQuery firstResult(int firstResult);
 
-	/**
-	 * Set the maximum number of elements to retrieve. If not set,
-	 * there is no limit to the number of elements retrieved.
-	 *
-	 * @param maxResults the maximum number of elements
-	 *
-	 * @return {@code this} in order to allow method chaining
-	 */
-	HSQuery maxResults(int maxResults);
+    /**
+     * Set the maximum number of elements to retrieve. If not set,
+     * there is no limit to the number of elements retrieved.
+     *
+     * @param maxResults the maximum number of elements
+     *
+     * @return {@code this} in order to allow method chaining
+     */
+    HSQuery maxResults(int maxResults);
 
-	/**
-	 * @return the targeted entity types
-	 */
-	List<Class<?>> getTargetedEntities();
+    /**
+     * @return the targeted entity types
+     */
+    List<Class<?>> getTargetedEntities();
 
-	/**
-	 * WTF does that do exactly
-	 */
-	Set<Class<?>> getIndexedTargetedEntities();
+    /**
+     * WTF does that do exactly
+     */
+    Set<Class<?>> getIndexedTargetedEntities();
 
-	/**
-	 * @return the projected field names
-	 */
-	String[] getProjectedFields();
+    /**
+     * @return the projected field names
+     */
+    String[] getProjectedFields();
 
-	/**
-	 * @return the timeout manager. Make sure to wrap your HSQuery usage around a {@code timeoutManager.start()} and  {@code timeoutManager.stop()}.
-	 */
-	TimeoutManager getTimeoutManager();
+    /**
+     * @return the timeout manager. Make sure to wrap your HSQuery usage around a {@code timeoutManager.start()} and  {@code timeoutManager.stop()}.
+     */
+    TimeoutManager getTimeoutManager();
 
-	/**
-	 * @return return the manager for all faceting related operations
-	 */
-	FacetManager getFacetManager();
+    /**
+     * @return return the manager for all faceting related operations
+     */
+    FacetManager getFacetManager();
 
-	/**
-	 * @return the underlying Lucene query
-	 */
-	Query getLuceneQuery();
+    /**
+     * @return the underlying Lucene query
+     */
+    Query getLuceneQuery();
 
-	/**
-	 * Execute the Lucene query and return the list of {@code EntityInfo}s populated with
-	 * metadata and projection. {@link org.hibernate.search.ProjectionConstants#THIS} if projected is <br>not</br> populated.
-	 * It is the responsibility of the object source integration.
-	 *
-	 * @return list of {@code EntityInfo}s populated with metadata and projection
-	 */
-	List<EntityInfo> queryEntityInfos();
+    /**
+     * Execute the Lucene query and return the list of {@code EntityInfo}s populated with
+     * metadata and projection. {@link org.hibernate.search.ProjectionConstants#THIS} if projected is <br>not</br> populated.
+     * It is the responsibility of the object source integration.
+     *
+     * @return list of {@code EntityInfo}s populated with metadata and projection
+     */
+    List<EntityInfo> queryEntityInfos();
 
-	/**
-	 * Execute the Lucene query and return a traversable object over the results.
-	 * Results are lazily fetched.
-	 * {@link org.hibernate.search.ProjectionConstants#THIS} if projected is <br>not</br> populated. It is the responsibility
-	 * of the object source integration.
-	 * The returned {@code DocumentExtractor} <br>must</br> be closed by the caller to release Lucene resources.
-	 *
-	 * @return the {@code DocumentExtractor} instance
-	 */
-	DocumentExtractor queryDocumentExtractor();
+    /**
+     * Execute the Lucene query and return a traversable object over the results.
+     * Results are lazily fetched.
+     * {@link org.hibernate.search.ProjectionConstants#THIS} if projected is <br>not</br> populated. It is the responsibility
+     * of the object source integration.
+     * The returned {@code DocumentExtractor} <br>must</br> be closed by the caller to release Lucene resources.
+     *
+     * @return the {@code DocumentExtractor} instance
+     */
+    DocumentExtractor queryDocumentExtractor();
 
-	/**
-	 * @return the number of hits for this search
-	 *         <p/>
-	 *         Caution:
-	 *         The number of results might be slightly different from
-	 *         what the object source returns if the index is
-	 *         not in sync with the store at the time of query.
-	 */
-	int queryResultSize();
+    /**
+     * @return the number of hits for this search
+     *         <p/>
+     *         Caution:
+     *         The number of results might be slightly different from
+     *         what the object source returns if the index is
+     *         not in sync with the store at the time of query.
+     */
+    int queryResultSize();
 
-	/**
-	 * Return the Lucene {@link org.apache.lucene.search.Explanation}
-	 * object describing the score computation for the matching object/document
-	 * in the current query
-	 *
-	 * @param documentId Lucene Document id to be explain. This is NOT the object id
-	 * @return Lucene Explanation
-	 */
-	Explanation explain(int documentId);
+    /**
+     * Return the Lucene {@link org.apache.lucene.search.Explanation}
+     * object describing the score computation for the matching object/document
+     * in the current query
+     *
+     * @param documentId Lucene Document id to be explain. This is NOT the object id
+     * @return Lucene Explanation
+     */
+    Explanation explain(int documentId);
 
-	/**
-	 * Enable a given filter by its name.
-	 *
-	 * @param name the name of the filter to enable
-	 * @return Returns a {@code FullTextFilter} object that allows filter parameter injection
-	 */
-	FullTextFilter enableFullTextFilter(String name);
+    /**
+     * Enable a given filter by its name.
+     *
+     * @param name the name of the filter to enable
+     * @return Returns a {@code FullTextFilter} object that allows filter parameter injection
+     */
+    FullTextFilter enableFullTextFilter(String name);
 
-	/**
-	 * Disable a given filter by its name.
-	 *
-	 * @param name the name of the filter to disable.
-	 */
-	void disableFullTextFilter(String name);
+    /**
+     * Disable a given filter by its name.
+     *
+     * @param name the name of the filter to disable.
+     */
+    void disableFullTextFilter(String name);
 
-	/**
-	 * <p>getSearchFactoryImplementor.</p>
-	 *
-	 * @return the {@code SearchFactoryImplementor} instance
-	 * @deprecated should be at most SearchFactoryIntegrator, preferably removed altogether
-	 */
-	SearchFactoryImplementor getSearchFactoryImplementor();
+    /**
+     * <p>getSearchFactoryImplementor.</p>
+     *
+     * @return the {@code SearchFactoryImplementor} instance
+     * @deprecated should be at most SearchFactoryIntegrator, preferably removed altogether
+     */
+    SearchFactoryImplementor getSearchFactoryImplementor();
 
-	/**
-	 * <p>afterDeserialise.</p>
-	 *
-	 * @param searchFactory a {@link org.hibernate.search.engine.spi.SearchFactoryImplementor} object.
-	 */
-	void afterDeserialise(SearchFactoryImplementor searchFactory);
+    /**
+     * <p>afterDeserialise.</p>
+     *
+     * @param searchFactory a {@link org.hibernate.search.engine.spi.SearchFactoryImplementor} object.
+     */
+    void afterDeserialise(SearchFactoryImplementor searchFactory);
 
-	/**
-	 * <p>setSpatialParameters.</p>
-	 *
-	 * @param center center of the spatial search
-	 * @param fieldName name ot the spatial field
-	 * @return {@code this}  to allow for method chaining
-	 */
-	HSQuery setSpatialParameters(Point center, String fieldName);
+    /**
+     * <p>setSpatialParameters.</p>
+     *
+     * @param center center of the spatial search
+     * @param fieldName name ot the spatial field
+     * @return {@code this}  to allow for method chaining
+     */
+    HSQuery setSpatialParameters(Point center, String fieldName);
 }

@@ -28,13 +28,13 @@ import org.hibernate.search.indexes.serialization.spi.Serializer;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class JavaSerializationSerializationProvider implements SerializationProvider {
-	@Override
-	public Serializer getSerializer() {
-		return new JavaSerializationSerializer();
-	}
+    @Override
+    public Serializer getSerializer() {
+        return new JavaSerializationSerializer();
+    }
 
-	@Override
-	public Deserializer getDeserializer() {
-		return new JavaSerializationDeserializer();
-	}
+    @Override
+    public Deserializer getDeserializer() {
+        return new JavaSerializationDeserializer();
+    }
 }

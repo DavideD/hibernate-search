@@ -35,95 +35,95 @@ import org.hibernate.search.indexes.serialization.impl.SerializationHelper;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class LuceneFieldContext {
-	private Field field;
+    private Field field;
 
-	public LuceneFieldContext(Field field) {
-		this.field = field;
-	}
+    public LuceneFieldContext(Field field) {
+        this.field = field;
+    }
 
-	public String getName() {
-		return field.name();
-	}
+    public String getName() {
+        return field.name();
+    }
 
-	public SerializableStore getStore() {
-		return field.isStored() ? SerializableStore.YES : SerializableStore.NO;
-	}
+    public SerializableStore getStore() {
+        return field.isStored() ? SerializableStore.YES : SerializableStore.NO;
+    }
 
-	public SerializableIndex getIndex() {
-		Field.Index index = Field.Index.toIndex( field.isIndexed(), field.isTokenized(), field.getOmitNorms() );
-		switch ( index ) {
-			case ANALYZED:
-				return SerializableIndex.ANALYZED;
-			case ANALYZED_NO_NORMS:
-				return SerializableIndex.ANALYZED_NO_NORMS;
-			case NO:
-				return SerializableIndex.NO;
-			case NOT_ANALYZED:
-				return SerializableIndex.NOT_ANALYZED;
-			case NOT_ANALYZED_NO_NORMS:
-				return SerializableIndex.NOT_ANALYZED_NO_NORMS;
-			default:
-				throw new SearchException( "Unable to convert Field.Index value into serializable Index: " + index);
-		}
-	}
+    public SerializableIndex getIndex() {
+        Field.Index index = Field.Index.toIndex( field.isIndexed(), field.isTokenized(), field.getOmitNorms() );
+        switch ( index ) {
+            case ANALYZED:
+                return SerializableIndex.ANALYZED;
+            case ANALYZED_NO_NORMS:
+                return SerializableIndex.ANALYZED_NO_NORMS;
+            case NO:
+                return SerializableIndex.NO;
+            case NOT_ANALYZED:
+                return SerializableIndex.NOT_ANALYZED;
+            case NOT_ANALYZED_NO_NORMS:
+                return SerializableIndex.NOT_ANALYZED_NO_NORMS;
+            default:
+                throw new SearchException( "Unable to convert Field.Index value into serializable Index: " + index);
+        }
+    }
 
-	public SerializableTermVector getTermVector() {
-		Field.TermVector vector = Field.TermVector.toTermVector( field.isTermVectorStored(), field.isStoreOffsetWithTermVector(), field.isStorePositionWithTermVector() );
-		switch ( vector ) {
-			case NO:
-				return SerializableTermVector.NO;
-			case WITH_OFFSETS:
-				return SerializableTermVector.WITH_OFFSETS;
-			case WITH_POSITIONS:
-				return SerializableTermVector.WITH_POSITIONS;
-			case WITH_POSITIONS_OFFSETS:
-				return SerializableTermVector.WITH_POSITIONS_OFFSETS;
-			case YES:
-				return SerializableTermVector.YES;
-			default:
-				throw new SearchException( "Unable to convert Field.TermVector value into serializable TermVector: " + vector);
-		}
-	}
+    public SerializableTermVector getTermVector() {
+        Field.TermVector vector = Field.TermVector.toTermVector( field.isTermVectorStored(), field.isStoreOffsetWithTermVector(), field.isStorePositionWithTermVector() );
+        switch ( vector ) {
+            case NO:
+                return SerializableTermVector.NO;
+            case WITH_OFFSETS:
+                return SerializableTermVector.WITH_OFFSETS;
+            case WITH_POSITIONS:
+                return SerializableTermVector.WITH_POSITIONS;
+            case WITH_POSITIONS_OFFSETS:
+                return SerializableTermVector.WITH_POSITIONS_OFFSETS;
+            case YES:
+                return SerializableTermVector.YES;
+            default:
+                throw new SearchException( "Unable to convert Field.TermVector value into serializable TermVector: " + vector);
+        }
+    }
 
-	public float getBoost() {
-		return field.getBoost();
-	}
+    public float getBoost() {
+        return field.getBoost();
+    }
 
-	public boolean isOmitNorms() {
-		return field.getOmitNorms();
-	}
+    public boolean isOmitNorms() {
+        return field.getOmitNorms();
+    }
 
-	public boolean isOmitTermFreqAndPositions() {
-		return field.getIndexOptions() == IndexOptions.DOCS_ONLY;
-	}
+    public boolean isOmitTermFreqAndPositions() {
+        return field.getIndexOptions() == IndexOptions.DOCS_ONLY;
+    }
 
-	public String getStringValue() {
-		return field.stringValue();
-	}
+    public String getStringValue() {
+        return field.stringValue();
+    }
 
-	public byte[] getReaderValue() {
-		Reader reader = field.readerValue();
-		if (reader instanceof Serializable) {
-			return SerializationHelper.toByteArray( (Serializable) reader );
-		}
-		else {
-			throw new AssertionFailure( "Should not call getReaderValue for a non Serializable Reader" );
-		}
-	}
+    public byte[] getReaderValue() {
+        Reader reader = field.readerValue();
+        if (reader instanceof Serializable) {
+            return SerializationHelper.toByteArray( (Serializable) reader );
+        }
+        else {
+            throw new AssertionFailure( "Should not call getReaderValue for a non Serializable Reader" );
+        }
+    }
 
-	public SerializableTokenStream getTokenStream() {
-		return CopyTokenStream.buildSerializabletokenStream( field.tokenStreamValue() );
-	}
+    public SerializableTokenStream getTokenStream() {
+        return CopyTokenStream.buildSerializabletokenStream( field.tokenStreamValue() );
+    }
 
-	public byte[] getBinaryValue() {
-		return field.getBinaryValue();
-	}
+    public byte[] getBinaryValue() {
+        return field.getBinaryValue();
+    }
 
-	public int getBinaryOffset() {
-		return field.getBinaryOffset();
-	}
+    public int getBinaryOffset() {
+        return field.getBinaryOffset();
+    }
 
-	public int getBinaryLength() {
-		return field.getBinaryLength();
-	}
+    public int getBinaryLength() {
+        return field.getBinaryLength();
+    }
 }

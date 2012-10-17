@@ -33,40 +33,40 @@ import org.hibernate.search.util.logging.impl.Log;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class TwoWayTransformingFieldCacheCollector extends FieldCacheCollector {
-	
-	private static final Log log = LoggerFactory.make();
-	
-	private final TwoWayStringBridge stringBridge;
-	private final FieldCacheCollector privateDelegate;
+    
+    private static final Log log = LoggerFactory.make();
+    
+    private final TwoWayStringBridge stringBridge;
+    private final FieldCacheCollector privateDelegate;
 
-	/**
-	 * @param delegate Actually uses the delegate Collector implementation
-	 * @param twoWayStringBridge Converts returned values using this {@link org.hibernate.search.bridge.TwoWayStringBridge#stringToObject(String)}
-	 */
-	public TwoWayTransformingFieldCacheCollector(FieldCacheCollector delegate, TwoWayStringBridge twoWayStringBridge) {
-		super( delegate );
-		this.privateDelegate = delegate;
-		this.stringBridge = twoWayStringBridge;
-	}
+    /**
+     * @param delegate Actually uses the delegate Collector implementation
+     * @param twoWayStringBridge Converts returned values using this {@link org.hibernate.search.bridge.TwoWayStringBridge#stringToObject(String)}
+     */
+    public TwoWayTransformingFieldCacheCollector(FieldCacheCollector delegate, TwoWayStringBridge twoWayStringBridge) {
+        super( delegate );
+        this.privateDelegate = delegate;
+        this.stringBridge = twoWayStringBridge;
+    }
 
-	@Override
-	public void collect(int doc) throws IOException {
-		delegate.collect( doc );
-	}
+    @Override
+    public void collect(int doc) throws IOException {
+        delegate.collect( doc );
+    }
 
-	@Override
-	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		delegate.setNextReader( reader, docBase );
-	}
+    @Override
+    public void setNextReader(IndexReader reader, int docBase) throws IOException {
+        delegate.setNextReader( reader, docBase );
+    }
 
-	@Override
-	public Object getValue(int docId) {
-		String value = (String) privateDelegate.getValue( docId );
-		if ( value == null ) {
-			log.unexpectedValueMissingFromFieldCache();
-			return null;
-		}
-		return stringBridge.stringToObject( value );
-	}
+    @Override
+    public Object getValue(int docId) {
+        String value = (String) privateDelegate.getValue( docId );
+        if ( value == null ) {
+            log.unexpectedValueMissingFromFieldCache();
+            return null;
+        }
+        return stringBridge.stringToObject( value );
+    }
 
 }

@@ -36,32 +36,32 @@ import org.hibernate.search.backend.impl.WorkVisitor;
  */
 public class UpdateLuceneWork extends LuceneWork implements Serializable {
 
-	private static final long serialVersionUID = -5267394465359187688L;
-	
-	private final Map<String, String> fieldToAnalyzerMap;
+    private static final long serialVersionUID = -5267394465359187688L;
+    
+    private final Map<String, String> fieldToAnalyzerMap;
 
-	public UpdateLuceneWork(Serializable id, String idInString, Class<?> entity, Document document) {
-		this( id, idInString, entity, document, null );
-	}
+    public UpdateLuceneWork(Serializable id, String idInString, Class<?> entity, Document document) {
+        this( id, idInString, entity, document, null );
+    }
 
-	public UpdateLuceneWork(Serializable id, String idInString, Class<?> entity, Document document, Map<String, String> fieldToAnalyzerMap) {
-		super( id, idInString, entity, document );
-		this.fieldToAnalyzerMap = fieldToAnalyzerMap;
-	}
+    public UpdateLuceneWork(Serializable id, String idInString, Class<?> entity, Document document, Map<String, String> fieldToAnalyzerMap) {
+        super( id, idInString, entity, document );
+        this.fieldToAnalyzerMap = fieldToAnalyzerMap;
+    }
 
-	@Override
-	public Map<String, String> getFieldToAnalyzerMap() {
-		return fieldToAnalyzerMap;
-	}
+    @Override
+    public Map<String, String> getFieldToAnalyzerMap() {
+        return fieldToAnalyzerMap;
+    }
 
-	@Override
-	public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
-		return visitor.getDelegate( this );
-	}
-	
-	@Override
-	public String toString() {
-		return "UpdateLuceneWork: " + this.getEntityClass().getName() + "#" + this.getIdInString();
-	}
+    @Override
+    public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
+        return visitor.getDelegate( this );
+    }
+    
+    @Override
+    public String toString() {
+        return "UpdateLuceneWork: " + this.getEntityClass().getName() + "#" + this.getIdInString();
+    }
 
 }

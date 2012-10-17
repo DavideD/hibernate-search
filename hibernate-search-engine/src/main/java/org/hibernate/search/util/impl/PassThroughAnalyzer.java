@@ -41,52 +41,52 @@ import org.apache.lucene.util.Version;
  */
 public final class PassThroughAnalyzer extends Analyzer {
 
-	private final Version luceneVersion;
+    private final Version luceneVersion;
 
-	/**
-	 * Create a new PassThroughAnalyzer.
-	 * 
-	 * @param luceneVersion
-	 */
-	public PassThroughAnalyzer(Version luceneVersion) {
-		this.luceneVersion = luceneVersion;
-	}
+    /**
+     * Create a new PassThroughAnalyzer.
+     * 
+     * @param luceneVersion
+     */
+    public PassThroughAnalyzer(Version luceneVersion) {
+        this.luceneVersion = luceneVersion;
+    }
 
-	@Override
-	public TokenStream tokenStream(String fieldName, Reader reader) {
-		if ( luceneVersion.onOrAfter( Version.LUCENE_31 ) ) {
-			return new PassThroughTokenizer( luceneVersion, reader );
-		}
-		else {
-			return new Pre31PassThroughTokenizer( luceneVersion, reader );
-		}
-	}
+    @Override
+    public TokenStream tokenStream(String fieldName, Reader reader) {
+        if ( luceneVersion.onOrAfter( Version.LUCENE_31 ) ) {
+            return new PassThroughTokenizer( luceneVersion, reader );
+        }
+        else {
+            return new Pre31PassThroughTokenizer( luceneVersion, reader );
+        }
+    }
 
-	/**
-	 * To be used when Lucene's Version >= 3.1
-	 * @since 4.2
-	 */
-	private static class PassThroughTokenizer extends CharTokenizer {
-		public PassThroughTokenizer(Version luceneVersion, Reader input) {
-			super( luceneVersion, input );
-		}
-		protected boolean isTokenChar(int c) {
-			return true;
-		}
-	}
+    /**
+     * To be used when Lucene's Version >= 3.1
+     * @since 4.2
+     */
+    private static class PassThroughTokenizer extends CharTokenizer {
+        public PassThroughTokenizer(Version luceneVersion, Reader input) {
+            super( luceneVersion, input );
+        }
+        protected boolean isTokenChar(int c) {
+            return true;
+        }
+    }
 
-	/**
-	 * To be used when Lucene's Version < 3.1
-	 * @since 4.2
-	 */
-	private static class Pre31PassThroughTokenizer extends CharTokenizer {
-		public Pre31PassThroughTokenizer(Version luceneVersion, Reader input) {
-			super( luceneVersion, input );
-		}
+    /**
+     * To be used when Lucene's Version < 3.1
+     * @since 4.2
+     */
+    private static class Pre31PassThroughTokenizer extends CharTokenizer {
+        public Pre31PassThroughTokenizer(Version luceneVersion, Reader input) {
+            super( luceneVersion, input );
+        }
 
-		//@Override not really: will be removed in Lucene 4.0
-		protected boolean isTokenChar(char c) {
-			return true;
-		}
-	}
+        //@Override not really: will be removed in Lucene 4.0
+        protected boolean isTokenChar(char c) {
+            return true;
+        }
+    }
 }

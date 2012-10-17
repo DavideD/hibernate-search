@@ -42,6 +42,6 @@ package org.hibernate.search.query.dsl;
  * @author Emmanuel Bernard
  */
 public interface QueryContextBuilder {
-	//TODO make a forEntities
-	EntityContext forEntity(Class<?> entityType);
+    //TODO make a forEntities
+    EntityContext forEntity(Class<?> entityType);
 }

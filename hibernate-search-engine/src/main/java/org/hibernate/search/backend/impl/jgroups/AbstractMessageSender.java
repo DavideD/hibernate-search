@@ -35,17 +35,17 @@ import org.jgroups.View;
  */
 abstract class AbstractMessageSender implements MessageSender {
 
-	protected final Channel channel;
+    protected final Channel channel;
 
-	AbstractMessageSender(Channel channel) {
-		this.channel = channel;
-	}
+    AbstractMessageSender(Channel channel) {
+        this.channel = channel;
+    }
 
-	public Address getAddress() {
-		return channel.getAddress();
-	}
+    public Address getAddress() {
+        return channel.getAddress();
+    }
 
-	public View getView() {
-		return channel.getView();
-	}
+    public View getView() {
+        return channel.getView();
+    }
 }

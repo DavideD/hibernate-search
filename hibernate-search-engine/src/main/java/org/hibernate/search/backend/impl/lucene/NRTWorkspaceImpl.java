@@ -51,97 +51,97 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class NRTWorkspaceImpl extends AbstractWorkspaceImpl implements DirectoryBasedReaderProvider {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final ReentrantLock writeLock = new ReentrantLock();
-	private final AtomicReference<IndexReader> currentReader = new AtomicReference<IndexReader>();
+    private final ReentrantLock writeLock = new ReentrantLock();
+    private final AtomicReference<IndexReader> currentReader = new AtomicReference<IndexReader>();
 
-	/**
-	 * Set to true when this service is shutdown (not revertible)
-	 */
-	private boolean shutdown = false;
+    /**
+     * Set to true when this service is shutdown (not revertible)
+     */
+    private boolean shutdown = false;
 
-	public NRTWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext buildContext, Properties cfg) {
-		super( indexManager, buildContext, cfg );
-	}
+    public NRTWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext buildContext, Properties cfg) {
+        super( indexManager, buildContext, cfg );
+    }
 
-	@Override
-	public void afterTransactionApplied(boolean someFailureHappened, boolean streaming) {
-		if ( someFailureHappened ) {
-			writerHolder.forceLockRelease();
-		}
-		else {
-			if ( !streaming ) {
-				flush();
-			}
-		}
-	}
+    @Override
+    public void afterTransactionApplied(boolean someFailureHappened, boolean streaming) {
+        if ( someFailureHappened ) {
+            writerHolder.forceLockRelease();
+        }
+        else {
+            if ( !streaming ) {
+                flush();
+            }
+        }
+    }
 
-	@Override
-	public IndexReader openIndexReader() {
-		IndexReader indexReader = currentReader.get();
-		if ( indexReader == null ) {
-			writeLock.lock();
-			try {
-				if ( shutdown ) {
-					throw new AssertionFailure( "IndexReader requested after ReaderProvider is shutdown" );
-				}
-				indexReader = currentReader.get();
-				if ( indexReader == null ) {
-					indexReader = writerHolder.openDirectoryIndexReader();
-					currentReader.set( indexReader );
-				}
-			}
-			finally {
-				writeLock.unlock();
-			}
-		}
-		indexReader.incRef();
-		return indexReader;
-	}
+    @Override
+    public IndexReader openIndexReader() {
+        IndexReader indexReader = currentReader.get();
+        if ( indexReader == null ) {
+            writeLock.lock();
+            try {
+                if ( shutdown ) {
+                    throw new AssertionFailure( "IndexReader requested after ReaderProvider is shutdown" );
+                }
+                indexReader = currentReader.get();
+                if ( indexReader == null ) {
+                    indexReader = writerHolder.openDirectoryIndexReader();
+                    currentReader.set( indexReader );
+                }
+            }
+            finally {
+                writeLock.unlock();
+            }
+        }
+        indexReader.incRef();
+        return indexReader;
+    }
 
-	@Override
-	public void closeIndexReader(IndexReader reader) {
-		if ( reader == null ) {
-			return;
-		}
-		try {
-			//don't use IndexReader#close as it prevents further counter decrements!
-			reader.decRef();
-		}
-		catch ( IOException e ) {
-			log.unableToCloseLuceneIndexReader( e );
-		}
-	}
+    @Override
+    public void closeIndexReader(IndexReader reader) {
+        if ( reader == null ) {
+            return;
+        }
+        try {
+            //don't use IndexReader#close as it prevents further counter decrements!
+            reader.decRef();
+        }
+        catch ( IOException e ) {
+            log.unableToCloseLuceneIndexReader( e );
+        }
+    }
 
-	@Override
-	public void initialize(DirectoryBasedIndexManager indexManager, Properties props) {
-	}
+    @Override
+    public void initialize(DirectoryBasedIndexManager indexManager, Properties props) {
+    }
 
-	@Override
-	public void stop() {
-		writeLock.lock();
-		try {
-			final IndexReader oldReader = currentReader.getAndSet( null );
-			closeIndexReader( oldReader );
-			shutdown = true;
-		}
-		finally {
-			writeLock.unlock();
-		}
-	}
+    @Override
+    public void stop() {
+        writeLock.lock();
+        try {
+            final IndexReader oldReader = currentReader.getAndSet( null );
+            closeIndexReader( oldReader );
+            shutdown = true;
+        }
+        finally {
+            writeLock.unlock();
+        }
+    }
 
-	@Override
-	public void flush() {
-		final IndexReader newIndexReader = writerHolder.openNRTIndexReader( true );
-		final IndexReader oldReader = currentReader.getAndSet( newIndexReader );
-		try {
-			if ( oldReader != null ) {
-				oldReader.close();
-			}
-		}
-		catch ( IOException e ) {
-			log.unableToCloseLuceneIndexReader( e );
-		}
-	}
+    @Override
+    public void flush() {
+        final IndexReader newIndexReader = writerHolder.openNRTIndexReader( true );
+        final IndexReader oldReader = currentReader.getAndSet( newIndexReader );
+        try {
+            if ( oldReader != null ) {
+                oldReader.close();
+            }
+        }
+        catch ( IOException e ) {
+            log.unableToCloseLuceneIndexReader( e );
+        }
+    }
 }

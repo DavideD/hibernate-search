@@ -43,11 +43,11 @@ import org.hibernate.search.backend.UpdateLuceneWork;
  */
 public interface WorkVisitor<T> {
 
-	T getDelegate(AddLuceneWork addLuceneWork);
-	T getDelegate(DeleteLuceneWork deleteLuceneWork);
-	T getDelegate(OptimizeLuceneWork optimizeLuceneWork);
-	T getDelegate(PurgeAllLuceneWork purgeAllLuceneWork);
-	T getDelegate(UpdateLuceneWork updateLuceneWork);
-	T getDelegate(FlushLuceneWork flushLuceneWork);
+    T getDelegate(AddLuceneWork addLuceneWork);
+    T getDelegate(DeleteLuceneWork deleteLuceneWork);
+    T getDelegate(OptimizeLuceneWork optimizeLuceneWork);
+    T getDelegate(PurgeAllLuceneWork purgeAllLuceneWork);
+    T getDelegate(UpdateLuceneWork updateLuceneWork);
+    T getDelegate(FlushLuceneWork flushLuceneWork);
 
 }

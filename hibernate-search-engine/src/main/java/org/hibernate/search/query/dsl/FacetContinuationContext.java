@@ -28,19 +28,19 @@ package org.hibernate.search.query.dsl;
  * @author Hardy Ferentschik
  */
 public interface FacetContinuationContext {
-	/**
-	 * Start building a range request
-	 *
-	 * @return a {@code FacetRangeContext} to continue building the facet request
-	 */
-	<T> FacetRangeAboveBelowContext<T> range();
+    /**
+     * Start building a range request
+     *
+     * @return a {@code FacetRangeContext} to continue building the facet request
+     */
+    <T> FacetRangeAboveBelowContext<T> range();
 
-	/**
-	 * Start building a discrete facet
-	 *
-	 * @return  a {@code FacetRangeContext} to continue building the facet request
-	 */
-	DiscreteFacetContext discrete();
+    /**
+     * Start building a discrete facet
+     *
+     * @return  a {@code FacetRangeContext} to continue building the facet request
+     */
+    DiscreteFacetContext discrete();
 }
 
 

@@ -34,14 +34,14 @@ import org.hibernate.search.backend.LuceneWork;
  */
 public interface LuceneWorkDelegate {
 
-	/**
-	 * Will perform work on an IndexWriter.
-	 *
-	 * @param work the LuceneWork to apply to the IndexWriter.
-	 * @param writer the IndexWriter to use.
-	 * @param monitor will be notified of performed operations
-	 * @throws java.lang.UnsupportedOperationException when the work is not compatible with an IndexWriter.
-	 */
-	void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor);
+    /**
+     * Will perform work on an IndexWriter.
+     *
+     * @param work the LuceneWork to apply to the IndexWriter.
+     * @param writer the IndexWriter to use.
+     * @param monitor will be notified of performed operations
+     * @throws java.lang.UnsupportedOperationException when the work is not compatible with an IndexWriter.
+     */
+    void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor);
 
 }

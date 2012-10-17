@@ -31,48 +31,48 @@ import org.hibernate.search.spatial.impl.Point;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class ConnectedSpatialMatchingContext implements SpatialMatchingContext {
-	private final QueryBuildingContext queryContext;
-	private final QueryCustomizer queryCustomizer;
-	private final SpatialQueryContext spatialContext;
-	private final ConnectedQueryBuilder queryBuilder;
+    private final QueryBuildingContext queryContext;
+    private final QueryCustomizer queryCustomizer;
+    private final SpatialQueryContext spatialContext;
+    private final ConnectedQueryBuilder queryBuilder;
 
-	public ConnectedSpatialMatchingContext(QueryBuildingContext queryContext, QueryCustomizer queryCustomizer, SpatialQueryContext spatialContext, ConnectedQueryBuilder queryBuilder) {
-		this.queryContext = queryContext;
-		this.queryCustomizer = queryCustomizer;
-		this.spatialContext = spatialContext;
-		this.queryBuilder = queryBuilder;
-	}
+    public ConnectedSpatialMatchingContext(QueryBuildingContext queryContext, QueryCustomizer queryCustomizer, SpatialQueryContext spatialContext, ConnectedQueryBuilder queryBuilder) {
+        this.queryContext = queryContext;
+        this.queryCustomizer = queryCustomizer;
+        this.spatialContext = spatialContext;
+        this.queryBuilder = queryBuilder;
+    }
 
-	@Override
-	public WithinContext within(double distance, Unit unit) {
-		spatialContext.setRadius( distance, unit );
-		return new ConnectedWithinContext( this );
-	}
+    @Override
+    public WithinContext within(double distance, Unit unit) {
+        spatialContext.setRadius( distance, unit );
+        return new ConnectedWithinContext( this );
+    }
 
-	private static final class ConnectedWithinContext implements WithinContext, WithinContext.LongitudeContext {
-		private final ConnectedSpatialMatchingContext mother;
-		private double latitude;
+    private static final class ConnectedWithinContext implements WithinContext, WithinContext.LongitudeContext {
+        private final ConnectedSpatialMatchingContext mother;
+        private double latitude;
 
-		public ConnectedWithinContext(ConnectedSpatialMatchingContext mother) {
-			this.mother = mother;
-		}
+        public ConnectedWithinContext(ConnectedSpatialMatchingContext mother) {
+            this.mother = mother;
+        }
 
-		@Override
-		public SpatialTermination ofCoordinates(Coordinates coordinates) {
-			mother.spatialContext.setCoordinates(coordinates);
-			return new ConnectedSpatialQueryBuilder(mother.spatialContext, mother.queryCustomizer, mother.queryContext, mother.queryBuilder);
-		}
+        @Override
+        public SpatialTermination ofCoordinates(Coordinates coordinates) {
+            mother.spatialContext.setCoordinates(coordinates);
+            return new ConnectedSpatialQueryBuilder(mother.spatialContext, mother.queryCustomizer, mother.queryContext, mother.queryBuilder);
+        }
 
-		@Override
-		public LongitudeContext ofLatitude(double latitude) {
-			this.latitude = latitude;
-			return this;
-		}
+        @Override
+        public LongitudeContext ofLatitude(double latitude) {
+            this.latitude = latitude;
+            return this;
+        }
 
-		@Override
-		public SpatialTermination andLongitude(double longitude) {
-			mother.spatialContext.setCoordinates( Point.fromDegrees(latitude, longitude) );
-			return new ConnectedSpatialQueryBuilder(mother.spatialContext, mother.queryCustomizer, mother.queryContext, mother.queryBuilder);
-		}
-	}
+        @Override
+        public SpatialTermination andLongitude(double longitude) {
+            mother.spatialContext.setCoordinates( Point.fromDegrees(latitude, longitude) );
+            return new ConnectedSpatialQueryBuilder(mother.spatialContext, mother.queryCustomizer, mother.queryContext, mother.queryBuilder);
+        }
+    }
 }

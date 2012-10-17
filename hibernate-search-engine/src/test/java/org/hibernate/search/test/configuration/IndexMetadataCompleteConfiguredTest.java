@@ -47,76 +47,76 @@ import static junit.framework.Assert.assertEquals;
  */
 public class IndexMetadataCompleteConfiguredTest {
 
-	@Test
-	public void testDefaultImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		verifyIndexCompleteMetadataOption( true, cfg );
-	}
+    @Test
+    public void testDefaultImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        verifyIndexCompleteMetadataOption( true, cfg );
+    }
 
-	@Test
-	public void testIndexMetadataCompleteFalse() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.setIndexMetadataComplete( false );
-		verifyIndexCompleteMetadataOption( false, cfg );
-	}
+    @Test
+    public void testIndexMetadataCompleteFalse() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.setIndexMetadataComplete( false );
+        verifyIndexCompleteMetadataOption( false, cfg );
+    }
 
-	@Test
-	public void testIndexMetadataCompleteTrue() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.setIndexMetadataComplete( true );
-		verifyIndexCompleteMetadataOption( true, cfg );
-	}
+    @Test
+    public void testIndexMetadataCompleteTrue() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.setIndexMetadataComplete( true );
+        verifyIndexCompleteMetadataOption( true, cfg );
+    }
 
-	private void verifyIndexCompleteMetadataOption(boolean expectation, ManualConfiguration cfg) {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Document.class ).indexed().indexName( "index1" )
-			.property( "id", ElementType.FIELD ).documentId()
-			.property( "title", ElementType.FIELD ).field()
-			;
-		cfg.setProgrammaticMapping( mapping );
-		cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		cfg.addClass( Document.class );
-		MutableSearchFactory sf = (MutableSearchFactory) new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
-		try {
-			assertEquals( expectation, extractWorkspace( sf, Document.class ).areSingleTermDeletesSafe() );
+    private void verifyIndexCompleteMetadataOption(boolean expectation, ManualConfiguration cfg) {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Document.class ).indexed().indexName( "index1" )
+            .property( "id", ElementType.FIELD ).documentId()
+            .property( "title", ElementType.FIELD ).field()
+            ;
+        cfg.setProgrammaticMapping( mapping );
+        cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        cfg.addClass( Document.class );
+        MutableSearchFactory sf = (MutableSearchFactory) new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+        try {
+            assertEquals( expectation, extractWorkspace( sf, Document.class ).areSingleTermDeletesSafe() );
 
-			// trigger a SearchFactory rebuild:
-			sf.addClasses( Dvd.class, Book.class );
-			// DVD share the same index, so now it's always unsafe [always false no matter the global option]
-			assertEquals( false, extractWorkspace( sf, Dvd.class ).areSingleTermDeletesSafe() );
-			assertEquals( false, extractWorkspace( sf, Document.class ).areSingleTermDeletesSafe() );
+            // trigger a SearchFactory rebuild:
+            sf.addClasses( Dvd.class, Book.class );
+            // DVD share the same index, so now it's always unsafe [always false no matter the global option]
+            assertEquals( false, extractWorkspace( sf, Dvd.class ).areSingleTermDeletesSafe() );
+            assertEquals( false, extractWorkspace( sf, Document.class ).areSingleTermDeletesSafe() );
 
-			// but still as expected for Book :
-			assertEquals( expectation, extractWorkspace( sf, Book.class ).areSingleTermDeletesSafe() );
-		}
-		finally {
-			sf.close();
-		}
-	}
+            // but still as expected for Book :
+            assertEquals( expectation, extractWorkspace( sf, Book.class ).areSingleTermDeletesSafe() );
+        }
+        finally {
+            sf.close();
+        }
+    }
 
-	private static AbstractWorkspaceImpl extractWorkspace(MutableSearchFactory sf, Class<?> type) {
-		EntityIndexBinder indexBindingForEntity = sf.getIndexBindingForEntity( type );
-		DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) indexBindingForEntity.getIndexManagers()[0];
-		LuceneBackendQueueProcessor backend = (LuceneBackendQueueProcessor) indexManager.getBackendQueueProcessor();
-		AbstractWorkspaceImpl workspace = backend.getIndexResources().getWorkspace();
-		return workspace;
-	}
+    private static AbstractWorkspaceImpl extractWorkspace(MutableSearchFactory sf, Class<?> type) {
+        EntityIndexBinder indexBindingForEntity = sf.getIndexBindingForEntity( type );
+        DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) indexBindingForEntity.getIndexManagers()[0];
+        LuceneBackendQueueProcessor backend = (LuceneBackendQueueProcessor) indexManager.getBackendQueueProcessor();
+        AbstractWorkspaceImpl workspace = backend.getIndexResources().getWorkspace();
+        return workspace;
+    }
 
-	public static final class Document {
-		long id;
-		String title;
-	}
+    public static final class Document {
+        long id;
+        String title;
+    }
 
-	@Indexed(index="index1")
-	public static final class Dvd {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed(index="index1")
+    public static final class Dvd {
+        @DocumentId long id;
+        @Field String title;
+    }
 
-	@Indexed(index="index2")
-	public static final class Book {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed(index="index2")
+    public static final class Book {
+        @DocumentId long id;
+        @Field String title;
+    }
 }

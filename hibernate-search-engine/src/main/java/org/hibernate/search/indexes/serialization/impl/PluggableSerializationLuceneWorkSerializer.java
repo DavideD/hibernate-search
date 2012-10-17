@@ -57,168 +57,168 @@ import static org.hibernate.search.indexes.serialization.impl.SerializationHelpe
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class PluggableSerializationLuceneWorkSerializer implements LuceneWorkSerializer {
-	private static Log log = LoggerFactory.make();
+    private static Log log = LoggerFactory.make();
 
-	private SearchFactoryImplementor searchFactory;
-	private SerializationProvider provider;
+    private SearchFactoryImplementor searchFactory;
+    private SerializationProvider provider;
 
-	public PluggableSerializationLuceneWorkSerializer(SerializationProvider provider, SearchFactoryImplementor searchFactory) {
-		this.provider = provider;
-		this.searchFactory = searchFactory;
-	}
+    public PluggableSerializationLuceneWorkSerializer(SerializationProvider provider, SearchFactoryImplementor searchFactory) {
+        this.provider = provider;
+        this.searchFactory = searchFactory;
+    }
 
-	/**
-	 * Convert a List of LuceneWork into a byte[]
-	 */
-	@Override
-	public byte[] toSerializedModel(List<LuceneWork> works) {
-		try {
-			Serializer serializer = provider.getSerializer();
-			serializer.luceneWorks( works );
+    /**
+     * Convert a List of LuceneWork into a byte[]
+     */
+    @Override
+    public byte[] toSerializedModel(List<LuceneWork> works) {
+        try {
+            Serializer serializer = provider.getSerializer();
+            serializer.luceneWorks( works );
 
-			for (LuceneWork work : works) {
-				if (work instanceof OptimizeLuceneWork) {
-					serializer.addOptimizeAll();
-				}
-				else if (work instanceof PurgeAllLuceneWork) {
-					serializer.addPurgeAll( work.getEntityClass().getName() );
-				}
-				else if (work instanceof DeleteLuceneWork) {
-					processId(work, serializer);
-					serializer.addDelete( work.getEntityClass().getName() );
-				}
-				else if (work instanceof AddLuceneWork ) {
-					buildDocument( work.getDocument(), serializer );
-					processId(work, serializer);
-					serializer.addAdd( work.getEntityClass().getName(),  work.getFieldToAnalyzerMap() );
-				}
-				else if (work instanceof UpdateLuceneWork ) {
-					buildDocument( work.getDocument(), serializer );
-					processId(work, serializer);
-					serializer.addUpdate( work.getEntityClass().getName(), work.getFieldToAnalyzerMap() );
-				}
-			}
-			return serializer.serialize();
-		}
-		catch ( RuntimeException e ) {
-			if ( e instanceof SearchException ) {
-				throw e;
-			}
-			else {
-				throw log.unableToSerializeLuceneWorks( e );
-			}
-		}
-	}
+            for (LuceneWork work : works) {
+                if (work instanceof OptimizeLuceneWork) {
+                    serializer.addOptimizeAll();
+                }
+                else if (work instanceof PurgeAllLuceneWork) {
+                    serializer.addPurgeAll( work.getEntityClass().getName() );
+                }
+                else if (work instanceof DeleteLuceneWork) {
+                    processId(work, serializer);
+                    serializer.addDelete( work.getEntityClass().getName() );
+                }
+                else if (work instanceof AddLuceneWork ) {
+                    buildDocument( work.getDocument(), serializer );
+                    processId(work, serializer);
+                    serializer.addAdd( work.getEntityClass().getName(),  work.getFieldToAnalyzerMap() );
+                }
+                else if (work instanceof UpdateLuceneWork ) {
+                    buildDocument( work.getDocument(), serializer );
+                    processId(work, serializer);
+                    serializer.addUpdate( work.getEntityClass().getName(), work.getFieldToAnalyzerMap() );
+                }
+            }
+            return serializer.serialize();
+        }
+        catch ( RuntimeException e ) {
+            if ( e instanceof SearchException ) {
+                throw e;
+            }
+            else {
+                throw log.unableToSerializeLuceneWorks( e );
+            }
+        }
+    }
 
-	private void processId(LuceneWork work, Serializer serializer) {
-		Serializable id = work.getId();
-		if ( id instanceof Integer ) {
-			serializer.addIdAsInteger( ( Integer ) id );
-		}
-		else if ( id instanceof Long ) {
-			serializer.addIdAsLong( ( Long ) id );
-		}
-		else if ( id instanceof Float ) {
-			serializer.addIdAsFloat( ( Float ) id );
-		}
-		else if ( id instanceof Double ) {
-			serializer.addIdAsDouble( ( Double ) id );
-		}
-		else if ( id instanceof String ) {
-			serializer.addIdAsString( id.toString() );
-		}
-		else {
-			serializer.addIdSerializedInJava( toByteArray( id ) );
-		}
-	}
+    private void processId(LuceneWork work, Serializer serializer) {
+        Serializable id = work.getId();
+        if ( id instanceof Integer ) {
+            serializer.addIdAsInteger( ( Integer ) id );
+        }
+        else if ( id instanceof Long ) {
+            serializer.addIdAsLong( ( Long ) id );
+        }
+        else if ( id instanceof Float ) {
+            serializer.addIdAsFloat( ( Float ) id );
+        }
+        else if ( id instanceof Double ) {
+            serializer.addIdAsDouble( ( Double ) id );
+        }
+        else if ( id instanceof String ) {
+            serializer.addIdAsString( id.toString() );
+        }
+        else {
+            serializer.addIdSerializedInJava( toByteArray( id ) );
+        }
+    }
 
-	/**
-	 * Convert a byte[] to a List of LuceneWork (assuming the same SerializationProvider is used of course)
-	 */
-	@Override
-	public List<LuceneWork> toLuceneWorks(byte[] data) {
-		try {
-			Deserializer deserializer = provider.getDeserializer();
-			LuceneWorkHydrator hydrator = new LuceneWorkHydrator( searchFactory );
-			deserializer.deserialize( data, hydrator );
-			return hydrator.getLuceneWorks();
-		}
-		catch ( RuntimeException e ) {
-			if ( e instanceof SearchException ) {
-				throw e;
-			}
-			else {
-				throw log.unableToReadSerializedLuceneWorks( e );
-			}
-		}
-	}
+    /**
+     * Convert a byte[] to a List of LuceneWork (assuming the same SerializationProvider is used of course)
+     */
+    @Override
+    public List<LuceneWork> toLuceneWorks(byte[] data) {
+        try {
+            Deserializer deserializer = provider.getDeserializer();
+            LuceneWorkHydrator hydrator = new LuceneWorkHydrator( searchFactory );
+            deserializer.deserialize( data, hydrator );
+            return hydrator.getLuceneWorks();
+        }
+        catch ( RuntimeException e ) {
+            if ( e instanceof SearchException ) {
+                throw e;
+            }
+            else {
+                throw log.unableToReadSerializedLuceneWorks( e );
+            }
+        }
+    }
 
 
-	private void buildDocument(Document document, Serializer serializer) {
-		List<Fieldable> docFields = document.getFields();
-		serializer.fields( docFields );
-		for(Fieldable fieldable : docFields) {
-			if (fieldable instanceof NumericField) {
-				NumericField safeField = (NumericField) fieldable;
-				LuceneNumericFieldContext context = new LuceneNumericFieldContext( (NumericField) fieldable );
-				switch ( safeField.getDataType() ) {
-					case INT:
-						serializer.addIntNumericField(
-								safeField.getNumericValue().intValue(),
-								context
-						);
-						break;
-					case LONG:
-						serializer.addLongNumericField(
-								safeField.getNumericValue().longValue(),
-								context
-						);
-						break;
-					case FLOAT:
-						serializer.addFloatNumericField(
-								safeField.getNumericValue().floatValue(),
-								context
-						);
-						break;
-					case DOUBLE:
-						serializer.addDoubleNumericField(
-								safeField.getNumericValue().doubleValue(),
-								context
-						);
-						break;
-					default:
-						String dataType = safeField.getDataType() == null ? "null" : safeField.getDataType().toString();
-						throw log.unknownNumericFieldType( dataType );
-				}
-			}
-			else if (fieldable instanceof Field) {
-				Field safeField = (Field) fieldable;
-				if ( safeField.isBinary() ) {
-					serializer.addFieldWithBinaryData( new LuceneFieldContext( safeField ) );
-				}
-				else if ( safeField.stringValue() != null )  {
-					serializer.addFieldWithStringData( new LuceneFieldContext( safeField ) );
-				}
-				else if ( safeField.readerValue() != null && safeField.readerValue() instanceof Serializable )  {
-					serializer.addFieldWithSerializableReaderData( new LuceneFieldContext( safeField ) );
-				}
-				else if ( safeField.readerValue() != null )  {
-					throw log.conversionFromReaderToStringNotYetImplemented();
-				}
-				else if ( safeField.tokenStreamValue() != null )  {
-					serializer.addFieldWithTokenStreamData( new LuceneFieldContext( safeField ) );
-				}
-				else {
-					throw log.unknownFieldType( safeField.getClass() );
-				}
-			}
-			else if (fieldable instanceof Serializable) { //Today Fieldable is Serializable but for how long?
-				serializer.addFieldWithSerializableFieldable( toByteArray( fieldable ) );
-			}
-			else {
-				throw log.cannotSerializeCustomField( fieldable.getClass() );
-			}
-		}
-		serializer.addDocument( document.getBoost() );
-	}
+    private void buildDocument(Document document, Serializer serializer) {
+        List<Fieldable> docFields = document.getFields();
+        serializer.fields( docFields );
+        for(Fieldable fieldable : docFields) {
+            if (fieldable instanceof NumericField) {
+                NumericField safeField = (NumericField) fieldable;
+                LuceneNumericFieldContext context = new LuceneNumericFieldContext( (NumericField) fieldable );
+                switch ( safeField.getDataType() ) {
+                    case INT:
+                        serializer.addIntNumericField(
+                                safeField.getNumericValue().intValue(),
+                                context
+                        );
+                        break;
+                    case LONG:
+                        serializer.addLongNumericField(
+                                safeField.getNumericValue().longValue(),
+                                context
+                        );
+                        break;
+                    case FLOAT:
+                        serializer.addFloatNumericField(
+                                safeField.getNumericValue().floatValue(),
+                                context
+                        );
+                        break;
+                    case DOUBLE:
+                        serializer.addDoubleNumericField(
+                                safeField.getNumericValue().doubleValue(),
+                                context
+                        );
+                        break;
+                    default:
+                        String dataType = safeField.getDataType() == null ? "null" : safeField.getDataType().toString();
+                        throw log.unknownNumericFieldType( dataType );
+                }
+            }
+            else if (fieldable instanceof Field) {
+                Field safeField = (Field) fieldable;
+                if ( safeField.isBinary() ) {
+                    serializer.addFieldWithBinaryData( new LuceneFieldContext( safeField ) );
+                }
+                else if ( safeField.stringValue() != null )  {
+                    serializer.addFieldWithStringData( new LuceneFieldContext( safeField ) );
+                }
+                else if ( safeField.readerValue() != null && safeField.readerValue() instanceof Serializable )  {
+                    serializer.addFieldWithSerializableReaderData( new LuceneFieldContext( safeField ) );
+                }
+                else if ( safeField.readerValue() != null )  {
+                    throw log.conversionFromReaderToStringNotYetImplemented();
+                }
+                else if ( safeField.tokenStreamValue() != null )  {
+                    serializer.addFieldWithTokenStreamData( new LuceneFieldContext( safeField ) );
+                }
+                else {
+                    throw log.unknownFieldType( safeField.getClass() );
+                }
+            }
+            else if (fieldable instanceof Serializable) { //Today Fieldable is Serializable but for how long?
+                serializer.addFieldWithSerializableFieldable( toByteArray( fieldable ) );
+            }
+            else {
+                throw log.cannotSerializeCustomField( fieldable.getClass() );
+            }
+        }
+        serializer.addDocument( document.getBoost() );
+    }
 }

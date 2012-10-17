@@ -33,21 +33,21 @@ import org.apache.lucene.index.IndexReader;
  * @see org.hibernate.search.query.collector.MapFieldCacheCollectorImpl
  */
 public interface FieldLoadingStrategy {
-	/**
-	 * A new IndexReader is opened - implementations usually need this to
-	 * load the next array of cached data.
-	 *
-	 * @param reader the {@code IndexReader} for which to load the new cache values
-	 * @throws java.io.IOException in case an error occurs reading the cache values from the index
-	 */
-	public void loadNewCacheValues(IndexReader reader) throws IOException;
+    /**
+     * A new IndexReader is opened - implementations usually need this to
+     * load the next array of cached data.
+     *
+     * @param reader the {@code IndexReader} for which to load the new cache values
+     * @throws java.io.IOException in case an error occurs reading the cache values from the index
+     */
+    public void loadNewCacheValues(IndexReader reader) throws IOException;
 
-	/**
-	 * The collector wants to pick a specific element from the cache.
-	 * Only at this point we convert primitives into an object if needed.
-	 *
-	 * @param relativeDocId the doc id relative to the current reader
-	 * @return the cached field value for the document with the relative id {@code relativeDocId}.
-	 */
-	public Object collect(int relativeDocId);
+    /**
+     * The collector wants to pick a specific element from the cache.
+     * Only at this point we convert primitives into an object if needed.
+     *
+     * @param relativeDocId the doc id relative to the current reader
+     * @return the cached field value for the document with the relative id {@code relativeDocId}.
+     */
+    public Object collect(int relativeDocId);
 }

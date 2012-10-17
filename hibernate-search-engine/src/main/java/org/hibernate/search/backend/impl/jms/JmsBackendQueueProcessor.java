@@ -52,116 +52,116 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public abstract class JmsBackendQueueProcessor implements BackendQueueProcessor {
 
-	private String jmsQueueName;
-	protected static final String JNDI_PREFIX = Environment.WORKER_PREFIX + "jndi.";
-	private Queue jmsQueue;
-	private QueueConnectionFactory factory;
-	private String indexName;
-	private SearchFactoryImplementor searchFactory;
-	private QueueConnection connection;
+    private String jmsQueueName;
+    protected static final String JNDI_PREFIX = Environment.WORKER_PREFIX + "jndi.";
+    private Queue jmsQueue;
+    private QueueConnectionFactory factory;
+    private String indexName;
+    private SearchFactoryImplementor searchFactory;
+    private QueueConnection connection;
 
-	public static final String JMS_CONNECTION_FACTORY = Environment.WORKER_PREFIX + "jms.connection_factory";
-	public static final String JMS_QUEUE = Environment.WORKER_PREFIX + "jms.queue";
-	public static final String JMS_CONNECTION_LOGIN = Environment.WORKER_PREFIX + "jms.login";
-	public static final String JMS_CONNECTION_PASSWORD = Environment.WORKER_PREFIX + "jms.password";
+    public static final String JMS_CONNECTION_FACTORY = Environment.WORKER_PREFIX + "jms.connection_factory";
+    public static final String JMS_QUEUE = Environment.WORKER_PREFIX + "jms.queue";
+    public static final String JMS_CONNECTION_LOGIN = Environment.WORKER_PREFIX + "jms.login";
+    public static final String JMS_CONNECTION_PASSWORD = Environment.WORKER_PREFIX + "jms.password";
 
-	private IndexManager indexManager;
+    private IndexManager indexManager;
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	@Override
-	public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
-		this.indexManager = indexManager;
-		this.jmsQueueName = props.getProperty( JMS_QUEUE );
-		this.indexName = indexManager.getIndexName();
-		this.searchFactory = context.getUninitializedSearchFactory();
-		this.factory = initializeJMSQueueConnectionFactory( props );
-		this.jmsQueue = initializeJMSQueue( factory, props );
-		this.connection = initializeJMSConnection( factory, props );
-	}
+    @Override
+    public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
+        this.indexManager = indexManager;
+        this.jmsQueueName = props.getProperty( JMS_QUEUE );
+        this.indexName = indexManager.getIndexName();
+        this.searchFactory = context.getUninitializedSearchFactory();
+        this.factory = initializeJMSQueueConnectionFactory( props );
+        this.jmsQueue = initializeJMSQueue( factory, props );
+        this.connection = initializeJMSConnection( factory, props );
+    }
 
-	public Queue getJmsQueue() {
-		return jmsQueue;
-	}
+    public Queue getJmsQueue() {
+        return jmsQueue;
+    }
 
-	public String getJmsQueueName() {
-		return jmsQueueName;
-	}
+    public String getJmsQueueName() {
+        return jmsQueueName;
+    }
 
-	public String getIndexName() {
-		return indexName;
-	}
+    public String getIndexName() {
+        return indexName;
+    }
 
-	public SearchFactoryImplementor getSearchFactory() {
-		return searchFactory;
-	}
+    public SearchFactoryImplementor getSearchFactory() {
+        return searchFactory;
+    }
 
-	@Override
-	public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
-		if ( workList == null ) {
-			throw new IllegalArgumentException( "workList should not be null" );
-		}
-		//TODO review this integration with the old Runnable-style execution
-		Runnable operation = new JmsBackendQueueTask( indexName, workList, indexManager, this );
-		operation.run();
-	}
+    @Override
+    public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
+        if ( workList == null ) {
+            throw new IllegalArgumentException( "workList should not be null" );
+        }
+        //TODO review this integration with the old Runnable-style execution
+        Runnable operation = new JmsBackendQueueTask( indexName, workList, indexManager, this );
+        operation.run();
+    }
 
-	@Override
-	public void applyStreamWork(LuceneWork singleOperation, IndexingMonitor monitor) {
-		applyWork( Collections.singletonList( singleOperation ), monitor );
-	}
+    @Override
+    public void applyStreamWork(LuceneWork singleOperation, IndexingMonitor monitor) {
+        applyWork( Collections.singletonList( singleOperation ), monitor );
+    }
 
-	@Override
-	public Lock getExclusiveWriteLock() {
-		log.warnSuspiciousBackendDirectoryCombination( indexName );
-		return new ReentrantLock(); // keep the invoker happy, still it's useless
-	}
+    @Override
+    public Lock getExclusiveWriteLock() {
+        log.warnSuspiciousBackendDirectoryCombination( indexName );
+        return new ReentrantLock(); // keep the invoker happy, still it's useless
+    }
 
-	@Override
-	public void indexMappingChanged() {
-		// no-op
-	}
+    @Override
+    public void indexMappingChanged() {
+        // no-op
+    }
 
-	public QueueConnection getJMSConnection() {
-		return connection;
-	}
+    public QueueConnection getJMSConnection() {
+        return connection;
+    }
 
-	public void close() {
-		try {
-			if ( connection != null )
-				connection.close();
-		}
-		catch ( JMSException e ) {
-			log.unableToCloseJmsConnection( jmsQueueName, e );
-		}
-	}
+    public void close() {
+        try {
+            if ( connection != null )
+                connection.close();
+        }
+        catch ( JMSException e ) {
+            log.unableToCloseJmsConnection( jmsQueueName, e );
+        }
+    }
 
-	/**
-	 * Initialises the JMS QueueConnectionFactory to be used for sending Lucene work operations to the master node.
-	 *
-	 * @return the initialized {@link javax.jms.QueueConnectionFactory}
-	 * @param props a {@link java.util.Properties} object.
-	 */
-	abstract protected QueueConnectionFactory initializeJMSQueueConnectionFactory(Properties props);
+    /**
+     * Initialises the JMS QueueConnectionFactory to be used for sending Lucene work operations to the master node.
+     *
+     * @return the initialized {@link javax.jms.QueueConnectionFactory}
+     * @param props a {@link java.util.Properties} object.
+     */
+    abstract protected QueueConnectionFactory initializeJMSQueueConnectionFactory(Properties props);
 
-	/**
-	 * Initialises the JMS queue to be used for sending Lucene work operations to the master node.
-	 * Invoked after {@link #initializeJMSQueueConnectionFactory(Properties)}
-	 *
-	 * @return the initialized {@link javax.jms.Queue}
-	 * @param factory a {@link javax.jms.QueueConnectionFactory} object.
-	 * @param props a {@link java.util.Properties} object.
-	 */
-	abstract protected Queue initializeJMSQueue(QueueConnectionFactory factory, Properties props);
+    /**
+     * Initialises the JMS queue to be used for sending Lucene work operations to the master node.
+     * Invoked after {@link #initializeJMSQueueConnectionFactory(Properties)}
+     *
+     * @return the initialized {@link javax.jms.Queue}
+     * @param factory a {@link javax.jms.QueueConnectionFactory} object.
+     * @param props a {@link java.util.Properties} object.
+     */
+    abstract protected Queue initializeJMSQueue(QueueConnectionFactory factory, Properties props);
 
-	/**
-	 * Initialises the JMS QueueConnection to be used for sending Lucene work operations to the master node.
-	 * This is invoked after {@link #initializeJMSQueue(Properties)}.
-	 *
-	 * @return the initialized {@link javax.jms.QueueConnection}
-	 * @param factory a {@link javax.jms.QueueConnectionFactory} object.
-	 * @param props a {@link java.util.Properties} object.
-	 */
-	abstract protected QueueConnection initializeJMSConnection(QueueConnectionFactory factory, Properties props);
+    /**
+     * Initialises the JMS QueueConnection to be used for sending Lucene work operations to the master node.
+     * This is invoked after {@link #initializeJMSQueue(Properties)}.
+     *
+     * @return the initialized {@link javax.jms.QueueConnection}
+     * @param factory a {@link javax.jms.QueueConnectionFactory} object.
+     * @param props a {@link java.util.Properties} object.
+     */
+    abstract protected QueueConnection initializeJMSConnection(QueueConnectionFactory factory, Properties props);
 
 }

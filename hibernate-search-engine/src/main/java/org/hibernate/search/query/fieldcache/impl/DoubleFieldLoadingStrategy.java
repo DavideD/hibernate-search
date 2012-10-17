@@ -32,18 +32,18 @@ import org.apache.lucene.search.FieldCache;
  * @see FieldLoadingStrategy
  */
 public final class DoubleFieldLoadingStrategy implements FieldLoadingStrategy {
-	private final String fieldName;
-	private double[] currentCache;
+    private final String fieldName;
+    private double[] currentCache;
 
-	public DoubleFieldLoadingStrategy(String fieldName) {
-		this.fieldName = fieldName;
-	}
+    public DoubleFieldLoadingStrategy(String fieldName) {
+        this.fieldName = fieldName;
+    }
 
-	public void loadNewCacheValues(IndexReader reader) throws IOException {
-		currentCache = FieldCache.DEFAULT.getDoubles( reader, fieldName );
-	}
+    public void loadNewCacheValues(IndexReader reader) throws IOException {
+        currentCache = FieldCache.DEFAULT.getDoubles( reader, fieldName );
+    }
 
-	public Double collect(int relativeDocId) {
-		return currentCache[relativeDocId];
-	}
+    public Double collect(int relativeDocId) {
+        return currentCache[relativeDocId];
+    }
 }

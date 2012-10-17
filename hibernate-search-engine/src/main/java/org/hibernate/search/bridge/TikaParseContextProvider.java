@@ -30,15 +30,15 @@ import org.apache.tika.parser.ParseContext;
  */
 public interface TikaParseContextProvider {
 
-	/**
-	 * This method is called by the Tika bridge prior to parsing the data.
-	 * <p/>
-	 * It allows to create a custom {@code ParseContext}
-	 *
-	 * @param name the field name of the property which is processed by the Tika bridge
-	 * @param value the value to be indexed
-	 * @return A {@code ParseContext} instance used by the Tika bridge to parse the data
-	 * @see <a href="http://tika.apache.org/1.1/parser.html#apiorgapachetikametadataMetadata.html">Tika API</a>
-	 */
-	public ParseContext getParseContext(String name, Object value);
+    /**
+     * This method is called by the Tika bridge prior to parsing the data.
+     * <p/>
+     * It allows to create a custom {@code ParseContext}
+     *
+     * @param name the field name of the property which is processed by the Tika bridge
+     * @param value the value to be indexed
+     * @return A {@code ParseContext} instance used by the Tika bridge to parse the data
+     * @see <a href="http://tika.apache.org/1.1/parser.html#apiorgapachetikametadataMetadata.html">Tika API</a>
+     */
+    public ParseContext getParseContext(String name, Object value);
 }

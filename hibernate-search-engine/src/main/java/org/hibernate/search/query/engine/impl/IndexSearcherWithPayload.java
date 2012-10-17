@@ -38,44 +38,44 @@ import static org.hibernate.search.reader.impl.ReaderProviderHelper.getIndexRead
 * @author Emmanuel Bernard
 */
 public class IndexSearcherWithPayload {
-	private static final Log log = LoggerFactory.make();
-	private final IndexSearcher searcher;
-	private boolean fieldSortDoTrackScores;
-	private boolean fieldSortDoMaxScore;
+    private static final Log log = LoggerFactory.make();
+    private final IndexSearcher searcher;
+    private boolean fieldSortDoTrackScores;
+    private boolean fieldSortDoMaxScore;
 
-	public IndexSearcherWithPayload(IndexSearcher searcher, boolean fieldSortDoTrackScores, boolean fieldSortDoMaxScore) {
-		this.searcher = searcher;
-		this.fieldSortDoTrackScores = fieldSortDoTrackScores;
-		this.fieldSortDoMaxScore = fieldSortDoMaxScore;
-		searcher.setDefaultFieldSortScoring( fieldSortDoTrackScores, fieldSortDoMaxScore );
-	}
+    public IndexSearcherWithPayload(IndexSearcher searcher, boolean fieldSortDoTrackScores, boolean fieldSortDoMaxScore) {
+        this.searcher = searcher;
+        this.fieldSortDoTrackScores = fieldSortDoTrackScores;
+        this.fieldSortDoMaxScore = fieldSortDoMaxScore;
+        searcher.setDefaultFieldSortScoring( fieldSortDoTrackScores, fieldSortDoMaxScore );
+    }
 
-	public IndexSearcher getSearcher() {
-		return searcher;
-	}
+    public IndexSearcher getSearcher() {
+        return searcher;
+    }
 
-	public boolean isFieldSortDoTrackScores() {
-		return fieldSortDoTrackScores;
-	}
+    public boolean isFieldSortDoTrackScores() {
+        return fieldSortDoTrackScores;
+    }
 
-	public boolean isFieldSortDoMaxScore() {
-		return fieldSortDoMaxScore;
-	}
+    public boolean isFieldSortDoMaxScore() {
+        return fieldSortDoMaxScore;
+    }
 
-	/**
-	 * @param query toString() is invoked to display the query in the warning message
-	 * @param searchFactoryImplementor
-	 */
-	public void closeSearcher(Object query, SearchFactoryImplementor searchFactoryImplementor) {
-		Set<IndexReader> indexReaders = getIndexReaders( getSearcher() );
-		for ( IndexReader indexReader : indexReaders ) {
-			try {
-				MultiReaderFactory.closeReader( indexReader );
-			}
-			catch (SearchException e) {
-				//catch is inside the for loop to make sure we try to close all of them
-				log.unableToCloseSearcherDuringQuery( query.toString(), e );
-			}
-		}
-	}
+    /**
+     * @param query toString() is invoked to display the query in the warning message
+     * @param searchFactoryImplementor
+     */
+    public void closeSearcher(Object query, SearchFactoryImplementor searchFactoryImplementor) {
+        Set<IndexReader> indexReaders = getIndexReaders( getSearcher() );
+        for ( IndexReader indexReader : indexReaders ) {
+            try {
+                MultiReaderFactory.closeReader( indexReader );
+            }
+            catch (SearchException e) {
+                //catch is inside the for loop to make sure we try to close all of them
+                log.unableToCloseSearcherDuringQuery( query.toString(), e );
+            }
+        }
+    }
 }

@@ -39,81 +39,81 @@ import org.hibernate.search.spi.WorkerBuildContext;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class RamIndexManager extends DirectoryBasedIndexManager {
-	
-	private static final LogErrorHandler logErrorHandler = new LogErrorHandler();
+    
+    private static final LogErrorHandler logErrorHandler = new LogErrorHandler();
 
-	public static RamIndexManager makeRamDirectory() {
-		RamIndexManager ramIndexManager = new RamIndexManager();
-		Properties properties = new Properties();
-		properties.setProperty( "directory_provider", "ram" );
-		ramIndexManager.initialize( "testIndex", properties, new EmptyWorkerBuildContext() );
-		return ramIndexManager;
-	}
-	
-	private static class EmptyWorkerBuildContext implements WorkerBuildContext {
+    public static RamIndexManager makeRamDirectory() {
+        RamIndexManager ramIndexManager = new RamIndexManager();
+        Properties properties = new Properties();
+        properties.setProperty( "directory_provider", "ram" );
+        ramIndexManager.initialize( "testIndex", properties, new EmptyWorkerBuildContext() );
+        return ramIndexManager;
+    }
+    
+    private static class EmptyWorkerBuildContext implements WorkerBuildContext {
 
-		@Override
-		public SearchFactoryImplementor getUninitializedSearchFactory() {
-			return null;
-		}
+        @Override
+        public SearchFactoryImplementor getUninitializedSearchFactory() {
+            return null;
+        }
 
-		@Override
-		public String getIndexingStrategy() {
-			return null;
-		}
+        @Override
+        public String getIndexingStrategy() {
+            return null;
+        }
 
-		@Override
-		@Deprecated
-		public <T> T requestService(Class<? extends ServiceProvider<T>> provider) {
-			return null;
-		}
+        @Override
+        @Deprecated
+        public <T> T requestService(Class<? extends ServiceProvider<T>> provider) {
+            return null;
+        }
 
-		@Override
-		@Deprecated
-		public void releaseService(Class<? extends ServiceProvider<?>> provider) {
-		}
+        @Override
+        @Deprecated
+        public void releaseService(Class<? extends ServiceProvider<?>> provider) {
+        }
 
-		@Override
-		public IndexManagerHolder getAllIndexesManager() {
-			return null;
-		}
+        @Override
+        public IndexManagerHolder getAllIndexesManager() {
+            return null;
+        }
 
-		@Override
-		public ErrorHandler getErrorHandler() {
-			return logErrorHandler;
-		}
+        @Override
+        public ErrorHandler getErrorHandler() {
+            return logErrorHandler;
+        }
 
-		@Override
-		public boolean isTransactionManagerExpected() {
-			return false;
-		}
+        @Override
+        public boolean isTransactionManagerExpected() {
+            return false;
+        }
 
-		@Override
-		public InstanceInitializer getInstanceInitializer() {
-			return SimpleInitializer.INSTANCE;
-		}
+        @Override
+        public InstanceInitializer getInstanceInitializer() {
+            return SimpleInitializer.INSTANCE;
+        }
 
-		@Override
-		public boolean isIndexMetadataComplete() {
-			return true;
-		}
+        @Override
+        public boolean isIndexMetadataComplete() {
+            return true;
+        }
 
-		@Override
-		public ServiceManager getServiceManager() {
-			return new ServiceManager() {
-				@Override
-				public <T> T requestService(Class<? extends ServiceProvider<T>> serviceProviderClass,
-						BuildContext context) {
-					return null;
-				}
-				@Override
-				public void releaseService(Class<? extends ServiceProvider<?>> serviceProviderClass) {
-				}
-				@Override
-				public void stopServices() {
-				}
-			};
-		}
-	}
+        @Override
+        public ServiceManager getServiceManager() {
+            return new ServiceManager() {
+                @Override
+                public <T> T requestService(Class<? extends ServiceProvider<T>> serviceProviderClass,
+                        BuildContext context) {
+                    return null;
+                }
+                @Override
+                public void releaseService(Class<? extends ServiceProvider<?>> serviceProviderClass) {
+                }
+                @Override
+                public void stopServices() {
+                }
+            };
+        }
+    }
 
 }

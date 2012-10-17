@@ -26,26 +26,26 @@ import org.hibernate.search.indexes.serialization.spi.LuceneFieldContext;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableBinaryField extends SerializableField {
-	private byte[] value;
-	private int offset;
-	private int length;
+    private byte[] value;
+    private int offset;
+    private int length;
 
-	public SerializableBinaryField(LuceneFieldContext context) {
-		super( context );
-		this.value = context.getBinaryValue();
-		this.offset = context.getBinaryOffset();
-		this.length = context.getBinaryLength();
-	}
+    public SerializableBinaryField(LuceneFieldContext context) {
+        super( context );
+        this.value = context.getBinaryValue();
+        this.offset = context.getBinaryOffset();
+        this.length = context.getBinaryLength();
+    }
 
-	public byte[] getValue() {
-		return value;
-	}
+    public byte[] getValue() {
+        return value;
+    }
 
-	public int getOffset() {
-		return offset;
-	}
+    public int getOffset() {
+        return offset;
+    }
 
-	public int getLength() {
-		return length;
-	}
+    public int getLength() {
+        return length;
+    }
 }

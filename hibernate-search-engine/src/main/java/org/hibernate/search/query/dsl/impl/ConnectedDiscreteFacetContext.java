@@ -33,30 +33,30 @@ import org.hibernate.search.query.facet.FacetingRequest;
  * @author Hardy Ferentschik
  */
 public class ConnectedDiscreteFacetContext implements DiscreteFacetContext {
-	private final FacetBuildingContext context;
+    private final FacetBuildingContext context;
 
-	public ConnectedDiscreteFacetContext(FacetBuildingContext context) {
-		this.context = context;
-	}
+    public ConnectedDiscreteFacetContext(FacetBuildingContext context) {
+        this.context = context;
+    }
 
-	public FacetParameterContext orderedBy(FacetSortOrder sort) {
-		context.setSort( sort );
-		return new ConnectedFacetParameterContext( context );
-	}
+    public FacetParameterContext orderedBy(FacetSortOrder sort) {
+        context.setSort( sort );
+        return new ConnectedFacetParameterContext( context );
+    }
 
-	public FacetParameterContext includeZeroCounts(boolean zeroCounts) {
-		context.setIncludeZeroCount( zeroCounts );
-		return new ConnectedFacetParameterContext( context );
-	}
+    public FacetParameterContext includeZeroCounts(boolean zeroCounts) {
+        context.setIncludeZeroCount( zeroCounts );
+        return new ConnectedFacetParameterContext( context );
+    }
 
-	public FacetParameterContext maxFacetCount(int maxFacetCount) {
-		context.setMaxFacetCount( maxFacetCount );
-		return new ConnectedFacetParameterContext( context );
-	}
+    public FacetParameterContext maxFacetCount(int maxFacetCount) {
+        context.setMaxFacetCount( maxFacetCount );
+        return new ConnectedFacetParameterContext( context );
+    }
 
-	public FacetingRequest createFacetingRequest() {
-		return context.getFacetingRequest();
-	}
+    public FacetingRequest createFacetingRequest() {
+        return context.getFacetingRequest();
+    }
 }
 
 

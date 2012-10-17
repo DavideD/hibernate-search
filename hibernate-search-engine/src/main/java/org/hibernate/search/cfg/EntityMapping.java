@@ -36,68 +36,68 @@ import org.hibernate.search.engine.BoostStrategy;
  */
 public class EntityMapping {
 
-	private SearchMapping mapping;
-	private EntityDescriptor entity;
+    private SearchMapping mapping;
+    private EntityDescriptor entity;
 
-	public EntityMapping(Class<?> entityType, SearchMapping mapping) {
-		this.mapping = mapping;
-		entity = mapping.getEntity( entityType );
-	}
+    public EntityMapping(Class<?> entityType, SearchMapping mapping) {
+        this.mapping = mapping;
+        entity = mapping.getEntity( entityType );
+    }
 
-	public IndexedMapping indexed() {
-		return new IndexedMapping( mapping, entity );
-	}
+    public IndexedMapping indexed() {
+        return new IndexedMapping( mapping, entity );
+    }
 
-	public EntitySpatialMapping spatial() {
-		return new EntitySpatialMapping( mapping, entity );
-	}
+    public EntitySpatialMapping spatial() {
+        return new EntitySpatialMapping( mapping, entity );
+    }
 
-	public EntityMapping similarity(Class<?> impl) {
-		Map<String, Object> similarity = new HashMap<String, Object>( 1 );
-		similarity.put( "impl", impl );
-		entity.setSimilariy( similarity );
-		return this;
-	}
+    public EntityMapping similarity(Class<?> impl) {
+        Map<String, Object> similarity = new HashMap<String, Object>( 1 );
+        similarity.put( "impl", impl );
+        entity.setSimilariy( similarity );
+        return this;
+    }
 
-	public EntityMapping boost(float boost) {
-		final Map<String, Object> boostAnn = new HashMap<String, Object>();
-		boostAnn.put( "value", boost );
-		entity.setBoost( boostAnn );
-		return this;
-	}
+    public EntityMapping boost(float boost) {
+        final Map<String, Object> boostAnn = new HashMap<String, Object>();
+        boostAnn.put( "value", boost );
+        entity.setBoost( boostAnn );
+        return this;
+    }
 
-	public EntityMapping dynamicBoost(Class<? extends BoostStrategy> impl) {
-		final Map<String, Object> dynamicBoost = new HashMap<String, Object>();
-		dynamicBoost.put( "impl", impl );
-		entity.setDynamicBoost( dynamicBoost );
-		return this;
-	}
+    public EntityMapping dynamicBoost(Class<? extends BoostStrategy> impl) {
+        final Map<String, Object> dynamicBoost = new HashMap<String, Object>();
+        dynamicBoost.put( "impl", impl );
+        entity.setDynamicBoost( dynamicBoost );
+        return this;
+    }
 
-	public EntityMapping analyzerDiscriminator(Class<? extends Discriminator> discriminator) {
-		final Map<String, Object> discriminatorAnn = new HashMap<String, Object>();
-		discriminatorAnn.put( "impl", discriminator );
-		entity.setAnalyzerDiscriminator( discriminatorAnn );
-		return this;
-	}
+    public EntityMapping analyzerDiscriminator(Class<? extends Discriminator> discriminator) {
+        final Map<String, Object> discriminatorAnn = new HashMap<String, Object>();
+        discriminatorAnn.put( "impl", discriminator );
+        entity.setAnalyzerDiscriminator( discriminatorAnn );
+        return this;
+    }
 
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping( mapping, name, impl );
-	}
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping( mapping, name, impl );
+    }
 
-	public PropertyMapping property(String name, ElementType type) {
-		return new PropertyMapping( name, type, entity, mapping );
-	}
+    public PropertyMapping property(String name, ElementType type) {
+        return new PropertyMapping( name, type, entity, mapping );
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping( entityType, mapping );
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping( entityType, mapping );
+    }
 
-	public ClassBridgeMapping classBridge(Class<?> impl) {
-		return new ClassBridgeMapping( mapping, entity, impl );
-	}
+    public ClassBridgeMapping classBridge(Class<?> impl) {
+        return new ClassBridgeMapping( mapping, entity, impl );
+    }
 
 }

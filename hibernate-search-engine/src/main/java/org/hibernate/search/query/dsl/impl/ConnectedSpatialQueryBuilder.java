@@ -36,55 +36,55 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class ConnectedSpatialQueryBuilder implements SpatialTermination {
-	private static final Log LOG = LoggerFactory.make();
+    private static final Log LOG = LoggerFactory.make();
 
-	private final SpatialQueryContext spatialContext;
-	private final QueryCustomizer queryCustomizer;
-	private final QueryBuildingContext queryContext;
-	private final ConnectedQueryBuilder queryBuilder;
+    private final SpatialQueryContext spatialContext;
+    private final QueryCustomizer queryCustomizer;
+    private final QueryBuildingContext queryContext;
+    private final ConnectedQueryBuilder queryBuilder;
 
-	public ConnectedSpatialQueryBuilder(SpatialQueryContext spatialContext, QueryCustomizer queryCustomizer, QueryBuildingContext queryContext, ConnectedQueryBuilder queryBuilder) {
-		this.spatialContext = spatialContext;
-		this.queryCustomizer = queryCustomizer;
-		this.queryContext = queryContext;
-		this.queryBuilder = queryBuilder;
-	}
+    public ConnectedSpatialQueryBuilder(SpatialQueryContext spatialContext, QueryCustomizer queryCustomizer, QueryBuildingContext queryContext, ConnectedQueryBuilder queryBuilder) {
+        this.spatialContext = spatialContext;
+        this.queryCustomizer = queryCustomizer;
+        this.queryContext = queryContext;
+        this.queryBuilder = queryBuilder;
+    }
 
-	@Override
-	public Query createQuery() {
-		return queryCustomizer.setWrappedQuery( createSpatialQuery() ).createQuery();
-	}
+    @Override
+    public Query createQuery() {
+        return queryCustomizer.setWrappedQuery( createSpatialQuery() ).createQuery();
+    }
 
-	private Query createSpatialQuery() {
-		final DocumentBuilderIndexedEntity<?> documentBuilder = Helper.getDocumentBuilder( queryContext );
-		//FIXME that will have to change probably but today, if someone uses latitude / longitude
-		//      we use boolean style spatial queries
-		//      and on coordinates field, use grid query
-		// FIXME in the future we will likely react to some state stored in SpatialFieldBridge (for the indexing strategy)
-		String coordinatesField = spatialContext.getCoordinatesField();
-		FieldBridge fieldBridge = documentBuilder.getBridge( coordinatesField );
-		if ( fieldBridge instanceof SpatialFieldBridgeByGrid ) {
-			return SpatialQueryBuilderFromPoint.buildSpatialQueryByGrid(
-					Point.fromDegrees(
-							spatialContext.getCoordinates().getLatitude(),
-							spatialContext.getCoordinates().getLongitude()
-					),
-					spatialContext.getRadiusDistance(), //always in KM so far, no need to convert
-					coordinatesField
-			);
-		}
-		else if ( fieldBridge instanceof SpatialFieldBridgeByRange ) {
-			return SpatialQueryBuilderFromPoint.buildSpatialQueryByRange(
-					Point.fromDegrees(
-							spatialContext.getCoordinates().getLatitude(),
-							spatialContext.getCoordinates().getLongitude()
-					),
-					spatialContext.getRadiusDistance(), //always in KM so far, no need to convert
-					coordinatesField
-			);
-		}
-		else {
-			throw LOG.targetedFieldNotSpatial( queryContext.getEntityType().getName(), coordinatesField );
-		}
-	}
+    private Query createSpatialQuery() {
+        final DocumentBuilderIndexedEntity<?> documentBuilder = Helper.getDocumentBuilder( queryContext );
+        //FIXME that will have to change probably but today, if someone uses latitude / longitude
+        //      we use boolean style spatial queries
+        //      and on coordinates field, use grid query
+        // FIXME in the future we will likely react to some state stored in SpatialFieldBridge (for the indexing strategy)
+        String coordinatesField = spatialContext.getCoordinatesField();
+        FieldBridge fieldBridge = documentBuilder.getBridge( coordinatesField );
+        if ( fieldBridge instanceof SpatialFieldBridgeByGrid ) {
+            return SpatialQueryBuilderFromPoint.buildSpatialQueryByGrid(
+                    Point.fromDegrees(
+                            spatialContext.getCoordinates().getLatitude(),
+                            spatialContext.getCoordinates().getLongitude()
+                    ),
+                    spatialContext.getRadiusDistance(), //always in KM so far, no need to convert
+                    coordinatesField
+            );
+        }
+        else if ( fieldBridge instanceof SpatialFieldBridgeByRange ) {
+            return SpatialQueryBuilderFromPoint.buildSpatialQueryByRange(
+                    Point.fromDegrees(
+                            spatialContext.getCoordinates().getLatitude(),
+                            spatialContext.getCoordinates().getLongitude()
+                    ),
+                    spatialContext.getRadiusDistance(), //always in KM so far, no need to convert
+                    coordinatesField
+            );
+        }
+        else {
+            throw LOG.targetedFieldNotSpatial( queryContext.getEntityType().getName(), coordinatesField );
+        }
+    }
 }

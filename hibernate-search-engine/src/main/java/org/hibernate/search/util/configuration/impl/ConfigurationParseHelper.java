@@ -42,158 +42,158 @@ import org.hibernate.search.SearchException;
  */
 public abstract class ConfigurationParseHelper {
 
-	/**
-	 * Try to locate a local URL representing the incoming path. The first attempt
-	 * assumes that the incoming path is an actual URL string (file://, etc).  If this
-	 * does not work, then the next attempts try to locate this UURL as a java system
-	 * resource.
-	 *
-	 * @param path The path representing the config location.
-	 * @return An appropriate URL or null.
-	 */
-	public static URL locateConfig(final String path) {
-		try {
-			return new URL(path);
-		}
-		catch(MalformedURLException e) {
-			return findAsResource(path);
-		}
-	}
+    /**
+     * Try to locate a local URL representing the incoming path. The first attempt
+     * assumes that the incoming path is an actual URL string (file://, etc).  If this
+     * does not work, then the next attempts try to locate this UURL as a java system
+     * resource.
+     *
+     * @param path The path representing the config location.
+     * @return An appropriate URL or null.
+     */
+    public static URL locateConfig(final String path) {
+        try {
+            return new URL(path);
+        }
+        catch(MalformedURLException e) {
+            return findAsResource(path);
+        }
+    }
 
-	/**
-	 * Try to locate a local URL representing the incoming path.
-	 * This method <b>only</b> attempts to locate this URL as a
-	 * java system resource.
-	 *
-	 * @param path The path representing the config location.
-	 * @return An appropriate URL or null.
-	 */
-	public static URL findAsResource(final String path) {
-		URL url = null;
+    /**
+     * Try to locate a local URL representing the incoming path.
+     * This method <b>only</b> attempts to locate this URL as a
+     * java system resource.
+     *
+     * @param path The path representing the config location.
+     * @return An appropriate URL or null.
+     */
+    public static URL findAsResource(final String path) {
+        URL url = null;
 
-		// First, try to locate this resource through the current
-		// context classloader.
-		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-		if (contextClassLoader!=null) {
-			url = contextClassLoader.getResource(path);
-		}
-		if (url != null)
-			return url;
+        // First, try to locate this resource through the current
+        // context classloader.
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        if (contextClassLoader!=null) {
+            url = contextClassLoader.getResource(path);
+        }
+        if (url != null)
+            return url;
 
-		// Next, try to locate this resource through this class's classloader
-		url = ConfigurationParseHelper.class.getClassLoader().getResource(path);
-		if (url != null)
-			return url;
+        // Next, try to locate this resource through this class's classloader
+        url = ConfigurationParseHelper.class.getClassLoader().getResource(path);
+        if (url != null)
+            return url;
 
-		// Next, try to locate this resource through the system classloader
-		url = ClassLoader.getSystemClassLoader().getResource(path);
+        // Next, try to locate this resource through the system classloader
+        url = ClassLoader.getSystemClassLoader().getResource(path);
 
-		// Anywhere else we should look?
-		return url;
-	}
-	
-	/**
-	 * Parses a String to get an int value.
-	 *
-	 * @param value A string containing an int value to parse
-	 * @param errorMsgOnParseFailure message being wrapped in a SearchException if value is null or not correct.
-	 * @return the parsed value
-	 * @throws SearchException both for null values and for Strings not containing a valid int.
-	 */
-	public static final int parseInt(String value, String errorMsgOnParseFailure) {
-		if ( value == null ) {
-			throw new SearchException( errorMsgOnParseFailure );
-		}
-		else {
-			try {
-				return Integer.parseInt( value.trim() );
-			} catch (NumberFormatException nfe) {
-				throw new SearchException( errorMsgOnParseFailure, nfe );
-			}
-		}
-	}
-	
-	/**
-	 * In case value is null or an empty string the defValue is returned
-	 * @param value
-	 * @param defValue
-	 * @param errorMsgOnParseFailure
-	 * @return the converted int.
-	 * @throws SearchException if value can't be parsed.
-	 */
-	public static final int parseInt(String value, int defValue, String errorMsgOnParseFailure) {
-		if ( StringHelper.isEmpty( value ) ) {
-			return defValue;
-		}
-		else {
-			return parseInt( value, errorMsgOnParseFailure );
-		}
-	}
-	
-	/**
-	 * Looks for a numeric value in the Properties, returning
-	 * defValue if not found or if an empty string is found.
-	 * When the key the value is found but not in valid format
-	 * a standard error message is generated.
-	 * @param cfg
-	 * @param key
-	 * @param defValue
-	 * @return the converted int.
-	 * @throws SearchException for invalid format.
-	 */
-	public static final int getIntValue(Properties cfg, String key, int defValue) {
-		String propValue = cfg.getProperty( key );
-		return parseInt( propValue, defValue, "Unable to parse " + key + ": " + propValue );
-	}
+        // Anywhere else we should look?
+        return url;
+    }
+    
+    /**
+     * Parses a String to get an int value.
+     *
+     * @param value A string containing an int value to parse
+     * @param errorMsgOnParseFailure message being wrapped in a SearchException if value is null or not correct.
+     * @return the parsed value
+     * @throws SearchException both for null values and for Strings not containing a valid int.
+     */
+    public static final int parseInt(String value, String errorMsgOnParseFailure) {
+        if ( value == null ) {
+            throw new SearchException( errorMsgOnParseFailure );
+        }
+        else {
+            try {
+                return Integer.parseInt( value.trim() );
+            } catch (NumberFormatException nfe) {
+                throw new SearchException( errorMsgOnParseFailure, nfe );
+            }
+        }
+    }
+    
+    /**
+     * In case value is null or an empty string the defValue is returned
+     * @param value
+     * @param defValue
+     * @param errorMsgOnParseFailure
+     * @return the converted int.
+     * @throws SearchException if value can't be parsed.
+     */
+    public static final int parseInt(String value, int defValue, String errorMsgOnParseFailure) {
+        if ( StringHelper.isEmpty( value ) ) {
+            return defValue;
+        }
+        else {
+            return parseInt( value, errorMsgOnParseFailure );
+        }
+    }
+    
+    /**
+     * Looks for a numeric value in the Properties, returning
+     * defValue if not found or if an empty string is found.
+     * When the key the value is found but not in valid format
+     * a standard error message is generated.
+     * @param cfg
+     * @param key
+     * @param defValue
+     * @return the converted int.
+     * @throws SearchException for invalid format.
+     */
+    public static final int getIntValue(Properties cfg, String key, int defValue) {
+        String propValue = cfg.getProperty( key );
+        return parseInt( propValue, defValue, "Unable to parse " + key + ": " + propValue );
+    }
 
-	/**
-	 * Parses a string to recognize exactly either "true" or "false".
-	 *
-	 * @param value the string to be parsed
-	 * @param errorMsgOnParseFailure the message to be put in the exception if thrown
-	 * @return true if value is "true", false if value is "false"
-	 * @throws SearchException for invalid format or values.
-	 */
-	public static final boolean parseBoolean(String value, String errorMsgOnParseFailure) {
-		// avoiding Boolean.valueOf() to have more checks: makes it easy to spot wrong type in cfg.
-		if ( value == null ) {
-			throw new SearchException( errorMsgOnParseFailure );
-		}
-		else if ( "false".equalsIgnoreCase( value.trim() ) ) {
-			return false;
-		}
-		else if ( "true".equalsIgnoreCase( value.trim() ) ) {
-			return true;
-		}
-		else {
-			throw new SearchException( errorMsgOnParseFailure );
-		}
-	}
+    /**
+     * Parses a string to recognize exactly either "true" or "false".
+     *
+     * @param value the string to be parsed
+     * @param errorMsgOnParseFailure the message to be put in the exception if thrown
+     * @return true if value is "true", false if value is "false"
+     * @throws SearchException for invalid format or values.
+     */
+    public static final boolean parseBoolean(String value, String errorMsgOnParseFailure) {
+        // avoiding Boolean.valueOf() to have more checks: makes it easy to spot wrong type in cfg.
+        if ( value == null ) {
+            throw new SearchException( errorMsgOnParseFailure );
+        }
+        else if ( "false".equalsIgnoreCase( value.trim() ) ) {
+            return false;
+        }
+        else if ( "true".equalsIgnoreCase( value.trim() ) ) {
+            return true;
+        }
+        else {
+            throw new SearchException( errorMsgOnParseFailure );
+        }
+    }
 
-	/**
-	 * Extracts a boolean value from configuration properties
-	 *
-	 * @param cfg configuration Properties
-	 * @param key the property key
-	 * @param defaultValue a boolean.
-	 * @return the defaultValue if the property was not defined
-	 * @throws SearchException for invalid format or values.
-	 */
-	public static final boolean getBooleanValue(Properties cfg, String key, boolean defaultValue) {
-		String propValue = cfg.getProperty( key );
-		if ( propValue == null ) {
-			return defaultValue;
-		}
-		else {
-			return parseBoolean( propValue, "Property '" + key + "' needs to be either literal 'true' or 'false'" );
-		}
-	}
+    /**
+     * Extracts a boolean value from configuration properties
+     *
+     * @param cfg configuration Properties
+     * @param key the property key
+     * @param defaultValue a boolean.
+     * @return the defaultValue if the property was not defined
+     * @throws SearchException for invalid format or values.
+     */
+    public static final boolean getBooleanValue(Properties cfg, String key, boolean defaultValue) {
+        String propValue = cfg.getProperty( key );
+        if ( propValue == null ) {
+            return defaultValue;
+        }
+        else {
+            return parseBoolean( propValue, "Property '" + key + "' needs to be either literal 'true' or 'false'" );
+        }
+    }
 
-	/**
-	 * Get the string property or defaults if not present
-	 */
-	public static final String getString(Properties cfg, String key, String defaultValue) {
-		String propValue = cfg.getProperty( key );
-		return propValue == null ? defaultValue : propValue;
-	}
+    /**
+     * Get the string property or defaults if not present
+     */
+    public static final String getString(Properties cfg, String key, String defaultValue) {
+        String propValue = cfg.getProperty( key );
+        return propValue == null ? defaultValue : propValue;
+    }
 }

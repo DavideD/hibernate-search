@@ -46,23 +46,23 @@ import java.lang.annotation.Documented;
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
 @Documented
 public @interface AnalyzerDef {
-	/**
-	 * @return Reference name to be used on {#org.hibernate.search.annotations.Analyzer}
-	 */
-	String name();
+    /**
+     * @return Reference name to be used on {#org.hibernate.search.annotations.Analyzer}
+     */
+    String name();
 
-	/**
-	 * @return CharFilters used. The filters are applied in the defined order
-	 */
-	CharFilterDef[] charFilters() default { };
+    /**
+     * @return CharFilters used. The filters are applied in the defined order
+     */
+    CharFilterDef[] charFilters() default { };
 
-	/**
-	 * @return Tokenizer used.
-	 */
-	TokenizerDef tokenizer();
+    /**
+     * @return Tokenizer used.
+     */
+    TokenizerDef tokenizer();
 
-	/**
-	 * @return Filters used. The filters are applied in the defined order
-	 */
-	TokenFilterDef[] filters() default { };
+    /**
+     * @return Filters used. The filters are applied in the defined order
+     */
+    TokenFilterDef[] filters() default { };
 }

@@ -29,7 +29,7 @@ import org.apache.lucene.search.Query;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public interface TimeoutExceptionFactory {
-	
-	public RuntimeException createTimeoutException(String message, Query query);
-	
+    
+    public RuntimeException createTimeoutException(String message, Query query);
+    
 }

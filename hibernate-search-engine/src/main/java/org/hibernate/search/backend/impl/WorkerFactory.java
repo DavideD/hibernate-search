@@ -38,29 +38,29 @@ import org.hibernate.search.util.impl.ClassLoaderHelper;
  */
 public abstract class WorkerFactory {
 
-	private static Properties getProperties(SearchConfiguration cfg) {
-		Properties props = cfg.getProperties();
-		Properties workerProperties = new Properties();
-		for ( Map.Entry entry : props.entrySet() ) {
-			String key = (String) entry.getKey();
-			if ( key.startsWith( "hibernate.search.worker" ) ) {
-				workerProperties.setProperty( key, (String) entry.getValue() );
-			}
-		}
-		return workerProperties;
-	}
+    private static Properties getProperties(SearchConfiguration cfg) {
+        Properties props = cfg.getProperties();
+        Properties workerProperties = new Properties();
+        for ( Map.Entry entry : props.entrySet() ) {
+            String key = (String) entry.getKey();
+            if ( key.startsWith( "hibernate.search.worker" ) ) {
+                workerProperties.setProperty( key, (String) entry.getValue() );
+            }
+        }
+        return workerProperties;
+    }
 
-	public static Worker createWorker(SearchConfiguration cfg, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
-		Properties props = getProperties( cfg );
-		String impl = props.getProperty( Environment.WORKER_SCOPE );
-		Worker worker;
-		if ( StringHelper.isEmpty( impl ) || "transaction".equalsIgnoreCase( impl ) ) {
-			worker = new TransactionalWorker();
-		}
-		else {
-			worker = ClassLoaderHelper.instanceFromName( Worker.class, impl, WorkerFactory.class, "worker" );
-		}
-		worker.initialize( props, context, queueingProcessor );
-		return worker;
-	}
+    public static Worker createWorker(SearchConfiguration cfg, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
+        Properties props = getProperties( cfg );
+        String impl = props.getProperty( Environment.WORKER_SCOPE );
+        Worker worker;
+        if ( StringHelper.isEmpty( impl ) || "transaction".equalsIgnoreCase( impl ) ) {
+            worker = new TransactionalWorker();
+        }
+        else {
+            worker = ClassLoaderHelper.instanceFromName( Worker.class, impl, WorkerFactory.class, "worker" );
+        }
+        worker.initialize( props, context, queueingProcessor );
+        return worker;
+    }
 }

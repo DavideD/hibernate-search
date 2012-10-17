@@ -48,117 +48,117 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
  * @author Sanne Grinovero
  */
 public final class LuceneBackendResources {
-	
-	private static final Log log = LoggerFactory.make();
-	
-	private final LuceneWorkVisitor visitor;
-	private final AbstractWorkspaceImpl workspace;
-	private final ErrorHandler errorHandler;
-	private final ExecutorService queueingExecutor;
-	private final ExecutorService workersExecutor;
-	private final int maxQueueLength;
-	private final String indexName;
+    
+    private static final Log log = LoggerFactory.make();
+    
+    private final LuceneWorkVisitor visitor;
+    private final AbstractWorkspaceImpl workspace;
+    private final ErrorHandler errorHandler;
+    private final ExecutorService queueingExecutor;
+    private final ExecutorService workersExecutor;
+    private final int maxQueueLength;
+    private final String indexName;
 
-	private final ReadLock readLock;
-	private final WriteLock writeLock;
-	
-	LuceneBackendResources(WorkerBuildContext context, DirectoryBasedIndexManager indexManager, Properties props, AbstractWorkspaceImpl workspace) {
-		this.indexName = indexManager.getIndexName();
-		this.errorHandler = context.getErrorHandler();
-		this.workspace = workspace;
-		this.visitor = new LuceneWorkVisitor( workspace );
-		this.maxQueueLength = CommonPropertiesParse.extractMaxQueueSize( indexName, props );
-		this.queueingExecutor = Executors.newFixedThreadPool( 1, "Index updates queue processor for index " + indexName, maxQueueLength );
-		this.workersExecutor = BackendFactory.buildWorkersExecutor( props, indexName );
-		ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-		readLock = readWriteLock.readLock();
-		writeLock = readWriteLock.writeLock();
-	}
+    private final ReadLock readLock;
+    private final WriteLock writeLock;
+    
+    LuceneBackendResources(WorkerBuildContext context, DirectoryBasedIndexManager indexManager, Properties props, AbstractWorkspaceImpl workspace) {
+        this.indexName = indexManager.getIndexName();
+        this.errorHandler = context.getErrorHandler();
+        this.workspace = workspace;
+        this.visitor = new LuceneWorkVisitor( workspace );
+        this.maxQueueLength = CommonPropertiesParse.extractMaxQueueSize( indexName, props );
+        this.queueingExecutor = Executors.newFixedThreadPool( 1, "Index updates queue processor for index " + indexName, maxQueueLength );
+        this.workersExecutor = BackendFactory.buildWorkersExecutor( props, indexName );
+        ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+        readLock = readWriteLock.readLock();
+        writeLock = readWriteLock.writeLock();
+    }
 
-	private LuceneBackendResources(LuceneBackendResources previous) {
-		this.indexName = previous.indexName;
-		this.errorHandler = previous.errorHandler;
-		this.workspace = previous.workspace;
-		this.visitor = new LuceneWorkVisitor( workspace );
-		this.maxQueueLength = previous.maxQueueLength;
-		this.queueingExecutor = previous.queueingExecutor;
-		this.workersExecutor = previous.workersExecutor;
-		this.readLock = previous.readLock;
-		this.writeLock = previous.writeLock;
-	}
+    private LuceneBackendResources(LuceneBackendResources previous) {
+        this.indexName = previous.indexName;
+        this.errorHandler = previous.errorHandler;
+        this.workspace = previous.workspace;
+        this.visitor = new LuceneWorkVisitor( workspace );
+        this.maxQueueLength = previous.maxQueueLength;
+        this.queueingExecutor = previous.queueingExecutor;
+        this.workersExecutor = previous.workersExecutor;
+        this.readLock = previous.readLock;
+        this.writeLock = previous.writeLock;
+    }
 
-	public ExecutorService getQueueingExecutor() {
-		return queueingExecutor;
-	}
+    public ExecutorService getQueueingExecutor() {
+        return queueingExecutor;
+    }
 
-	public ExecutorService getWorkersExecutor() {
-		return workersExecutor;
-	}
+    public ExecutorService getWorkersExecutor() {
+        return workersExecutor;
+    }
 
-	public int getMaxQueueLength() {
-		return maxQueueLength;
-	}
+    public int getMaxQueueLength() {
+        return maxQueueLength;
+    }
 
-	public String getIndexName() {
-		return indexName;
-	}
+    public String getIndexName() {
+        return indexName;
+    }
 
-	public LuceneWorkVisitor getVisitor() {
-		return visitor;
-	}
+    public LuceneWorkVisitor getVisitor() {
+        return visitor;
+    }
 
-	public AbstractWorkspaceImpl getWorkspace() {
-		return workspace;
-	}
+    public AbstractWorkspaceImpl getWorkspace() {
+        return workspace;
+    }
 
-	public void shutdown() {
-		//need to close them in this specific order:
-		try {
-			flushCloseExecutor( queueingExecutor );
-			flushCloseExecutor( workersExecutor );
-		}
-		finally {
-			workspace.shutDownNow();
-		}
-	}
+    public void shutdown() {
+        //need to close them in this specific order:
+        try {
+            flushCloseExecutor( queueingExecutor );
+            flushCloseExecutor( workersExecutor );
+        }
+        finally {
+            workspace.shutDownNow();
+        }
+    }
 
-	private void flushCloseExecutor(ExecutorService executor) {
-		executor.shutdown();
-		try {
-			executor.awaitTermination( Long.MAX_VALUE, TimeUnit.SECONDS );
-		}
-		catch ( InterruptedException e ) {
-			log.interruptedWhileWaitingForIndexActivity( e );
-			Thread.currentThread().interrupt();
-		}
-		if ( ! executor.isTerminated() ) {
-			log.unableToShutdownAsynchronousIndexingByTimeout( indexName );
-		}
-	}
+    private void flushCloseExecutor(ExecutorService executor) {
+        executor.shutdown();
+        try {
+            executor.awaitTermination( Long.MAX_VALUE, TimeUnit.SECONDS );
+        }
+        catch ( InterruptedException e ) {
+            log.interruptedWhileWaitingForIndexActivity( e );
+            Thread.currentThread().interrupt();
+        }
+        if ( ! executor.isTerminated() ) {
+            log.unableToShutdownAsynchronousIndexingByTimeout( indexName );
+        }
+    }
 
-	public ErrorHandler getErrorHandler() {
-		return errorHandler;
-	}
+    public ErrorHandler getErrorHandler() {
+        return errorHandler;
+    }
 
-	public Lock getParallelModificationLock() {
-		return readLock;
-	}
+    public Lock getParallelModificationLock() {
+        return readLock;
+    }
 
-	public Lock getExclusiveModificationLock() {
-		return writeLock;
-	}
+    public Lock getExclusiveModificationLock() {
+        return writeLock;
+    }
 
-	/**
-	 * Creates a replacement for this same LuceneBackendResources:
-	 * reuses the existing locks and executors (which can't be reconfigured on the fly),
-	 * reuses the same Workspace and ErrorHandler, but will use a new LuceneWorkVisitor.
-	 * The LuceneWorkVisitor contains the strategies we use to apply update operations on the index,
-	 * and we might need to change them after the backend is started.
-	 *
-	 * @return the new LuceneBackendResources to replace this one.
-	 */
-	public LuceneBackendResources onTheFlyRebuild() {
-		return new LuceneBackendResources( this );
-	}
+    /**
+     * Creates a replacement for this same LuceneBackendResources:
+     * reuses the existing locks and executors (which can't be reconfigured on the fly),
+     * reuses the same Workspace and ErrorHandler, but will use a new LuceneWorkVisitor.
+     * The LuceneWorkVisitor contains the strategies we use to apply update operations on the index,
+     * and we might need to change them after the backend is started.
+     *
+     * @return the new LuceneBackendResources to replace this one.
+     */
+    public LuceneBackendResources onTheFlyRebuild() {
+        return new LuceneBackendResources( this );
+    }
 
 }

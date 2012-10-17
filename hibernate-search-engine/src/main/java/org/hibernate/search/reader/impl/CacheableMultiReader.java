@@ -36,39 +36,39 @@ import org.hibernate.search.indexes.spi.ReaderProvider;
  */
 public class CacheableMultiReader extends MultiReader {
 
-	// This is package private as the intention of the Lucene team seems to be to not 
-	// expose this publically (it's a protected member in Lucene 2.3)
-	final IndexReader[] subReaders;
-	final ReaderProvider[] managers;
+    // This is package private as the intention of the Lucene team seems to be to not 
+    // expose this publically (it's a protected member in Lucene 2.3)
+    final IndexReader[] subReaders;
+    final ReaderProvider[] managers;
 
-	public CacheableMultiReader(IndexReader[] subReaders, ReaderProvider[] managers) {
-		// If this flag isn't set to true, the MultiReader will increase the usage counter!
-		super( subReaders, true );
-		this.subReaders = subReaders;
-		this.managers = managers;
-	}
+    public CacheableMultiReader(IndexReader[] subReaders, ReaderProvider[] managers) {
+        // If this flag isn't set to true, the MultiReader will increase the usage counter!
+        super( subReaders, true );
+        this.subReaders = subReaders;
+        this.managers = managers;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		// Equality only checks for subReaders as an equal sub-IndexReader is certainly coming from the same ReaderProvider.
-		if ( this == obj ) return true;
-		if ( !( obj instanceof CacheableMultiReader ) ) return false;
-		CacheableMultiReader that = (CacheableMultiReader) obj;
-		int length = this.subReaders.length;
-		if ( length != that.subReaders.length ) return false;
-		for (int index = 0; index < length; index++) {
-			if ( !this.subReaders[index].equals( that.subReaders[index] ) ) return false;
-		}
-		return true;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        // Equality only checks for subReaders as an equal sub-IndexReader is certainly coming from the same ReaderProvider.
+        if ( this == obj ) return true;
+        if ( !( obj instanceof CacheableMultiReader ) ) return false;
+        CacheableMultiReader that = (CacheableMultiReader) obj;
+        int length = this.subReaders.length;
+        if ( length != that.subReaders.length ) return false;
+        for (int index = 0; index < length; index++) {
+            if ( !this.subReaders[index].equals( that.subReaders[index] ) ) return false;
+        }
+        return true;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = 0;
-		for (Object reader : this.subReaders) {
-			result = 31 * result + reader.hashCode();
-		}
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = 0;
+        for (Object reader : this.subReaders) {
+            result = 31 * result + reader.hashCode();
+        }
+        return result;
+    }
 
 }

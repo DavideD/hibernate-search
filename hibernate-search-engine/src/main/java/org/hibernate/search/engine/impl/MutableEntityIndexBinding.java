@@ -35,66 +35,66 @@ import org.hibernate.search.store.IndexShardingStrategy;
  */
 public class MutableEntityIndexBinding<T> implements EntityIndexBinder {
 
-	private final IndexShardingStrategy shardingStrategy;
-	private final Similarity similarityInstance;
-	private DocumentBuilderIndexedEntity<T> documentBuilder;
-	private final IndexManager[] indexManagers;
-	private final EntityIndexingInterceptor entityIndexingInterceptor;
+    private final IndexShardingStrategy shardingStrategy;
+    private final Similarity similarityInstance;
+    private DocumentBuilderIndexedEntity<T> documentBuilder;
+    private final IndexManager[] indexManagers;
+    private final EntityIndexingInterceptor entityIndexingInterceptor;
 
-	/**
-	 * @param shardingStrategy
-	 * @param similarityInstance
-	 * @param providers
-	 */
-	public MutableEntityIndexBinding(
-			IndexShardingStrategy shardingStrategy,
-			Similarity similarityInstance,
-			IndexManager[] providers,
-			EntityIndexingInterceptor<? super T> entityIndexingInterceptor) {
-				this.shardingStrategy = shardingStrategy;
-				this.similarityInstance = similarityInstance;
-				this.indexManagers = providers;
-				this.entityIndexingInterceptor = entityIndexingInterceptor;
-	}
+    /**
+     * @param shardingStrategy
+     * @param similarityInstance
+     * @param providers
+     */
+    public MutableEntityIndexBinding(
+            IndexShardingStrategy shardingStrategy,
+            Similarity similarityInstance,
+            IndexManager[] providers,
+            EntityIndexingInterceptor<? super T> entityIndexingInterceptor) {
+                this.shardingStrategy = shardingStrategy;
+                this.similarityInstance = similarityInstance;
+                this.indexManagers = providers;
+                this.entityIndexingInterceptor = entityIndexingInterceptor;
+    }
 
-	public void setDocumentBuilderIndexedEntity(DocumentBuilderIndexedEntity<T> documentBuilder) {
-		this.documentBuilder = documentBuilder;
-	}
+    public void setDocumentBuilderIndexedEntity(DocumentBuilderIndexedEntity<T> documentBuilder) {
+        this.documentBuilder = documentBuilder;
+    }
 
-	@Override
-	public Similarity getSimilarity() {
-		return similarityInstance;
-	}
+    @Override
+    public Similarity getSimilarity() {
+        return similarityInstance;
+    }
 
-	@Override
-	public IndexShardingStrategy getSelectionStrategy() {
-		return shardingStrategy;
-	}
+    @Override
+    public IndexShardingStrategy getSelectionStrategy() {
+        return shardingStrategy;
+    }
 
-	@Override
-	public DocumentBuilderIndexedEntity<T> getDocumentBuilder() {
-		return documentBuilder;
-	}
+    @Override
+    public DocumentBuilderIndexedEntity<T> getDocumentBuilder() {
+        return documentBuilder;
+    }
 
-	@Override
-	public FieldCacheCollectorFactory getIdFieldCacheCollectionFactory() {
-		//TODO remove this stuff from the DocumentBuilder, bring it here.
-		return documentBuilder.getIdFieldCacheCollectionFactory();
-	}
+    @Override
+    public FieldCacheCollectorFactory getIdFieldCacheCollectionFactory() {
+        //TODO remove this stuff from the DocumentBuilder, bring it here.
+        return documentBuilder.getIdFieldCacheCollectionFactory();
+    }
 
-	@Override
-	public void postInitialize(Set<Class<?>> indexedClasses) {
-		documentBuilder.postInitialize( indexedClasses );
-	}
+    @Override
+    public void postInitialize(Set<Class<?>> indexedClasses) {
+        documentBuilder.postInitialize( indexedClasses );
+    }
 
-	@Override
-	public IndexManager[] getIndexManagers() {
-		return indexManagers;
-	}
+    @Override
+    public IndexManager[] getIndexManagers() {
+        return indexManagers;
+    }
 
-	@Override
-	public EntityIndexingInterceptor getEntityIndexingInterceptor() {
-		return entityIndexingInterceptor;
-	}
+    @Override
+    public EntityIndexingInterceptor getEntityIndexingInterceptor() {
+        return entityIndexingInterceptor;
+    }
 
 }

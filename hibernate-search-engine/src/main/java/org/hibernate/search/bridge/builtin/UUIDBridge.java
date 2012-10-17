@@ -29,17 +29,17 @@ import org.hibernate.search.bridge.TwoWayStringBridge;
 
 public class UUIDBridge implements TwoWayStringBridge {
 
-	public String objectToString(Object object) {
-		if ( object == null ) {
-			return null;
-		}
-		return object.toString();
-	}
+    public String objectToString(Object object) {
+        if ( object == null ) {
+            return null;
+        }
+        return object.toString();
+    }
 
-	public UUID stringToObject(String stringValue) {
-		if ( stringValue == null || stringValue.isEmpty() ) {
-			return null;
-		}
-		return UUID.fromString( stringValue );
-	}
+    public UUID stringToObject(String stringValue) {
+        if ( stringValue == null || stringValue.isEmpty() ) {
+            return null;
+        }
+        return UUID.fromString( stringValue );
+    }
 }

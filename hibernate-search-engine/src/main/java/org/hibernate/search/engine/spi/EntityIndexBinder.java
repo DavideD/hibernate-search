@@ -36,35 +36,35 @@ import org.hibernate.search.store.IndexShardingStrategy;
  */
 public interface EntityIndexBinder {
 
-	/**
-	 * @return the Similarity used to search and index this entity
-	 */
-	Similarity getSimilarity();
+    /**
+     * @return the Similarity used to search and index this entity
+     */
+    Similarity getSimilarity();
 
-	/**
-	 * @return the sharding strategy
-	 */
-	IndexShardingStrategy getSelectionStrategy();
+    /**
+     * @return the sharding strategy
+     */
+    IndexShardingStrategy getSelectionStrategy();
 
-	/**
-	 * @return
-	 */
-	DocumentBuilderIndexedEntity<?> getDocumentBuilder();
+    /**
+     * @return
+     */
+    DocumentBuilderIndexedEntity<?> getDocumentBuilder();
 
-	/**
-	 * @return
-	 */
-	FieldCacheCollectorFactory getIdFieldCacheCollectionFactory();
+    /**
+     * @return
+     */
+    FieldCacheCollectorFactory getIdFieldCacheCollectionFactory();
 
-	/**
-	 * @param indexedClasses
-	 */
-	void postInitialize(Set<Class<?>> indexedClasses);
+    /**
+     * @param indexedClasses
+     */
+    void postInitialize(Set<Class<?>> indexedClasses);
 
-	/**
-	 * @return
-	 */
-	IndexManager[] getIndexManagers();
+    /**
+     * @return
+     */
+    IndexManager[] getIndexManagers();
 
-	EntityIndexingInterceptor<?> getEntityIndexingInterceptor();
+    EntityIndexingInterceptor<?> getEntityIndexingInterceptor();
 }

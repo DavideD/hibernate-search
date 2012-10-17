@@ -24,13 +24,13 @@ package org.hibernate.search.indexes.serialization.javaserialization.impl;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class PurgeAll implements Operation {
-	private String entityClassName;
+    private String entityClassName;
 
-	public PurgeAll(String entityClassName) {
-		this.entityClassName = entityClassName;
-	}
+    public PurgeAll(String entityClassName) {
+        this.entityClassName = entityClassName;
+    }
 
-	public String getEntityClassName() {
-		return entityClassName;
-	}
+    public String getEntityClassName() {
+        return entityClassName;
+    }
 }

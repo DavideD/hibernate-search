@@ -54,130 +54,130 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class TransactionalWorker implements Worker {
 
-	//note: there is one Worker instance per SearchFactory, reused concurrently for all sessions.
+    //note: there is one Worker instance per SearchFactory, reused concurrently for all sessions.
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	//this is being used from different threads, but doesn't need a
-	//synchronized map since for a given transaction, we have not concurrent access
-	protected final WeakIdentityHashMap<Object, Synchronization> synchronizationPerTransaction = new WeakIdentityHashMap<Object, Synchronization>();
-	private QueueingProcessor queueingProcessor;
-	private SearchFactoryImplementor factory;
-	private InstanceInitializer instanceInitializer;
+    //this is being used from different threads, but doesn't need a
+    //synchronized map since for a given transaction, we have not concurrent access
+    protected final WeakIdentityHashMap<Object, Synchronization> synchronizationPerTransaction = new WeakIdentityHashMap<Object, Synchronization>();
+    private QueueingProcessor queueingProcessor;
+    private SearchFactoryImplementor factory;
+    private InstanceInitializer instanceInitializer;
 
-	private boolean transactionExpected;
+    private boolean transactionExpected;
 
-	public void performWork(Work<?> work, TransactionContext transactionContext) {
-		final Class<?> entityType = instanceInitializer.getClassFromWork( work );
-		EntityIndexBinder indexBindingForEntity = factory.getIndexBindingForEntity( entityType );
-		if ( indexBindingForEntity == null
-				&& factory.getDocumentBuilderContainedEntity( entityType ) == null ) {
-			throw new SearchException( "Unable to perform work. Entity Class is not @Indexed nor hosts @ContainedIn: " + entityType );
-		}
-		work = interceptWork(indexBindingForEntity, work);
-		if (work == null) {
-			//nothing to do
-			return;
-		}
-		if ( transactionContext.isTransactionInProgress() ) {
-			Object transactionIdentifier = transactionContext.getTransactionIdentifier();
-			PostTransactionWorkQueueSynchronization txSync = (PostTransactionWorkQueueSynchronization)
-					synchronizationPerTransaction.get( transactionIdentifier );
-			if ( txSync == null || txSync.isConsumed() ) {
-				txSync = new PostTransactionWorkQueueSynchronization(
-						queueingProcessor, synchronizationPerTransaction, factory
-				);
-				transactionContext.registerSynchronization( txSync );
-				synchronizationPerTransaction.put( transactionIdentifier, txSync );
-			}
-			txSync.add( work );
-		}
-		else {
-			if ( transactionExpected ) {
-				// this is a workaround: isTransactionInProgress should return "true"
-				// for correct configurations.
-				log.pushedChangesOutOfTransaction();
-			}
-			WorkQueue queue = new WorkQueue( factory );
-			queueingProcessor.add( work, queue );
-			queueingProcessor.prepareWorks( queue );
-			queueingProcessor.performWorks( queue );
-		}
-	}
+    public void performWork(Work<?> work, TransactionContext transactionContext) {
+        final Class<?> entityType = instanceInitializer.getClassFromWork( work );
+        EntityIndexBinder indexBindingForEntity = factory.getIndexBindingForEntity( entityType );
+        if ( indexBindingForEntity == null
+                && factory.getDocumentBuilderContainedEntity( entityType ) == null ) {
+            throw new SearchException( "Unable to perform work. Entity Class is not @Indexed nor hosts @ContainedIn: " + entityType );
+        }
+        work = interceptWork(indexBindingForEntity, work);
+        if (work == null) {
+            //nothing to do
+            return;
+        }
+        if ( transactionContext.isTransactionInProgress() ) {
+            Object transactionIdentifier = transactionContext.getTransactionIdentifier();
+            PostTransactionWorkQueueSynchronization txSync = (PostTransactionWorkQueueSynchronization)
+                    synchronizationPerTransaction.get( transactionIdentifier );
+            if ( txSync == null || txSync.isConsumed() ) {
+                txSync = new PostTransactionWorkQueueSynchronization(
+                        queueingProcessor, synchronizationPerTransaction, factory
+                );
+                transactionContext.registerSynchronization( txSync );
+                synchronizationPerTransaction.put( transactionIdentifier, txSync );
+            }
+            txSync.add( work );
+        }
+        else {
+            if ( transactionExpected ) {
+                // this is a workaround: isTransactionInProgress should return "true"
+                // for correct configurations.
+                log.pushedChangesOutOfTransaction();
+            }
+            WorkQueue queue = new WorkQueue( factory );
+            queueingProcessor.add( work, queue );
+            queueingProcessor.prepareWorks( queue );
+            queueingProcessor.performWorks( queue );
+        }
+    }
 
-	private <T> Work<T> interceptWork(EntityIndexBinder indexBindingForEntity, Work<T> work) {
-		if (indexBindingForEntity == null) {
-			return work;
-		}
-		EntityIndexingInterceptor<? super T> interceptor = (EntityIndexingInterceptor<? super T> ) indexBindingForEntity.getEntityIndexingInterceptor();
-		if (interceptor == null) {
-			return work;
-		}
-		IndexingOverride operation;
-		switch ( work.getType() ) {
-			case ADD:
-				operation = interceptor.onAdd( work.getEntity() );
-				break;
-			case UPDATE:
-				operation = interceptor.onUpdate( work.getEntity() );
-				break;
-			case DELETE:
-				operation = interceptor.onDelete( work.getEntity() );
-				break;
-			case COLLECTION:
-				operation = interceptor.onCollectionUpdate( work.getEntity() );
-				break;
-			case PURGE:
-			case PURGE_ALL:
-			case INDEX:
-				operation = IndexingOverride.APPLY_DEFAULT;
-				break;
-			default:
-				throw new AssertionFailure( "Unknown work type: " + work.getType() );
-		}
-		Work<T> result = work;
-		Class<T> entityClass = work.getEntityClass();
-		switch ( operation ) {
-			case APPLY_DEFAULT:
-				break;
-			case SKIP:
-				result = null;
-				log.forceSkipIndexOperationViaInterception( entityClass, work.getType() );
-				break;
-			case UPDATE:
-				 result = new Work<T>( work.getEntity(), work.getId(), WorkType.UPDATE );
-				log.forceUpdateOnIndexOperationViaInterception( entityClass, work.getType() );
-				break;
-			case REMOVE:
-				//This works because other Work constructors are never used from WorkType ADD, UPDATE, REMOVE, COLLECTION
-				//TODO should we force isIdentifierRollback to false if the operation is not a delete?
-				result = new Work<T>( work.getEntity(), work.getId(), WorkType.DELETE, work.isIdentifierWasRolledBack() );
-				log.forceRemoveOnIndexOperationViaInterception( entityClass, work.getType() );
-				break;
-			default:
-				throw new AssertionFailure( "Unknown action type: " + operation );
-		}
-		return result;
-	}
+    private <T> Work<T> interceptWork(EntityIndexBinder indexBindingForEntity, Work<T> work) {
+        if (indexBindingForEntity == null) {
+            return work;
+        }
+        EntityIndexingInterceptor<? super T> interceptor = (EntityIndexingInterceptor<? super T> ) indexBindingForEntity.getEntityIndexingInterceptor();
+        if (interceptor == null) {
+            return work;
+        }
+        IndexingOverride operation;
+        switch ( work.getType() ) {
+            case ADD:
+                operation = interceptor.onAdd( work.getEntity() );
+                break;
+            case UPDATE:
+                operation = interceptor.onUpdate( work.getEntity() );
+                break;
+            case DELETE:
+                operation = interceptor.onDelete( work.getEntity() );
+                break;
+            case COLLECTION:
+                operation = interceptor.onCollectionUpdate( work.getEntity() );
+                break;
+            case PURGE:
+            case PURGE_ALL:
+            case INDEX:
+                operation = IndexingOverride.APPLY_DEFAULT;
+                break;
+            default:
+                throw new AssertionFailure( "Unknown work type: " + work.getType() );
+        }
+        Work<T> result = work;
+        Class<T> entityClass = work.getEntityClass();
+        switch ( operation ) {
+            case APPLY_DEFAULT:
+                break;
+            case SKIP:
+                result = null;
+                log.forceSkipIndexOperationViaInterception( entityClass, work.getType() );
+                break;
+            case UPDATE:
+                 result = new Work<T>( work.getEntity(), work.getId(), WorkType.UPDATE );
+                log.forceUpdateOnIndexOperationViaInterception( entityClass, work.getType() );
+                break;
+            case REMOVE:
+                //This works because other Work constructors are never used from WorkType ADD, UPDATE, REMOVE, COLLECTION
+                //TODO should we force isIdentifierRollback to false if the operation is not a delete?
+                result = new Work<T>( work.getEntity(), work.getId(), WorkType.DELETE, work.isIdentifierWasRolledBack() );
+                log.forceRemoveOnIndexOperationViaInterception( entityClass, work.getType() );
+                break;
+            default:
+                throw new AssertionFailure( "Unknown action type: " + operation );
+        }
+        return result;
+    }
 
-	public void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
-		this.queueingProcessor = queueingProcessor;
-		this.factory = context.getUninitializedSearchFactory();
-		this.transactionExpected = context.isTransactionManagerExpected();
-		this.instanceInitializer = context.getInstanceInitializer();
-	}
+    public void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor) {
+        this.queueingProcessor = queueingProcessor;
+        this.factory = context.getUninitializedSearchFactory();
+        this.transactionExpected = context.isTransactionManagerExpected();
+        this.instanceInitializer = context.getInstanceInitializer();
+    }
 
-	public void close() {
-	}
+    public void close() {
+    }
 
-	public void flushWorks(TransactionContext transactionContext) {
-		if ( transactionContext.isTransactionInProgress() ) {
-			Object transaction = transactionContext.getTransactionIdentifier();
-			PostTransactionWorkQueueSynchronization txSync = (PostTransactionWorkQueueSynchronization)
-					synchronizationPerTransaction.get( transaction );
-			if ( txSync != null && !txSync.isConsumed() ) {
-				txSync.flushWorks();
-			}
-		}
-	}
+    public void flushWorks(TransactionContext transactionContext) {
+        if ( transactionContext.isTransactionInProgress() ) {
+            Object transaction = transactionContext.getTransactionIdentifier();
+            PostTransactionWorkQueueSynchronization txSync = (PostTransactionWorkQueueSynchronization)
+                    synchronizationPerTransaction.get( transaction );
+            if ( txSync != null && !txSync.isConsumed() ) {
+                txSync.flushWorks();
+            }
+        }
+    }
 }

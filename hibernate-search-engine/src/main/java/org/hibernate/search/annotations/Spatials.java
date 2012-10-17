@@ -33,5 +33,5 @@ import java.lang.annotation.Documented;
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.TYPE } )
 @Documented
 public @interface Spatials {
-	Spatial[] value();
+    Spatial[] value();
 }

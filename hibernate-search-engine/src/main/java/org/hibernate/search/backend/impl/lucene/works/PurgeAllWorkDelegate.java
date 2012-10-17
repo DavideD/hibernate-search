@@ -46,24 +46,24 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
 */
 class PurgeAllWorkDelegate implements LuceneWorkDelegate {
 
-	private static final Log log = LoggerFactory.make();
-	protected final Workspace workspace;
+    private static final Log log = LoggerFactory.make();
+    protected final Workspace workspace;
 
-	PurgeAllWorkDelegate(Workspace workspace) {
-		this.workspace = workspace;
-	}
+    PurgeAllWorkDelegate(Workspace workspace) {
+        this.workspace = workspace;
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		final Class<?> entityType = work.getEntityClass();
-		log.tracef( "purgeAll Lucene index using IndexWriter for type: %s", entityType );
-		try {
-			Term term = new Term( ProjectionConstants.OBJECT_CLASS, entityType.getName() );
-			writer.deleteDocuments( term );
-		}
-		catch (Exception e) {
-			throw new SearchException( "Unable to purge all from Lucene index: " + entityType, e );
-		}
-		workspace.incrementModificationCounter( 1 );
-	}
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        final Class<?> entityType = work.getEntityClass();
+        log.tracef( "purgeAll Lucene index using IndexWriter for type: %s", entityType );
+        try {
+            Term term = new Term( ProjectionConstants.OBJECT_CLASS, entityType.getName() );
+            writer.deleteDocuments( term );
+        }
+        catch (Exception e) {
+            throw new SearchException( "Unable to purge all from Lucene index: " + entityType, e );
+        }
+        workspace.incrementModificationCounter( 1 );
+    }
 
 }

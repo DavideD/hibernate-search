@@ -29,5 +29,5 @@ import java.util.List;
  * @author Emmanuel Bernard
  */
 public interface FullTextQuery {
-	List<?> list();
+    List<?> list();
 }

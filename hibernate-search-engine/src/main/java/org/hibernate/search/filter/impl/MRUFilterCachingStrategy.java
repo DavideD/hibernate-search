@@ -40,26 +40,26 @@ import org.hibernate.search.util.impl.SoftLimitMRUCache;
  * @author Emmanuel Bernard
  */
 public class MRUFilterCachingStrategy implements FilterCachingStrategy {
-	private static final int DEFAULT_SIZE = 128;
-	private SoftLimitMRUCache cache;
-	private static final String SIZE = Environment.FILTER_CACHING_STRATEGY + ".size";
+    private static final int DEFAULT_SIZE = 128;
+    private SoftLimitMRUCache cache;
+    private static final String SIZE = Environment.FILTER_CACHING_STRATEGY + ".size";
 
-	/**
-	 * Under memory pressure the JVM will release all Soft references,
-	 * so pushing it too high will invalidate all eventually useful other caches.
-	 */
-	private static final int HARD_TO_SOFT_RATIO = 15;
+    /**
+     * Under memory pressure the JVM will release all Soft references,
+     * so pushing it too high will invalidate all eventually useful other caches.
+     */
+    private static final int HARD_TO_SOFT_RATIO = 15;
 
-	public void initialize(Properties properties) {
-		int size = ConfigurationParseHelper.getIntValue( properties, SIZE, DEFAULT_SIZE );
-		cache = new SoftLimitMRUCache( size, size * HARD_TO_SOFT_RATIO );
-	}
+    public void initialize(Properties properties) {
+        int size = ConfigurationParseHelper.getIntValue( properties, SIZE, DEFAULT_SIZE );
+        cache = new SoftLimitMRUCache( size, size * HARD_TO_SOFT_RATIO );
+    }
 
-	public Filter getCachedFilter(FilterKey key) {
-		return (Filter) cache.get( key );
-	}
+    public Filter getCachedFilter(FilterKey key) {
+        return (Filter) cache.get( key );
+    }
 
-	public void addCachedFilter(FilterKey key, Filter filter) {
-		cache.put( key, filter );
-	}
+    public void addCachedFilter(FilterKey key, Filter filter) {
+        cache.put( key, filter );
+    }
 }

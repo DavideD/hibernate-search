@@ -32,30 +32,30 @@ import org.hibernate.search.query.facet.FacetSortOrder;
  * @author Hardy Ferentschik
  */
 public class ConnectedFacetParameterContext implements FacetParameterContext {
-	private final FacetBuildingContext context;
+    private final FacetBuildingContext context;
 
-	public ConnectedFacetParameterContext(FacetBuildingContext context) {
-		this.context = context;
-	}
+    public ConnectedFacetParameterContext(FacetBuildingContext context) {
+        this.context = context;
+    }
 
-	public FacetParameterContext orderedBy(FacetSortOrder sort) {
-		context.setSort( sort );
-		return this;
-	}
+    public FacetParameterContext orderedBy(FacetSortOrder sort) {
+        context.setSort( sort );
+        return this;
+    }
 
-	public FacetParameterContext includeZeroCounts(boolean zeroCounts) {
-		context.setIncludeZeroCount( zeroCounts );
-		return this;
-	}
+    public FacetParameterContext includeZeroCounts(boolean zeroCounts) {
+        context.setIncludeZeroCount( zeroCounts );
+        return this;
+    }
 
-	public FacetParameterContext maxFacetCount(int maxFacetCount) {
-		context.setMaxFacetCount( maxFacetCount );
-		return this;
-	}
+    public FacetParameterContext maxFacetCount(int maxFacetCount) {
+        context.setMaxFacetCount( maxFacetCount );
+        return this;
+    }
 
-	public FacetingRequest createFacetingRequest() {
-		return context.getFacetingRequest();
-	}
+    public FacetingRequest createFacetingRequest() {
+        return context.getFacetingRequest();
+    }
 }
 
 

@@ -29,13 +29,13 @@ package org.hibernate.search.annotations;
  * @author Hardy Ferentschik
  */
 public enum Norms {
-	/**
-	 * Store norms
-	 */
-	YES,
+    /**
+     * Store norms
+     */
+    YES,
 
-	/**
-	 * Do not store norms
-	 */
-	NO
+    /**
+     * Do not store norms
+     */
+    NO
 }

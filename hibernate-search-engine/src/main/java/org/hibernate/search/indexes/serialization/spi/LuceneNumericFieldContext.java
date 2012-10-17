@@ -27,37 +27,37 @@ import org.apache.lucene.index.FieldInfo.IndexOptions;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class LuceneNumericFieldContext {
-	private NumericField field;
+    private NumericField field;
 
-	public LuceneNumericFieldContext(NumericField numericField) {
-		this.field = numericField;
-	}
+    public LuceneNumericFieldContext(NumericField numericField) {
+        this.field = numericField;
+    }
 
-	public String getName() {
-		return field.name();
-	}
+    public String getName() {
+        return field.name();
+    }
 
-	public int getPrecisionStep() {
-		return field.getPrecisionStep();
-	}
+    public int getPrecisionStep() {
+        return field.getPrecisionStep();
+    }
 
-	public SerializableStore getStore() {
-		return field.isStored() ? SerializableStore.YES : SerializableStore.NO;
-	}
+    public SerializableStore getStore() {
+        return field.isStored() ? SerializableStore.YES : SerializableStore.NO;
+    }
 
-	public boolean isIndexed() {
-		return field.isIndexed();
-	}
+    public boolean isIndexed() {
+        return field.isIndexed();
+    }
 
-	public float getBoost() {
-		return field.getBoost();
-	}
+    public float getBoost() {
+        return field.getBoost();
+    }
 
-	public boolean getOmitNorms() {
-		return field.getOmitNorms();
-	}
+    public boolean getOmitNorms() {
+        return field.getOmitNorms();
+    }
 
-	public boolean getOmitTermFreqAndPositions() {
-		return field.getIndexOptions() == IndexOptions.DOCS_ONLY;
-	}
+    public boolean getOmitTermFreqAndPositions() {
+        return field.getIndexOptions() == IndexOptions.DOCS_ONLY;
+    }
 }

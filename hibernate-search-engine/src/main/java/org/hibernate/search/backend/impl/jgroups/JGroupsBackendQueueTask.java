@@ -43,59 +43,59 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class JGroupsBackendQueueTask {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final JGroupsBackendQueueProcessor factory;
-	private final String indexName;
-	private final IndexManager indexManager;
-	private final NodeSelectorStrategy masterNodeSelector;
+    private final JGroupsBackendQueueProcessor factory;
+    private final String indexName;
+    private final IndexManager indexManager;
+    private final NodeSelectorStrategy masterNodeSelector;
 
-	public JGroupsBackendQueueTask(JGroupsBackendQueueProcessor factory, IndexManager indexManager, NodeSelectorStrategyHolder masterNodeSelector) {
-		this.factory = factory;
-		this.indexManager = indexManager;
-		this.indexName = indexManager.getIndexName();
-		this.masterNodeSelector = masterNodeSelector.getMasterNodeSelector( indexName );
-	}
+    public JGroupsBackendQueueTask(JGroupsBackendQueueProcessor factory, IndexManager indexManager, NodeSelectorStrategyHolder masterNodeSelector) {
+        this.factory = factory;
+        this.indexManager = indexManager;
+        this.indexName = indexManager.getIndexName();
+        this.masterNodeSelector = masterNodeSelector.getMasterNodeSelector( indexName );
+    }
 
-	public void sendLuceneWorkList(List<LuceneWork> queue) {
-		boolean trace = log.isTraceEnabled();
-		List<LuceneWork> filteredQueue = new ArrayList<LuceneWork>( queue );
-		if ( trace ) {
-			log.tracef( "Preparing %d Lucene works to be sent to master node.", filteredQueue.size() );
-		}
+    public void sendLuceneWorkList(List<LuceneWork> queue) {
+        boolean trace = log.isTraceEnabled();
+        List<LuceneWork> filteredQueue = new ArrayList<LuceneWork>( queue );
+        if ( trace ) {
+            log.tracef( "Preparing %d Lucene works to be sent to master node.", filteredQueue.size() );
+        }
 
-		for ( LuceneWork work : queue ) {
-			if ( work instanceof OptimizeLuceneWork ) {
-				//TODO might be correct to do, but should be filtered earlier, and skipped server-side.
-				//we don't want optimization to be propagated
-				filteredQueue.remove( work );
-			}
-		}
-		if ( trace ) {
-			log.tracef(
-				"Filtering: optimized Lucene works are not going to be sent to master node. There is %d Lucene works after filtering.",
-				filteredQueue.size()
-			);
-		}
-		if ( filteredQueue.isEmpty() ) {
-			if ( trace ) {
-				log.trace( "Nothing to send. Propagating works to a cluster has been skipped." );
-			}
-			return;
-		}
-		byte[] data = indexManager.getSerializer().toSerializedModel( filteredQueue );
-		data = MessageSerializationHelper.prependString( indexName, data );
+        for ( LuceneWork work : queue ) {
+            if ( work instanceof OptimizeLuceneWork ) {
+                //TODO might be correct to do, but should be filtered earlier, and skipped server-side.
+                //we don't want optimization to be propagated
+                filteredQueue.remove( work );
+            }
+        }
+        if ( trace ) {
+            log.tracef(
+                "Filtering: optimized Lucene works are not going to be sent to master node. There is %d Lucene works after filtering.",
+                filteredQueue.size()
+            );
+        }
+        if ( filteredQueue.isEmpty() ) {
+            if ( trace ) {
+                log.trace( "Nothing to send. Propagating works to a cluster has been skipped." );
+            }
+            return;
+        }
+        byte[] data = indexManager.getSerializer().toSerializedModel( filteredQueue );
+        data = MessageSerializationHelper.prependString( indexName, data );
 
-		try {
-			Message message =  masterNodeSelector.createMessage( data );
-			factory.getMessageSender().send( message );
-			if ( trace ) {
-				log.tracef( "Lucene works have been sent from slave %s to master node.", factory.getAddress() );
-			}
-		}
-		catch ( Exception e ) {
-			throw log.unableToSendWorkViaJGroups( e );
-		}
-	}
+        try {
+            Message message =  masterNodeSelector.createMessage( data );
+            factory.getMessageSender().send( message );
+            if ( trace ) {
+                log.tracef( "Lucene works have been sent from slave %s to master node.", factory.getAddress() );
+            }
+        }
+        catch ( Exception e ) {
+            throw log.unableToSendWorkViaJGroups( e );
+        }
+    }
 
 }

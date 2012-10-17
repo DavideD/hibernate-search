@@ -43,63 +43,63 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
 @Deprecated
 public class EmptyBuildContext implements BuildContext {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final ServiceManager services;
-	private final SearchFactoryImplementor searchFactory;
+    private final ServiceManager services;
+    private final SearchFactoryImplementor searchFactory;
 
-	public EmptyBuildContext(ServiceManager delegate, SearchFactoryImplementor searchFactory) {
-		this.services = delegate;
-		this.searchFactory = searchFactory;
-	}
+    public EmptyBuildContext(ServiceManager delegate, SearchFactoryImplementor searchFactory) {
+        this.services = delegate;
+        this.searchFactory = searchFactory;
+    }
 
-	@Override
-	@Deprecated
-	public <T> T requestService(Class<? extends ServiceProvider<T>> provider) {
-		return getServiceManager().requestService( provider, this );
-	}
+    @Override
+    @Deprecated
+    public <T> T requestService(Class<? extends ServiceProvider<T>> provider) {
+        return getServiceManager().requestService( provider, this );
+    }
 
-	@Override
-	@Deprecated
-	public void releaseService(Class<? extends ServiceProvider<?>> provider) {
-		getServiceManager().releaseService( provider );
-	}
+    @Override
+    @Deprecated
+    public void releaseService(Class<? extends ServiceProvider<?>> provider) {
+        getServiceManager().releaseService( provider );
+    }
 
-	@Override
-	public ServiceManager getServiceManager() {
-		return services;
-	}
+    @Override
+    public ServiceManager getServiceManager() {
+        return services;
+    }
 
-	@Override
-	public SearchFactoryImplementor getUninitializedSearchFactory() {
-		return searchFactory;
-	}
+    @Override
+    public SearchFactoryImplementor getUninitializedSearchFactory() {
+        return searchFactory;
+    }
 
-	/**
-	 * To not be used on this BuildContext implementation.
-	 * @throws SearchException Always thrown.
-	 */
-	@Override
-	public String getIndexingStrategy() {
-		throw log.illegalServiceBuildPhase();
-	}
+    /**
+     * To not be used on this BuildContext implementation.
+     * @throws SearchException Always thrown.
+     */
+    @Override
+    public String getIndexingStrategy() {
+        throw log.illegalServiceBuildPhase();
+    }
 
-	/**
-	 * To not be used on this BuildContext implementation.
-	 * @throws SearchException Always thrown.
-	 */
-	@Override
-	public IndexManagerHolder getAllIndexesManager() {
-		throw log.illegalServiceBuildPhase();
-	}
+    /**
+     * To not be used on this BuildContext implementation.
+     * @throws SearchException Always thrown.
+     */
+    @Override
+    public IndexManagerHolder getAllIndexesManager() {
+        throw log.illegalServiceBuildPhase();
+    }
 
-	/**
-	 * To not be used on this BuildContext implementation.
-	 * @throws SearchException Always thrown.
-	 */
-	@Override
-	public ErrorHandler getErrorHandler() {
-		throw log.illegalServiceBuildPhase();
-	}
+    /**
+     * To not be used on this BuildContext implementation.
+     * @throws SearchException Always thrown.
+     */
+    @Override
+    public ErrorHandler getErrorHandler() {
+        throw log.illegalServiceBuildPhase();
+    }
 
 }

@@ -30,30 +30,30 @@ package org.hibernate.search.annotations;
  * @author Emmanuel Bernard
  */
 public enum FilterCacheModeType {
-	/**
-	 * No filter instance and no result is cached by Hibernate Search.
-	 * For every filter call, a new filter instance is created.
-	 */
-	NONE,
+    /**
+     * No filter instance and no result is cached by Hibernate Search.
+     * For every filter call, a new filter instance is created.
+     */
+    NONE,
 
-	/**
-	 * The filter instance is cached by Hibernate Search and reused across
-	 * concurrent <code>Filter.getDocIdSet()</code> calls.
-	 * Results are not cached by Hibernate Search.
-	 *
-	 * @see org.apache.lucene.search.Filter#getDocIdSet(org.apache.lucene.index.IndexReader)
+    /**
+     * The filter instance is cached by Hibernate Search and reused across
+     * concurrent <code>Filter.getDocIdSet()</code> calls.
+     * Results are not cached by Hibernate Search.
+     *
+     * @see org.apache.lucene.search.Filter#getDocIdSet(org.apache.lucene.index.IndexReader)
 
-	 */
-	INSTANCE_ONLY,
+     */
+    INSTANCE_ONLY,
 
-	/**
-	 * Both the filter instance and the <code>DocIdSet</code> results are cached.
-	 * The filter instance is cached by Hibernate Search and reused across
-	 * concurrent <code>Filter.getDocIdSet()</code> calls.
-	 * <code>DocIdSet</code> results are cached per <code>IndexReader</code>.
-	 *
-	 * @see org.apache.lucene.search.Filter#getDocIdSet(org.apache.lucene.index.IndexReader) 
-	 */
-	INSTANCE_AND_DOCIDSETRESULTS
+    /**
+     * Both the filter instance and the <code>DocIdSet</code> results are cached.
+     * The filter instance is cached by Hibernate Search and reused across
+     * concurrent <code>Filter.getDocIdSet()</code> calls.
+     * <code>DocIdSet</code> results are cached per <code>IndexReader</code>.
+     *
+     * @see org.apache.lucene.search.Filter#getDocIdSet(org.apache.lucene.index.IndexReader) 
+     */
+    INSTANCE_AND_DOCIDSETRESULTS
 
 }

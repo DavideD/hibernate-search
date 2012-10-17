@@ -41,58 +41,58 @@ import org.junit.Test;
  */
 public class TransactionsExpectedTest {
 
-	@Test
-	public void testDefaultImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		verifyTransactionsExpectedOption( true, cfg );
-	}
+    @Test
+    public void testDefaultImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        verifyTransactionsExpectedOption( true, cfg );
+    }
 
-	@Test
-	public void testTransactionsNotExpected() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.setTransactionsExpected( false );
-		verifyTransactionsExpectedOption( false, cfg );
-	}
+    @Test
+    public void testTransactionsNotExpected() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.setTransactionsExpected( false );
+        verifyTransactionsExpectedOption( false, cfg );
+    }
 
-	@Test
-	public void testTransactionsExpected() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.setTransactionsExpected( true );
-		verifyTransactionsExpectedOption( true, cfg );
-	}
+    @Test
+    public void testTransactionsExpected() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.setTransactionsExpected( true );
+        verifyTransactionsExpectedOption( true, cfg );
+    }
 
-	private void verifyTransactionsExpectedOption(boolean expectation, ManualConfiguration cfg) {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Document.class ).indexed()
-			.property( "id", ElementType.FIELD ).documentId()
-			.property( "title", ElementType.FIELD ).field()
-			;
-		cfg.setProgrammaticMapping( mapping );
-		cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		cfg.addClass( Document.class );
-		MutableSearchFactory sf = (MutableSearchFactory) new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
-		try {
-			Assert.assertEquals( expectation, sf.isTransactionManagerExpected() );
-			// trigger a SearchFactory rebuild:
-			sf.addClasses( Dvd.class );
-			// and verify the option is not lost:
-			Assert.assertEquals( expectation, sf.isTransactionManagerExpected() );
-		}
-		finally {
-			sf.close();
-		}
-	}
+    private void verifyTransactionsExpectedOption(boolean expectation, ManualConfiguration cfg) {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Document.class ).indexed()
+            .property( "id", ElementType.FIELD ).documentId()
+            .property( "title", ElementType.FIELD ).field()
+            ;
+        cfg.setProgrammaticMapping( mapping );
+        cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        cfg.addClass( Document.class );
+        MutableSearchFactory sf = (MutableSearchFactory) new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+        try {
+            Assert.assertEquals( expectation, sf.isTransactionManagerExpected() );
+            // trigger a SearchFactory rebuild:
+            sf.addClasses( Dvd.class );
+            // and verify the option is not lost:
+            Assert.assertEquals( expectation, sf.isTransactionManagerExpected() );
+        }
+        finally {
+            sf.close();
+        }
+    }
 
-	public static final class Document {
-		long id;
-		String title;
-	}
+    public static final class Document {
+        long id;
+        String title;
+    }
 
-	@Indexed
-	public static final class Dvd {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed
+    public static final class Dvd {
+        @DocumentId long id;
+        @Field String title;
+    }
 
 }

@@ -39,85 +39,85 @@ import org.hibernate.search.engine.BoostStrategy;
  */
 public class PropertyMapping {
 
-	protected final SearchMapping mapping;
-	protected final EntityDescriptor entity;
-	protected final PropertyDescriptor property;
+    protected final SearchMapping mapping;
+    protected final EntityDescriptor entity;
+    protected final PropertyDescriptor property;
 
-	public PropertyMapping(String name, ElementType type, EntityDescriptor entity, SearchMapping mapping) {
-		this.mapping = mapping;
-		this.entity = entity;
-		this.property = entity.getProperty(name, type);
-	}
+    public PropertyMapping(String name, ElementType type, EntityDescriptor entity, SearchMapping mapping) {
+        this.mapping = mapping;
+        this.entity = entity;
+        this.property = entity.getProperty(name, type);
+    }
 
-	protected PropertyMapping(PropertyDescriptor property, EntityDescriptor entity, SearchMapping mapping) {
-		this.mapping = mapping;
-		this.entity = entity;
-		this.property = property;
-	}
+    protected PropertyMapping(PropertyDescriptor property, EntityDescriptor entity, SearchMapping mapping) {
+        this.mapping = mapping;
+        this.entity = entity;
+        this.property = property;
+    }
 
-	public DocumentIdMapping documentId() {
-		return new DocumentIdMapping( property, entity, mapping );
-	}
+    public DocumentIdMapping documentId() {
+        return new DocumentIdMapping( property, entity, mapping );
+    }
 
-	public FieldMapping field() {
-		return new FieldMapping( property, entity, mapping );
-	}
+    public FieldMapping field() {
+        return new FieldMapping( property, entity, mapping );
+    }
 
-	public PropertySpatialMapping spatial() {
-		return new PropertySpatialMapping( property, entity, mapping );
-	}
+    public PropertySpatialMapping spatial() {
+        return new PropertySpatialMapping( property, entity, mapping );
+    }
 
-	public PropertyLatitudeMapping latitude() {
-		return new PropertyLatitudeMapping( property, entity, mapping );
-	}
+    public PropertyLatitudeMapping latitude() {
+        return new PropertyLatitudeMapping( property, entity, mapping );
+    }
 
-	public PropertyLongitudeMapping longitude() {
-		return new PropertyLongitudeMapping( property, entity, mapping );
-	}
+    public PropertyLongitudeMapping longitude() {
+        return new PropertyLongitudeMapping( property, entity, mapping );
+    }
 
-	public DateBridgeMapping dateBridge(Resolution resolution) {
-		return new DateBridgeMapping( mapping, entity, property, resolution );
-	}
-	
-	public CalendarBridgeMapping calendarBridge(Resolution resolution) {
-		return new CalendarBridgeMapping( mapping, entity, property, resolution );
-	}
-	
-	public PropertyMapping analyzerDiscriminator(Class<? extends Discriminator> discriminator) {
-		Map<String, Object> analyzerDiscriminatorAnn = new HashMap<String, Object>();
-		analyzerDiscriminatorAnn.put( "impl", discriminator );
-		property.setAnalyzerDiscriminator(analyzerDiscriminatorAnn);
-		return this;
-	}
-	
-	public PropertyMapping dynamicBoost(Class<? extends BoostStrategy> impl) {
-		final Map<String, Object> dynamicBoostAnn = new HashMap<String, Object>();
-		dynamicBoostAnn.put("impl", impl);
-		property.setDynamicBoost(dynamicBoostAnn);
-		return this;
-	}
+    public DateBridgeMapping dateBridge(Resolution resolution) {
+        return new DateBridgeMapping( mapping, entity, property, resolution );
+    }
+    
+    public CalendarBridgeMapping calendarBridge(Resolution resolution) {
+        return new CalendarBridgeMapping( mapping, entity, property, resolution );
+    }
+    
+    public PropertyMapping analyzerDiscriminator(Class<? extends Discriminator> discriminator) {
+        Map<String, Object> analyzerDiscriminatorAnn = new HashMap<String, Object>();
+        analyzerDiscriminatorAnn.put( "impl", discriminator );
+        property.setAnalyzerDiscriminator(analyzerDiscriminatorAnn);
+        return this;
+    }
+    
+    public PropertyMapping dynamicBoost(Class<? extends BoostStrategy> impl) {
+        final Map<String, Object> dynamicBoostAnn = new HashMap<String, Object>();
+        dynamicBoostAnn.put("impl", impl);
+        property.setDynamicBoost(dynamicBoostAnn);
+        return this;
+    }
 
-	public PropertyMapping property(String name, ElementType type) {
-		return new PropertyMapping(name, type, entity, mapping);
-	}
+    public PropertyMapping property(String name, ElementType type) {
+        return new PropertyMapping(name, type, entity, mapping);
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping(name, tokenizerFactory, mapping);
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping(name, tokenizerFactory, mapping);
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping(entityType, mapping);
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping(entityType, mapping);
+    }
 
-	public IndexEmbeddedMapping indexEmbedded() {
-		return new IndexEmbeddedMapping(mapping,property,entity);
-	}
+    public IndexEmbeddedMapping indexEmbedded() {
+        return new IndexEmbeddedMapping(mapping,property,entity);
+    }
 
-	public ContainedInMapping containedIn() {
-		return new ContainedInMapping(mapping, property, entity);
-	}
+    public ContainedInMapping containedIn() {
+        return new ContainedInMapping(mapping, property, entity);
+    }
 
-	public PropertyMapping bridge(Class<? extends FieldBridge> fieldBridge) {
-		return new FieldBridgeDirectMapping( property, entity, mapping, fieldBridge );
-	}
+    public PropertyMapping bridge(Class<? extends FieldBridge> fieldBridge) {
+        return new FieldBridgeDirectMapping( property, entity, mapping, fieldBridge );
+    }
 }

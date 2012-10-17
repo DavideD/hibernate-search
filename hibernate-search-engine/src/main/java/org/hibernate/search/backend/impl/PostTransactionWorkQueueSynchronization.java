@@ -39,89 +39,89 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class PostTransactionWorkQueueSynchronization implements Synchronization {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	/**
-	 * FullTextIndexEventListener is using a WeakIdentityHashMap<Session,Synchronization>
-	 * So make sure all Synchronization implementations don't have any
-	 * (direct or indirect) reference to the Session.
-	 */
+    /**
+     * FullTextIndexEventListener is using a WeakIdentityHashMap<Session,Synchronization>
+     * So make sure all Synchronization implementations don't have any
+     * (direct or indirect) reference to the Session.
+     */
 
-	private final QueueingProcessor queueingProcessor;
-	private boolean consumed;
-	private boolean prepared;
-	private final WeakIdentityHashMap queuePerTransaction;
-	private final WorkQueue queue;
+    private final QueueingProcessor queueingProcessor;
+    private boolean consumed;
+    private boolean prepared;
+    private final WeakIdentityHashMap queuePerTransaction;
+    private final WorkQueue queue;
 
-	/**
-	 * in transaction work
-	 */
-	public PostTransactionWorkQueueSynchronization(QueueingProcessor queueingProcessor, WeakIdentityHashMap queuePerTransaction,
-			SearchFactoryImplementor searchFactoryImplementor) {
-		this.queueingProcessor = queueingProcessor;
-		this.queuePerTransaction = queuePerTransaction;
-		queue = new WorkQueue( searchFactoryImplementor );
-	}
+    /**
+     * in transaction work
+     */
+    public PostTransactionWorkQueueSynchronization(QueueingProcessor queueingProcessor, WeakIdentityHashMap queuePerTransaction,
+            SearchFactoryImplementor searchFactoryImplementor) {
+        this.queueingProcessor = queueingProcessor;
+        this.queuePerTransaction = queuePerTransaction;
+        queue = new WorkQueue( searchFactoryImplementor );
+    }
 
-	public void add(Work work) {
-		queueingProcessor.add( work, queue );
-	}
+    public void add(Work work) {
+        queueingProcessor.add( work, queue );
+    }
 
-	public boolean isConsumed() {
-		return consumed;
-	}
+    public boolean isConsumed() {
+        return consumed;
+    }
 
-	public void beforeCompletion() {
-		if ( prepared ) {
-			if ( log.isTraceEnabled() ) {
-				log.tracef(
-						"Transaction's beforeCompletion() phase already been processed, ignoring: %s", this.toString()
-				);
-			}
-		}
-		else {
-			if ( log.isTraceEnabled() ) {
-				log.tracef( "Processing Transaction's beforeCompletion() phase: %s", this.toString() );
-			}
-			queueingProcessor.prepareWorks( queue );
-			prepared = true;
-		}
-	}
+    public void beforeCompletion() {
+        if ( prepared ) {
+            if ( log.isTraceEnabled() ) {
+                log.tracef(
+                        "Transaction's beforeCompletion() phase already been processed, ignoring: %s", this.toString()
+                );
+            }
+        }
+        else {
+            if ( log.isTraceEnabled() ) {
+                log.tracef( "Processing Transaction's beforeCompletion() phase: %s", this.toString() );
+            }
+            queueingProcessor.prepareWorks( queue );
+            prepared = true;
+        }
+    }
 
-	public void afterCompletion(int i) {
-		try {
-			if ( Status.STATUS_COMMITTED == i ) {
-				if ( log.isTraceEnabled() ) {
-					log.tracef(
-							"Processing Transaction's afterCompletion() phase for %s. Performing work.", this.toString()
-					);
-				}
-				queueingProcessor.performWorks( queue );
-			}
-			else {
-				if ( log.isTraceEnabled() ) {
-					log.tracef(
-							"Processing Transaction's afterCompletion() phase for %s. Cancelling work due to transaction status %d",
-							this.toString(),
-							i
-					);
-				}
-				queueingProcessor.cancelWorks( queue );
-			}
-		}
-		finally {
-			consumed = true;
-			//clean the Synchronization per Transaction
-			//not needed stricto sensus but a cleaner approach and faster than the GC
-			if ( queuePerTransaction != null ) {
-				queuePerTransaction.removeValue( this );
-			}
-		}
-	}
+    public void afterCompletion(int i) {
+        try {
+            if ( Status.STATUS_COMMITTED == i ) {
+                if ( log.isTraceEnabled() ) {
+                    log.tracef(
+                            "Processing Transaction's afterCompletion() phase for %s. Performing work.", this.toString()
+                    );
+                }
+                queueingProcessor.performWorks( queue );
+            }
+            else {
+                if ( log.isTraceEnabled() ) {
+                    log.tracef(
+                            "Processing Transaction's afterCompletion() phase for %s. Cancelling work due to transaction status %d",
+                            this.toString(),
+                            i
+                    );
+                }
+                queueingProcessor.cancelWorks( queue );
+            }
+        }
+        finally {
+            consumed = true;
+            //clean the Synchronization per Transaction
+            //not needed stricto sensus but a cleaner approach and faster than the GC
+            if ( queuePerTransaction != null ) {
+                queuePerTransaction.removeValue( this );
+            }
+        }
+    }
 
-	public void flushWorks() {
-		WorkQueue subQueue = queue.splitQueue();
-		queueingProcessor.prepareWorks( subQueue );
-		queueingProcessor.performWorks( subQueue );
-	}
+    public void flushWorks() {
+        WorkQueue subQueue = queue.splitQueue();
+        queueingProcessor.prepareWorks( subQueue );
+        queueingProcessor.performWorks( subQueue );
+    }
 }

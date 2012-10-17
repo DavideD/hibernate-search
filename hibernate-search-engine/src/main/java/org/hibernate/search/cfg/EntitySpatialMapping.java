@@ -37,70 +37,70 @@ import org.hibernate.search.annotations.Store;
  */
 public class EntitySpatialMapping {
 
-	private final SearchMapping mapping;
-	private final EntityDescriptor entity;
-	private final Map<String, Object> spatial = new HashMap<String, Object>();
+    private final SearchMapping mapping;
+    private final EntityDescriptor entity;
+    private final Map<String, Object> spatial = new HashMap<String, Object>();
 
-	public EntitySpatialMapping(SearchMapping mapping, EntityDescriptor entity) {
-		this.mapping = mapping;
-		this.entity = entity;
-		this.entity.addSpatial( spatial );
-	}
+    public EntitySpatialMapping(SearchMapping mapping, EntityDescriptor entity) {
+        this.mapping = mapping;
+        this.entity = entity;
+        this.entity.addSpatial( spatial );
+    }
 
-	public EntitySpatialMapping spatial() {
-		return new EntitySpatialMapping( mapping, entity );
-	}
+    public EntitySpatialMapping spatial() {
+        return new EntitySpatialMapping( mapping, entity );
+    }
 
-	public EntitySpatialMapping name(String fieldName) {
-		spatial.put( "name", fieldName );
-		return this;
-	}
+    public EntitySpatialMapping name(String fieldName) {
+        spatial.put( "name", fieldName );
+        return this;
+    }
 
-	public EntitySpatialMapping store(Store store) {
-		spatial.put( "store", store );
-		return this;
-	}
+    public EntitySpatialMapping store(Store store) {
+        spatial.put( "store", store );
+        return this;
+    }
 
-	public EntitySpatialMapping boost(float boost) {
-		final Map<String, Object> boostAnn = new HashMap<String, Object>();
-		boostAnn.put( "value", boost );
-		spatial.put( "boost", boostAnn );
-		return this;
-	}
+    public EntitySpatialMapping boost(float boost) {
+        final Map<String, Object> boostAnn = new HashMap<String, Object>();
+        boostAnn.put( "value", boost );
+        spatial.put( "boost", boostAnn );
+        return this;
+    }
 
-	public EntitySpatialMapping spatialMode(SpatialMode spatialMode) {
-		spatial.put( "spatialMode", spatialMode );
-		return this;
-	}
+    public EntitySpatialMapping spatialMode(SpatialMode spatialMode) {
+        spatial.put( "spatialMode", spatialMode );
+        return this;
+    }
 
-	public EntitySpatialMapping topGridLevel(int topGridLevel) {
-		spatial.put( "topGridLevel", topGridLevel );
-		return this;
-	}
+    public EntitySpatialMapping topGridLevel(int topGridLevel) {
+        spatial.put( "topGridLevel", topGridLevel );
+        return this;
+    }
 
-	public EntitySpatialMapping bottomGridLevel(int bottomGridLevel) {
-		spatial.put( "bottomGridLevel", bottomGridLevel );
-		return this;
-	}
+    public EntitySpatialMapping bottomGridLevel(int bottomGridLevel) {
+        spatial.put( "bottomGridLevel", bottomGridLevel );
+        return this;
+    }
 
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping( mapping, name, impl );
-	}
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping( mapping, name, impl );
+    }
 
-	public PropertyMapping property(String name, ElementType type) {
-		return new PropertyMapping( name, type, entity, mapping );
-	}
+    public PropertyMapping property(String name, ElementType type) {
+        return new PropertyMapping( name, type, entity, mapping );
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping( entityType, mapping );
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping( entityType, mapping );
+    }
 
-	public ClassBridgeMapping classBridge(Class<?> impl) {
-		return new ClassBridgeMapping( mapping, entity, impl );
-	}
+    public ClassBridgeMapping classBridge(Class<?> impl) {
+        return new ClassBridgeMapping( mapping, entity, impl );
+    }
 
 }

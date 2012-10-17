@@ -37,37 +37,37 @@ import org.hibernate.search.backend.impl.WorkVisitor;
  */
 public class OptimizeLuceneWork extends LuceneWork implements Serializable {
 
-	public static final OptimizeLuceneWork INSTANCE = new OptimizeLuceneWork();
+    public static final OptimizeLuceneWork INSTANCE = new OptimizeLuceneWork();
 
-	/**
-	 * Optimizes the index(es) of a specific entity
-	 * @param entity
-	 */
-	public OptimizeLuceneWork(Class<?> entity) {
-		super( null, null, entity );
-	}
+    /**
+     * Optimizes the index(es) of a specific entity
+     * @param entity
+     */
+    public OptimizeLuceneWork(Class<?> entity) {
+        super( null, null, entity );
+    }
 
-	/**
-	 * Optimizes any index
-	 */
-	private OptimizeLuceneWork() {
-		super( null, null, null );
-	}
+    /**
+     * Optimizes any index
+     */
+    private OptimizeLuceneWork() {
+        super( null, null, null );
+    }
 
-	@Override
-	public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
-		return visitor.getDelegate( this );
-	}
-	
-	@Override
-	public String toString() {
-		Class entityClass = this.getEntityClass();
-		if ( entityClass == null ) {
-			return "OptimizeLuceneWork: global";
-		}
-		else {
-			return "OptimizeLuceneWork: " + this.getEntityClass().getName();
-		}
-	}
-	
+    @Override
+    public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
+        return visitor.getDelegate( this );
+    }
+    
+    @Override
+    public String toString() {
+        Class entityClass = this.getEntityClass();
+        if ( entityClass == null ) {
+            return "OptimizeLuceneWork: global";
+        }
+        else {
+            return "OptimizeLuceneWork: " + this.getEntityClass().getName();
+        }
+    }
+    
 }

@@ -24,9 +24,9 @@ package org.hibernate.search.indexes.serialization.spi;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public enum SerializableTermVector {
-	NO,
-	YES,
-	WITH_POSITIONS,
-	WITH_OFFSETS,
-	WITH_POSITIONS_OFFSETS
+    NO,
+    YES,
+    WITH_POSITIONS,
+    WITH_OFFSETS,
+    WITH_POSITIONS_OFFSETS
 }

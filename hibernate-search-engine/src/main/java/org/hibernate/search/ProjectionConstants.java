@@ -29,53 +29,53 @@ package org.hibernate.search;
  * @author Emmanuel Bernard
  */
 public interface ProjectionConstants {
-	/**
-	 * Represents the Hibernate entity returned in a search.
-	 */
-	public String THIS = "__HSearch_This";
+    /**
+     * Represents the Hibernate entity returned in a search.
+     */
+    public String THIS = "__HSearch_This";
 
-	/**
-	 * The Lucene document returned by a search.
-	 */
-	public String DOCUMENT = "__HSearch_Document";
+    /**
+     * The Lucene document returned by a search.
+     */
+    public String DOCUMENT = "__HSearch_Document";
 
-	/**
-	 * The legacy document's score from a search.
-	 */
-	public String SCORE = "__HSearch_Score";
+    /**
+     * The legacy document's score from a search.
+     */
+    public String SCORE = "__HSearch_Score";
 
-	/**
-	 * Object id property
-	 */
-	public String ID = "__HSearch_id";
+    /**
+     * Object id property
+     */
+    public String ID = "__HSearch_id";
 
-	/**
-	 * Lucene Document id.
-	 * <p/>
-	 * Expert: Lucene document id can change overtime between 2 different IndexReader opening.
-	 *
-	 * @experimental If you use this constant/feature, please speak up in the forum
-	 */
-	public String DOCUMENT_ID = "__HSearch_DocumentId";
-	
-	/**
-	 * Lucene {@link org.apache.lucene.search.Explanation} object describing the score computation for
-	 * the matching object/document
-	 * This feature is relatively expensive, do not use unless you return a limited
-	 * amount of objects (using pagination)
-	 * To retrieve explanation of a single result, consider retrieving {@link #DOCUMENT_ID}
-	 * and using fullTextQuery.explain(int)
-	 */
-	public String EXPLANATION = "__HSearch_Explanation";
+    /**
+     * Lucene Document id.
+     * <p/>
+     * Expert: Lucene document id can change overtime between 2 different IndexReader opening.
+     *
+     * @experimental If you use this constant/feature, please speak up in the forum
+     */
+    public String DOCUMENT_ID = "__HSearch_DocumentId";
+    
+    /**
+     * Lucene {@link org.apache.lucene.search.Explanation} object describing the score computation for
+     * the matching object/document
+     * This feature is relatively expensive, do not use unless you return a limited
+     * amount of objects (using pagination)
+     * To retrieve explanation of a single result, consider retrieving {@link #DOCUMENT_ID}
+     * and using fullTextQuery.explain(int)
+     */
+    public String EXPLANATION = "__HSearch_Explanation";
 
-	/**
-	 * Represents the Hibernate entity class returned in a search. In contrast to the other constants this constant
-	 * represents an actual field value of the underlying Lucene document and hence can directly be used in queries.
-	 */
-	public String OBJECT_CLASS = "_hibernate_class";
+    /**
+     * Represents the Hibernate entity class returned in a search. In contrast to the other constants this constant
+     * represents an actual field value of the underlying Lucene document and hence can directly be used in queries.
+     */
+    public String OBJECT_CLASS = "_hibernate_class";
 
-	/**
-	 * Represents the distance between an entity and the center of the search radius in case of a spatial query
-	 */
-	public String SPATIAL_DISTANCE = "_HSearch_SpatialDistance";
+    /**
+     * Represents the distance between an entity and the center of the search radius in case of a spatial query
+     */
+    public String SPATIAL_DISTANCE = "_HSearch_SpatialDistance";
 }

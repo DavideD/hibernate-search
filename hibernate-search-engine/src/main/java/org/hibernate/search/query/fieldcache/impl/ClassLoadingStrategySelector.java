@@ -37,49 +37,49 @@ import org.hibernate.search.bridge.builtin.LongNumericFieldBridge;
  */
 public class ClassLoadingStrategySelector {
 
-	public static FieldCacheLoadingType guessAppropriateCollectorType(TwoWayFieldBridge fieldBridge) {
-		if ( fieldBridge instanceof NullEncodingTwoWayFieldBridge ) {
-			NullEncodingTwoWayFieldBridge encoding = (NullEncodingTwoWayFieldBridge) fieldBridge;
-			return guessAppropriateCollectorType( encoding.unwrap() );
-		}
-		else if ( fieldBridge instanceof TwoWayString2FieldBridgeAdaptor ) {
-			return FieldCacheLoadingType.STRING;
-		}
-		else if ( fieldBridge instanceof IntegerNumericFieldBridge ) {
-			return FieldCacheLoadingType.INT;
-		}
-		else if ( fieldBridge instanceof LongNumericFieldBridge ) {
-			return FieldCacheLoadingType.LONG;
-		}
-		else if ( fieldBridge instanceof DoubleNumericFieldBridge ) {
-			return FieldCacheLoadingType.DOUBLE;
-		}
-		else if ( fieldBridge instanceof FloatNumericFieldBridge ) {
-			return FieldCacheLoadingType.FLOAT;
-		}
-		else {
-			// we don't know how to extract this: no fieldCache will be available
-			return null;
-		}
-	}
+    public static FieldCacheLoadingType guessAppropriateCollectorType(TwoWayFieldBridge fieldBridge) {
+        if ( fieldBridge instanceof NullEncodingTwoWayFieldBridge ) {
+            NullEncodingTwoWayFieldBridge encoding = (NullEncodingTwoWayFieldBridge) fieldBridge;
+            return guessAppropriateCollectorType( encoding.unwrap() );
+        }
+        else if ( fieldBridge instanceof TwoWayString2FieldBridgeAdaptor ) {
+            return FieldCacheLoadingType.STRING;
+        }
+        else if ( fieldBridge instanceof IntegerNumericFieldBridge ) {
+            return FieldCacheLoadingType.INT;
+        }
+        else if ( fieldBridge instanceof LongNumericFieldBridge ) {
+            return FieldCacheLoadingType.LONG;
+        }
+        else if ( fieldBridge instanceof DoubleNumericFieldBridge ) {
+            return FieldCacheLoadingType.DOUBLE;
+        }
+        else if ( fieldBridge instanceof FloatNumericFieldBridge ) {
+            return FieldCacheLoadingType.FLOAT;
+        }
+        else {
+            // we don't know how to extract this: no fieldCache will be available
+            return null;
+        }
+    }
 
-	/**
-	 * Extracts (if possible) the two way string bridge from a given two way field bridge
-	 *
-	 * @param fieldBridge the field bridge from which to extract (unwrap) the two way string bridge
-	 * @return the underlying string bridge or {@code null} if we can't extract it
-	 */
-	public static TwoWayStringBridge getTwoWayStringBridge(TwoWayFieldBridge fieldBridge) {
-		if ( fieldBridge instanceof NullEncodingTwoWayFieldBridge ) {
-			NullEncodingTwoWayFieldBridge encoding = (NullEncodingTwoWayFieldBridge) fieldBridge;
-			return getTwoWayStringBridge( encoding.unwrap() );
-		}
-		else if ( fieldBridge instanceof TwoWayString2FieldBridgeAdaptor ) {
-			TwoWayString2FieldBridgeAdaptor adaptor = (TwoWayString2FieldBridgeAdaptor ) fieldBridge;
-			return adaptor.unwrap();
-		}
-		else {
-			return null;
-		}
-	}
+    /**
+     * Extracts (if possible) the two way string bridge from a given two way field bridge
+     *
+     * @param fieldBridge the field bridge from which to extract (unwrap) the two way string bridge
+     * @return the underlying string bridge or {@code null} if we can't extract it
+     */
+    public static TwoWayStringBridge getTwoWayStringBridge(TwoWayFieldBridge fieldBridge) {
+        if ( fieldBridge instanceof NullEncodingTwoWayFieldBridge ) {
+            NullEncodingTwoWayFieldBridge encoding = (NullEncodingTwoWayFieldBridge) fieldBridge;
+            return getTwoWayStringBridge( encoding.unwrap() );
+        }
+        else if ( fieldBridge instanceof TwoWayString2FieldBridgeAdaptor ) {
+            TwoWayString2FieldBridgeAdaptor adaptor = (TwoWayString2FieldBridgeAdaptor ) fieldBridge;
+            return adaptor.unwrap();
+        }
+        else {
+            return null;
+        }
+    }
 }

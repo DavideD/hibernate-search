@@ -47,42 +47,42 @@ import org.hibernate.search.util.logging.impl.Log;
  */
 public final class DeleteExtWorkDelegate extends DeleteWorkDelegate {
 
-	private final Class<?> managedType;
-	private final DocumentBuilderIndexedEntity<?> builder;
-	private static final Log log = LoggerFactory.make();
-	private final boolean idIsNumeric;
+    private final Class<?> managedType;
+    private final DocumentBuilderIndexedEntity<?> builder;
+    private static final Log log = LoggerFactory.make();
+    private final boolean idIsNumeric;
 
-	DeleteExtWorkDelegate(Workspace workspace) {
-		super( workspace );
-		managedType = workspace.getEntitiesInIndexManager().iterator().next();
-		builder = workspace.getDocumentBuilder( managedType );
-		idIsNumeric = isIdNumeric( builder );
-	}
+    DeleteExtWorkDelegate(Workspace workspace) {
+        super( workspace );
+        managedType = workspace.getEntitiesInIndexManager().iterator().next();
+        builder = workspace.getDocumentBuilder( managedType );
+        idIsNumeric = isIdNumeric( builder );
+    }
 
-	@Override
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		checkType( work );
-		Serializable id = work.getId();
-		log.tracef( "Removing %s#%s by id using an IndexWriter.", managedType, id );
-		try {
-			if( idIsNumeric ) {
-				writer.deleteDocuments( NumericFieldUtils.createExactMatchQuery( builder.getIdKeywordName(), id ) );
-			} else {
-				Term idTerm = new Term( builder.getIdKeywordName(), work.getIdInString() );
-				writer.deleteDocuments( idTerm );
-			}
-			workspace.incrementModificationCounter( 1 );
-		}
-		catch ( Exception e ) {
-			String message = "Unable to remove " + managedType + "#" + id + " from index.";
-			throw new SearchException( message, e );
-		}
-	}
+    @Override
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        checkType( work );
+        Serializable id = work.getId();
+        log.tracef( "Removing %s#%s by id using an IndexWriter.", managedType, id );
+        try {
+            if( idIsNumeric ) {
+                writer.deleteDocuments( NumericFieldUtils.createExactMatchQuery( builder.getIdKeywordName(), id ) );
+            } else {
+                Term idTerm = new Term( builder.getIdKeywordName(), work.getIdInString() );
+                writer.deleteDocuments( idTerm );
+            }
+            workspace.incrementModificationCounter( 1 );
+        }
+        catch ( Exception e ) {
+            String message = "Unable to remove " + managedType + "#" + id + " from index.";
+            throw new SearchException( message, e );
+        }
+    }
 
-	private void checkType(final LuceneWork work) {
-		if ( work.getEntityClass() != managedType ) {
-			throw new AssertionFailure( "Unexpected type" );
-		}
-	}
+    private void checkType(final LuceneWork work) {
+        if ( work.getEntityClass() != managedType ) {
+            throw new AssertionFailure( "Unexpected type" );
+        }
+    }
 
 }

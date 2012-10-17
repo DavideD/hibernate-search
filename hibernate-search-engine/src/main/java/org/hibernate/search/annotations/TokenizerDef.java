@@ -41,13 +41,13 @@ import org.apache.solr.analysis.TokenizerFactory;
 @Documented
 public @interface TokenizerDef {
 
-	/**
-	 * @return the <code>TokenizerFactory</code> class which shall be instantiated.
-	 */
-	Class<? extends TokenizerFactory> factory();
+    /**
+     * @return the <code>TokenizerFactory</code> class which shall be instantiated.
+     */
+    Class<? extends TokenizerFactory> factory();
 
-	/**
-	 * @return Optional parameters passed to the <code>TokenizerFactory</code>.
-	 */
-	Parameter[] params() default { };
+    /**
+     * @return Optional parameters passed to the <code>TokenizerFactory</code>.
+     */
+    Parameter[] params() default { };
 }

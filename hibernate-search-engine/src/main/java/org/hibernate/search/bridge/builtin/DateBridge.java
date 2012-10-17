@@ -55,44 +55,44 @@ import org.hibernate.search.bridge.TwoWayStringBridge;
 //TODO split into StringBridge and TwoWayStringBridge?
 public class DateBridge implements TwoWayStringBridge, ParameterizedBridge {
 
-	public static final TwoWayStringBridge DATE_YEAR = new DateBridge( Resolution.YEAR );
-	public static final TwoWayStringBridge DATE_MONTH = new DateBridge( Resolution.MONTH );
-	public static final TwoWayStringBridge DATE_DAY = new DateBridge( Resolution.DAY );
-	public static final TwoWayStringBridge DATE_HOUR = new DateBridge( Resolution.HOUR );
-	public static final TwoWayStringBridge DATE_MINUTE = new DateBridge( Resolution.MINUTE );
-	public static final TwoWayStringBridge DATE_SECOND = new DateBridge( Resolution.SECOND );
-	public static final TwoWayStringBridge DATE_MILLISECOND = new DateBridge( Resolution.MILLISECOND );
+    public static final TwoWayStringBridge DATE_YEAR = new DateBridge( Resolution.YEAR );
+    public static final TwoWayStringBridge DATE_MONTH = new DateBridge( Resolution.MONTH );
+    public static final TwoWayStringBridge DATE_DAY = new DateBridge( Resolution.DAY );
+    public static final TwoWayStringBridge DATE_HOUR = new DateBridge( Resolution.HOUR );
+    public static final TwoWayStringBridge DATE_MINUTE = new DateBridge( Resolution.MINUTE );
+    public static final TwoWayStringBridge DATE_SECOND = new DateBridge( Resolution.SECOND );
+    public static final TwoWayStringBridge DATE_MILLISECOND = new DateBridge( Resolution.MILLISECOND );
 
-	private DateTools.Resolution resolution;
+    private DateTools.Resolution resolution;
 
-	public DateBridge() {
-	}
+    public DateBridge() {
+    }
 
-	public DateBridge(Resolution resolution) {
-		this.resolution = DateResolutionUtil.getLuceneResolution( resolution );
-	}
+    public DateBridge(Resolution resolution) {
+        this.resolution = DateResolutionUtil.getLuceneResolution( resolution );
+    }
 
-	public Object stringToObject(String stringValue) {
-		if ( StringHelper.isEmpty( stringValue ) ) {
-			return null;
-		}
-		try {
-			return DateTools.stringToDate( stringValue );
-		}
-		catch ( ParseException e ) {
-			throw new SearchException( "Unable to parse into date: " + stringValue, e );
-		}
-	}
+    public Object stringToObject(String stringValue) {
+        if ( StringHelper.isEmpty( stringValue ) ) {
+            return null;
+        }
+        try {
+            return DateTools.stringToDate( stringValue );
+        }
+        catch ( ParseException e ) {
+            throw new SearchException( "Unable to parse into date: " + stringValue, e );
+        }
+    }
 
-	public String objectToString(Object object) {
-		return object != null ?
-				DateTools.dateToString( (Date) object, resolution ) :
-				null;
-	}
+    public String objectToString(Object object) {
+        return object != null ?
+                DateTools.dateToString( (Date) object, resolution ) :
+                null;
+    }
 
-	public void setParameterValues(Map<String,String> parameters) {
-		String resolution = parameters.get( "resolution" );
-		Resolution hibResolution = Resolution.valueOf( resolution.toUpperCase( Locale.ENGLISH ) );
-		this.resolution = DateResolutionUtil.getLuceneResolution( hibResolution );
-	}
+    public void setParameterValues(Map<String,String> parameters) {
+        String resolution = parameters.get( "resolution" );
+        Resolution hibResolution = Resolution.valueOf( resolution.toUpperCase( Locale.ENGLISH ) );
+        this.resolution = DateResolutionUtil.getLuceneResolution( hibResolution );
+    }
 }

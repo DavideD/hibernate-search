@@ -24,13 +24,13 @@ package org.hibernate.search.indexes.serialization.javaserialization.impl;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableCustomFieldable implements SerializableFieldable {
-	private byte[] instance;
+    private byte[] instance;
 
-	public SerializableCustomFieldable(byte[] fieldable) {
-		this.instance = fieldable;
-	}
+    public SerializableCustomFieldable(byte[] fieldable) {
+        this.instance = fieldable;
+    }
 
-	public byte[] getInstance() {
-		return instance;
-	}
+    public byte[] getInstance() {
+        return instance;
+    }
 }

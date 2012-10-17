@@ -54,136 +54,136 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class ConnectedMultiFieldsTermQueryBuilder implements TermTermination {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final Object value;
-	private final QueryCustomizer queryCustomizer;
-	private final TermQueryContext termContext;
-	private final List<FieldContext> fieldContexts;
-	private final QueryBuildingContext queryContext;
+    private final Object value;
+    private final QueryCustomizer queryCustomizer;
+    private final TermQueryContext termContext;
+    private final List<FieldContext> fieldContexts;
+    private final QueryBuildingContext queryContext;
 
-	public ConnectedMultiFieldsTermQueryBuilder(TermQueryContext termContext,
-												Object value,
-												List<FieldContext> fieldContexts,
-												QueryCustomizer queryCustomizer,
-												QueryBuildingContext queryContext) {
-		this.termContext = termContext;
-		this.value = value;
-		this.queryContext = queryContext;
-		this.queryCustomizer = queryCustomizer;
-		this.fieldContexts = fieldContexts;
-	}
+    public ConnectedMultiFieldsTermQueryBuilder(TermQueryContext termContext,
+                                                Object value,
+                                                List<FieldContext> fieldContexts,
+                                                QueryCustomizer queryCustomizer,
+                                                QueryBuildingContext queryContext) {
+        this.termContext = termContext;
+        this.value = value;
+        this.queryContext = queryContext;
+        this.queryCustomizer = queryCustomizer;
+        this.fieldContexts = fieldContexts;
+    }
 
-	public Query createQuery() {
-		final int size = fieldContexts.size();
-		final ConversionContext conversionContext = new ContextualExceptionBridgeHelper();
-		if ( size == 1 ) {
-			return queryCustomizer.setWrappedQuery( createQuery( fieldContexts.get( 0 ), conversionContext ) ).createQuery();
-		}
-		else {
-			BooleanQuery aggregatedFieldsQuery = new BooleanQuery();
-			for ( FieldContext fieldContext : fieldContexts ) {
-				aggregatedFieldsQuery.add( createQuery( fieldContext, conversionContext ), BooleanClause.Occur.SHOULD );
-			}
-			return queryCustomizer.setWrappedQuery( aggregatedFieldsQuery ).createQuery();
-		}
-	}
+    public Query createQuery() {
+        final int size = fieldContexts.size();
+        final ConversionContext conversionContext = new ContextualExceptionBridgeHelper();
+        if ( size == 1 ) {
+            return queryCustomizer.setWrappedQuery( createQuery( fieldContexts.get( 0 ), conversionContext ) ).createQuery();
+        }
+        else {
+            BooleanQuery aggregatedFieldsQuery = new BooleanQuery();
+            for ( FieldContext fieldContext : fieldContexts ) {
+                aggregatedFieldsQuery.add( createQuery( fieldContext, conversionContext ), BooleanClause.Occur.SHOULD );
+            }
+            return queryCustomizer.setWrappedQuery( aggregatedFieldsQuery ).createQuery();
+        }
+    }
 
-	private Query createQuery(FieldContext fieldContext, ConversionContext conversionContext) {
-		final Query perFieldQuery;
-		final DocumentBuilderIndexedEntity<?> documentBuilder = Helper.getDocumentBuilder( queryContext );
-		FieldBridge fieldBridge = documentBuilder.getBridge( fieldContext.getField() );
-		if ( fieldBridge instanceof NumericFieldBridge ) {
-			return NumericFieldUtils.createExactMatchQuery( fieldContext.getField(), value );
-		}
+    private Query createQuery(FieldContext fieldContext, ConversionContext conversionContext) {
+        final Query perFieldQuery;
+        final DocumentBuilderIndexedEntity<?> documentBuilder = Helper.getDocumentBuilder( queryContext );
+        FieldBridge fieldBridge = documentBuilder.getBridge( fieldContext.getField() );
+        if ( fieldBridge instanceof NumericFieldBridge ) {
+            return NumericFieldUtils.createExactMatchQuery( fieldContext.getField(), value );
+        }
 
-		String searchTerm = buildSearchTerm( fieldContext, documentBuilder, conversionContext );
+        String searchTerm = buildSearchTerm( fieldContext, documentBuilder, conversionContext );
 
-		if ( fieldContext.isIgnoreAnalyzer() ) {
-			perFieldQuery = createTermQuery( fieldContext, searchTerm );
-		}
-		else {
-			List<String> terms = getAllTermsFromText(
-					fieldContext.getField(), searchTerm, queryContext.getQueryAnalyzer()
-			);
+        if ( fieldContext.isIgnoreAnalyzer() ) {
+            perFieldQuery = createTermQuery( fieldContext, searchTerm );
+        }
+        else {
+            List<String> terms = getAllTermsFromText(
+                    fieldContext.getField(), searchTerm, queryContext.getQueryAnalyzer()
+            );
 
-			if ( terms.size() == 0 ) {
-				throw log.queryWithNoTermsAfterAnalysis( fieldContext.getField(), searchTerm );
-			}
-			else if ( terms.size() == 1 ) {
-				perFieldQuery = createTermQuery( fieldContext, terms.get( 0 ) );
-			}
-			else {
-				BooleanQuery booleanQuery = new BooleanQuery();
-				for ( String localTerm : terms ) {
-					Query termQuery = createTermQuery( fieldContext, localTerm );
-					booleanQuery.add( termQuery, BooleanClause.Occur.SHOULD );
-				}
-				perFieldQuery = booleanQuery;
-			}
-		}
-		return fieldContext.getFieldCustomizer().setWrappedQuery( perFieldQuery ).createQuery();
-	}
+            if ( terms.size() == 0 ) {
+                throw log.queryWithNoTermsAfterAnalysis( fieldContext.getField(), searchTerm );
+            }
+            else if ( terms.size() == 1 ) {
+                perFieldQuery = createTermQuery( fieldContext, terms.get( 0 ) );
+            }
+            else {
+                BooleanQuery booleanQuery = new BooleanQuery();
+                for ( String localTerm : terms ) {
+                    Query termQuery = createTermQuery( fieldContext, localTerm );
+                    booleanQuery.add( termQuery, BooleanClause.Occur.SHOULD );
+                }
+                perFieldQuery = booleanQuery;
+            }
+        }
+        return fieldContext.getFieldCustomizer().setWrappedQuery( perFieldQuery ).createQuery();
+    }
 
-	private String buildSearchTerm(FieldContext fieldContext, DocumentBuilderIndexedEntity<?> documentBuilder, ConversionContext conversionContext) {
-		if ( fieldContext.isIgnoreFieldBridge() ) {
-			if ( value == null ) {
-				throw new SearchException(
-						"Unable to search for null token on field "
-								+ fieldContext.getField() + " if field bridge is ignored."
-				);
-			}
-			String stringform = value.toString();
-			if ( stringform == null ) {
-				throw new SearchException(
-						"When ignoreFieldBridge() is enabled, toString() on the value is used: the returned string must not be null: " +
-						"on field " + fieldContext.getField() );
-			}
-			return stringform;
-		}
-		else {
-			// need to go via the appropriate bridge, because value is an object, eg boolean, and must be converted to a string first
-			return documentBuilder.objectToString( fieldContext.getField(), value, conversionContext );
-		}
-	}
+    private String buildSearchTerm(FieldContext fieldContext, DocumentBuilderIndexedEntity<?> documentBuilder, ConversionContext conversionContext) {
+        if ( fieldContext.isIgnoreFieldBridge() ) {
+            if ( value == null ) {
+                throw new SearchException(
+                        "Unable to search for null token on field "
+                                + fieldContext.getField() + " if field bridge is ignored."
+                );
+            }
+            String stringform = value.toString();
+            if ( stringform == null ) {
+                throw new SearchException(
+                        "When ignoreFieldBridge() is enabled, toString() on the value is used: the returned string must not be null: " +
+                        "on field " + fieldContext.getField() );
+            }
+            return stringform;
+        }
+        else {
+            // need to go via the appropriate bridge, because value is an object, eg boolean, and must be converted to a string first
+            return documentBuilder.objectToString( fieldContext.getField(), value, conversionContext );
+        }
+    }
 
-	private Query createTermQuery(FieldContext fieldContext, String term) {
-		Query query;
-		final String fieldName = fieldContext.getField();
-		switch ( termContext.getApproximation() ) {
-			case EXACT:
-				query = new TermQuery( new Term( fieldName, term ) );
-				break;
-			case WILDCARD:
-				query = new WildcardQuery( new Term( fieldName, term ) );
-				break;
-			case FUZZY:
-				query = new FuzzyQuery(
-						new Term( fieldName, term ),
-						termContext.getThreshold(),
-						termContext.getPrefixLength()
-				);
-				break;
-			default:
-				throw new AssertionFailure( "Unknown approximation: " + termContext.getApproximation() );
-		}
-		return query;
-	}
+    private Query createTermQuery(FieldContext fieldContext, String term) {
+        Query query;
+        final String fieldName = fieldContext.getField();
+        switch ( termContext.getApproximation() ) {
+            case EXACT:
+                query = new TermQuery( new Term( fieldName, term ) );
+                break;
+            case WILDCARD:
+                query = new WildcardQuery( new Term( fieldName, term ) );
+                break;
+            case FUZZY:
+                query = new FuzzyQuery(
+                        new Term( fieldName, term ),
+                        termContext.getThreshold(),
+                        termContext.getPrefixLength()
+                );
+                break;
+            default:
+                throw new AssertionFailure( "Unknown approximation: " + termContext.getApproximation() );
+        }
+        return query;
+    }
 
-	private List<String> getAllTermsFromText(String fieldName, String localText, Analyzer analyzer) {
-		//it's better not to apply the analyzer with wildcard as * and ? can be mistakenly removed
-		List<String> terms = new ArrayList<String>();
-		if ( termContext.getApproximation() == TermQueryContext.Approximation.WILDCARD ) {
-			terms.add( localText );
-		}
-		else {
-			try {
-				terms = Helper.getAllTermsFromText( fieldName, localText, analyzer );
-			}
-			catch ( IOException e ) {
-				throw new AssertionFailure( "IO exception while reading String stream??", e );
-			}
-		}
-		return terms;
-	}
+    private List<String> getAllTermsFromText(String fieldName, String localText, Analyzer analyzer) {
+        //it's better not to apply the analyzer with wildcard as * and ? can be mistakenly removed
+        List<String> terms = new ArrayList<String>();
+        if ( termContext.getApproximation() == TermQueryContext.Approximation.WILDCARD ) {
+            terms.add( localText );
+        }
+        else {
+            try {
+                terms = Helper.getAllTermsFromText( fieldName, localText, analyzer );
+            }
+            catch ( IOException e ) {
+                throw new AssertionFailure( "IO exception while reading String stream??", e );
+            }
+        }
+        return terms;
+    }
 }

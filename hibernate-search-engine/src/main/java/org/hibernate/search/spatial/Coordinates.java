@@ -26,13 +26,13 @@ package org.hibernate.search.spatial;
  * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
  */
 public interface Coordinates {
-	/**
-	 * @return the latitude in degrees
-	 */
-	Double getLatitude();
+    /**
+     * @return the latitude in degrees
+     */
+    Double getLatitude();
 
-	/**
-	 * @return the longitude in degrees
-	 */
-	Double getLongitude();
+    /**
+     * @return the longitude in degrees
+     */
+    Double getLongitude();
 }

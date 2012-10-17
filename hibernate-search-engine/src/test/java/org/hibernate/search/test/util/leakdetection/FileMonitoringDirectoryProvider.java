@@ -31,9 +31,9 @@ import org.hibernate.search.store.impl.RAMDirectoryProvider;
  */
 public class FileMonitoringDirectoryProvider extends RAMDirectoryProvider {
 
-	@Override
-	protected FileMonitoringDirectory makeRAMDirectory() {
-		return new FileMonitoringDirectory();
-	}
+    @Override
+    protected FileMonitoringDirectory makeRAMDirectory() {
+        return new FileMonitoringDirectory();
+    }
 
 }

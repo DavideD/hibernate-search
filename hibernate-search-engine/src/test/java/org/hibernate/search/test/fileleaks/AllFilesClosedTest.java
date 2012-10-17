@@ -48,147 +48,147 @@ import org.junit.Test;
  */
 public class AllFilesClosedTest {
 
-	private SearchFactoryImplementor searchFactory;
+    private SearchFactoryImplementor searchFactory;
 
-	@Test
-	public void testFileHandlesReleased() {
-		//We initialize the SearchFactory in the test itself as we want to test it's state *after* shutdown
-		searchFactory = initializeSearchFactory();
-		//extract the directories now, as they won't be available after SearchFactory#close :
-		FileMonitoringDirectory directoryOne = getDirectory( "index1" );
-		FileMonitoringDirectory directoryTwo = getDirectory( "index2" );
-		try {
-			doSomeOperations();
-			assertDirectoryOpen( directoryOne );
-			assertDirectoryOpen( directoryTwo );
-			if (nrtNotEnabled()) assertAllFilesClosed( directoryTwo );
-			// directoryOne is using resource pooling
-		}
-		finally {
-			searchFactory.close();
-		}
-		assertAllFilesClosed( directoryOne );
-		assertAllFilesClosed( directoryTwo );
-		assertDirectoryClosed( directoryOne );
-		assertDirectoryClosed( directoryTwo );
-	}
+    @Test
+    public void testFileHandlesReleased() {
+        //We initialize the SearchFactory in the test itself as we want to test it's state *after* shutdown
+        searchFactory = initializeSearchFactory();
+        //extract the directories now, as they won't be available after SearchFactory#close :
+        FileMonitoringDirectory directoryOne = getDirectory( "index1" );
+        FileMonitoringDirectory directoryTwo = getDirectory( "index2" );
+        try {
+            doSomeOperations();
+            assertDirectoryOpen( directoryOne );
+            assertDirectoryOpen( directoryTwo );
+            if (nrtNotEnabled()) assertAllFilesClosed( directoryTwo );
+            // directoryOne is using resource pooling
+        }
+        finally {
+            searchFactory.close();
+        }
+        assertAllFilesClosed( directoryOne );
+        assertAllFilesClosed( directoryTwo );
+        assertDirectoryClosed( directoryOne );
+        assertDirectoryClosed( directoryTwo );
+    }
 
-	/**
-	 * Override point for extending test
-	 */
-	protected boolean nrtNotEnabled() {
-		return true;
-	}
+    /**
+     * Override point for extending test
+     */
+    protected boolean nrtNotEnabled() {
+        return true;
+    }
 
-	/**
-	 * Verifies all files in the Directory were closed
-	 */
-	private void assertAllFilesClosed(FileMonitoringDirectory directory) {
-		Assert.assertTrue( "not all files were closed", directory.allFilesWereClosed() );
-	}
+    /**
+     * Verifies all files in the Directory were closed
+     */
+    private void assertAllFilesClosed(FileMonitoringDirectory directory) {
+        Assert.assertTrue( "not all files were closed", directory.allFilesWereClosed() );
+    }
 
-	/**
-	 * Verifies the directory is closed
-	 */
-	private void assertDirectoryClosed(FileMonitoringDirectory directory) {
-		Assert.assertTrue( directory.isClosed() );
-	}
+    /**
+     * Verifies the directory is closed
+     */
+    private void assertDirectoryClosed(FileMonitoringDirectory directory) {
+        Assert.assertTrue( directory.isClosed() );
+    }
 
-	/**
-	 * Verifies the directory is open
-	 */
-	private void assertDirectoryOpen(FileMonitoringDirectory directory) {
-		Assert.assertFalse( directory.isClosed() );
-	}
+    /**
+     * Verifies the directory is open
+     */
+    private void assertDirectoryOpen(FileMonitoringDirectory directory) {
+        Assert.assertFalse( directory.isClosed() );
+    }
 
-	private FileMonitoringDirectory getDirectory(String indexName) {
-		DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) searchFactory.getAllIndexesManager().getIndexManager( indexName );
-		FileMonitoringDirectoryProvider directoryProvider = (FileMonitoringDirectoryProvider) indexManager.getDirectoryProvider();
-		FileMonitoringDirectory directory = (FileMonitoringDirectory) directoryProvider.getDirectory();
-		return directory;
-	}
+    private FileMonitoringDirectory getDirectory(String indexName) {
+        DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) searchFactory.getAllIndexesManager().getIndexManager( indexName );
+        FileMonitoringDirectoryProvider directoryProvider = (FileMonitoringDirectoryProvider) indexManager.getDirectoryProvider();
+        FileMonitoringDirectory directory = (FileMonitoringDirectory) directoryProvider.getDirectory();
+        return directory;
+    }
 
-	/**
-	 * The reported bugs were related to multithreaded operations, but
-	 * we can actually trigger it with a sequence of read/writes: we need to re-open
-	 * a dirty index to run some query on it.
-	 */
-	private void doSomeOperations() {
-		assertElementsInIndex( 0 );
-		storeDvd( 1, "Aliens" );
-		storeDvd( 2, "Predators" );
-		storeBook( 1, "Hibernate Search, second edition" );
-		assertElementsInIndex( 3 );
-		storeDvd( 2, "Prometheus" ); // This is an update
-		storeBook( 2, "Prometheus and the Eagle" );
-		assertElementsInIndex( 4 );
-	}
+    /**
+     * The reported bugs were related to multithreaded operations, but
+     * we can actually trigger it with a sequence of read/writes: we need to re-open
+     * a dirty index to run some query on it.
+     */
+    private void doSomeOperations() {
+        assertElementsInIndex( 0 );
+        storeDvd( 1, "Aliens" );
+        storeDvd( 2, "Predators" );
+        storeBook( 1, "Hibernate Search, second edition" );
+        assertElementsInIndex( 3 );
+        storeDvd( 2, "Prometheus" ); // This is an update
+        storeBook( 2, "Prometheus and the Eagle" );
+        assertElementsInIndex( 4 );
+    }
 
-	/**
-	 * Run the actual query. Assert sizes to verify everything else is working.
-	 * @param expected number of elements found in the index
-	 */
-	private void assertElementsInIndex(int expected) {
-		HSQuery hsQuery = searchFactory.createHSQuery();
-		hsQuery
-			.luceneQuery( new MatchAllDocsQuery() )
-			.targetedEntities( Arrays.asList( new Class<?>[]{ Book.class, Dvd.class } ) );
-		int resultSize = hsQuery.queryResultSize();
-		Assert.assertEquals( expected, resultSize );
-	}
+    /**
+     * Run the actual query. Assert sizes to verify everything else is working.
+     * @param expected number of elements found in the index
+     */
+    private void assertElementsInIndex(int expected) {
+        HSQuery hsQuery = searchFactory.createHSQuery();
+        hsQuery
+            .luceneQuery( new MatchAllDocsQuery() )
+            .targetedEntities( Arrays.asList( new Class<?>[]{ Book.class, Dvd.class } ) );
+        int resultSize = hsQuery.queryResultSize();
+        Assert.assertEquals( expected, resultSize );
+    }
 
-	private void storeBook(int id, String string) {
-		Book book = new Book();
-		book.id = id;
-		book.title = string;
-		storeObject( book, id );
-	}
+    private void storeBook(int id, String string) {
+        Book book = new Book();
+        book.id = id;
+        book.title = string;
+        storeObject( book, id );
+    }
 
-	private void storeDvd(int id, String dvdTitle) {
-		Dvd dvd1 = new Dvd();
-		dvd1.id = id;
-		dvd1.title = dvdTitle;
-		storeObject( dvd1, id );
-	}
+    private void storeDvd(int id, String dvdTitle) {
+        Dvd dvd1 = new Dvd();
+        dvd1.id = id;
+        dvd1.title = dvdTitle;
+        storeObject( dvd1, id );
+    }
 
-	private void storeObject(Object entity, Serializable id) {
-		Work work = new Work( entity, id, WorkType.UPDATE, false );
-		ManualTransactionContext tc = new ManualTransactionContext();
-		searchFactory.getWorker().performWork( work, tc );
-		tc.end();
-	}
+    private void storeObject(Object entity, Serializable id) {
+        Work work = new Work( entity, id, WorkType.UPDATE, false );
+        ManualTransactionContext tc = new ManualTransactionContext();
+        searchFactory.getWorker().performWork( work, tc );
+        tc.end();
+    }
 
-	protected SearchFactoryImplementor initializeSearchFactory() {
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", FileMonitoringDirectoryProvider.class.getName() )
-			.addProperty( "hibernate.search.default.reader.strategy", "shared" )
-			.addProperty( "hibernate.search.index2.reader.strategy", "not-shared" ) //close all readers closed aggressively
-			.addProperty( "hibernate.search.index2.exclusive_index_use", "false" ) //close all writers closed aggressively
-			.addClass( Book.class )
-			.addClass( Dvd.class )
-			;
-		overrideProperties( cfg ); //allow extending tests with different configuration
-		return new SearchFactoryBuilder()
-			.configuration( cfg )
-			.buildSearchFactory();
-	}
+    protected SearchFactoryImplementor initializeSearchFactory() {
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", FileMonitoringDirectoryProvider.class.getName() )
+            .addProperty( "hibernate.search.default.reader.strategy", "shared" )
+            .addProperty( "hibernate.search.index2.reader.strategy", "not-shared" ) //close all readers closed aggressively
+            .addProperty( "hibernate.search.index2.exclusive_index_use", "false" ) //close all writers closed aggressively
+            .addClass( Book.class )
+            .addClass( Dvd.class )
+            ;
+        overrideProperties( cfg ); //allow extending tests with different configuration
+        return new SearchFactoryBuilder()
+            .configuration( cfg )
+            .buildSearchFactory();
+    }
 
-	protected void overrideProperties(ManualConfiguration cfg) {
-		//nothing to do
-	}
+    protected void overrideProperties(ManualConfiguration cfg) {
+        //nothing to do
+    }
 
-	/** Two mapped entities on two differently configured indexes **/
+    /** Two mapped entities on two differently configured indexes **/
 
-	@Indexed(index="index1")
-	public static final class Dvd {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed(index="index1")
+    public static final class Dvd {
+        @DocumentId long id;
+        @Field String title;
+    }
 
-	@Indexed(index="index2")
-	public static final class Book {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed(index="index2")
+    public static final class Book {
+        @DocumentId long id;
+        @Field String title;
+    }
 
 }

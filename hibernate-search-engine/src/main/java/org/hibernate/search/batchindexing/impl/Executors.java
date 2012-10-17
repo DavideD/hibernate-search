@@ -40,50 +40,50 @@ import org.hibernate.search.util.logging.impl.Log;
  * @author Sanne Grinovero
  */
 public class Executors {
-	
-	private static final String THREAD_GROUP_PREFIX = "Hibernate Search: ";
-	public static final int QUEUE_MAX_LENGTH = 1000;
-	
-	private static final Log log = LoggerFactory.make();
-	
-	/**
-	 * Creates a new fixed size ThreadPoolExecutor.
-	 * It's using a blockingqueue of maximum 1000 elements and the rejection
-	 * policy is set to CallerRunsPolicy for the case the queue is full.
-	 * These settings are required to cap the queue, to make sure the
-	 * timeouts are reasonable for most jobs.
-	 *
-	 * @param threads the number of threads
-	 * @param groupname a label to identify the threadpool; useful for profiling.
-	 * @return the new ExecutorService
-	 */
-	public static ThreadPoolExecutor newFixedThreadPool(int threads, String groupname) {
-		return newFixedThreadPool( threads, groupname, QUEUE_MAX_LENGTH );
-	}
+    
+    private static final String THREAD_GROUP_PREFIX = "Hibernate Search: ";
+    public static final int QUEUE_MAX_LENGTH = 1000;
+    
+    private static final Log log = LoggerFactory.make();
+    
+    /**
+     * Creates a new fixed size ThreadPoolExecutor.
+     * It's using a blockingqueue of maximum 1000 elements and the rejection
+     * policy is set to CallerRunsPolicy for the case the queue is full.
+     * These settings are required to cap the queue, to make sure the
+     * timeouts are reasonable for most jobs.
+     *
+     * @param threads the number of threads
+     * @param groupname a label to identify the threadpool; useful for profiling.
+     * @return the new ExecutorService
+     */
+    public static ThreadPoolExecutor newFixedThreadPool(int threads, String groupname) {
+        return newFixedThreadPool( threads, groupname, QUEUE_MAX_LENGTH );
+    }
 
-	/**
-	 * Creates a new fixed size ThreadPoolExecutor
-	 *
-	 * @param threads the number of threads
-	 * @param groupname a label to identify the threadpool; useful for profiling.
-	 * @param queueSize the size of the queue to store Runnables when all threads are busy
-	 * @return the new ExecutorService
-	 */
-	public static ThreadPoolExecutor newFixedThreadPool(int threads, String groupname, int queueSize) {
-		return new ThreadPoolExecutor(
-				threads,
-				threads,
-	            0L, TimeUnit.MILLISECONDS,
-	            new LinkedBlockingQueue<Runnable>( queueSize ),
-	            new SearchThreadFactory( groupname ),
-	            new BlockPolicy() );
-	}
-	
-	/**
+    /**
+     * Creates a new fixed size ThreadPoolExecutor
+     *
+     * @param threads the number of threads
+     * @param groupname a label to identify the threadpool; useful for profiling.
+     * @param queueSize the size of the queue to store Runnables when all threads are busy
+     * @return the new ExecutorService
+     */
+    public static ThreadPoolExecutor newFixedThreadPool(int threads, String groupname, int queueSize) {
+        return new ThreadPoolExecutor(
+                threads,
+                threads,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>( queueSize ),
+                new SearchThreadFactory( groupname ),
+                new BlockPolicy() );
+    }
+    
+    /**
      * The thread factory, used to customize thread names
      */
     private static class SearchThreadFactory implements ThreadFactory {
-    	
+        
         final ThreadGroup group;
         final AtomicInteger threadNumber = new AtomicInteger( 1 );
         final String namePrefix;
@@ -110,7 +110,7 @@ public class Executors {
      */
     public static class BlockPolicy implements RejectedExecutionHandler {
 
-    	/**
+        /**
          * Creates a <tt>BlockPolicy</tt>.
          */
         public BlockPolicy() { }
@@ -122,14 +122,14 @@ public class Executors {
          * @param e the executor attempting to execute this task
          */
         public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-        	try {
-				e.getQueue().put( r );
-			}
-			catch (InterruptedException e1) {
-				log.interruptedWorkError( r );
-				Thread.currentThread().interrupt();
-			}
+            try {
+                e.getQueue().put( r );
+            }
+            catch (InterruptedException e1) {
+                log.interruptedWorkError( r );
+                Thread.currentThread().interrupt();
+            }
         }
     }
-	
+    
 }

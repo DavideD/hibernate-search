@@ -67,166 +67,166 @@ import java.lang.ref.SoftReference;
  * Copied from Hibernate Core
  */
 public class SoftLimitMRUCache implements Serializable {
-	/**
-	 * The default strong reference count.
-	 */
-	public static final int DEFAULT_STRONG_REF_COUNT = 128;
+    /**
+     * The default strong reference count.
+     */
+    public static final int DEFAULT_STRONG_REF_COUNT = 128;
 
-	/**
-	 * The default soft reference count.
-	 */
-	public static final int DEFAULT_SOFT_REF_COUNT = 2048;
+    /**
+     * The default soft reference count.
+     */
+    public static final int DEFAULT_SOFT_REF_COUNT = 2048;
 
-	private final int strongRefCount;
-	private final int softRefCount;
+    private final int strongRefCount;
+    private final int softRefCount;
 
-	private transient LRUMap strongRefCache;
-	private transient LRUMap softRefCache;
-	private transient ReferenceQueue referenceQueue;
+    private transient LRUMap strongRefCache;
+    private transient LRUMap softRefCache;
+    private transient ReferenceQueue referenceQueue;
 
-	/**
-	 * Constructs a cache with the default settings.
-	 *
-	 * @see #DEFAULT_STRONG_REF_COUNT
-	 * @see #DEFAULT_SOFT_REF_COUNT
-	 */
-	public SoftLimitMRUCache() {
-		this( DEFAULT_STRONG_REF_COUNT, DEFAULT_SOFT_REF_COUNT );
-	}
+    /**
+     * Constructs a cache with the default settings.
+     *
+     * @see #DEFAULT_STRONG_REF_COUNT
+     * @see #DEFAULT_SOFT_REF_COUNT
+     */
+    public SoftLimitMRUCache() {
+        this( DEFAULT_STRONG_REF_COUNT, DEFAULT_SOFT_REF_COUNT );
+    }
 
-	/**
-	 * Constructs a cache with the specified settings.
-	 *
-	 * @param strongRefCount the strong reference count.
-	 * @param softRefCount the soft reference count.
-	 *
-	 * @throws IllegalArgumentException if either of the arguments is less than one, or if the strong
-	 * reference count is higher than the soft reference count.
-	 */
-	public SoftLimitMRUCache(int strongRefCount, int softRefCount) {
-		if ( strongRefCount < 1 || softRefCount < 1 ) {
-			throw new IllegalArgumentException( "Reference counts must be greater than zero" );
-		}
-		if ( strongRefCount > softRefCount ) {
-			throw new IllegalArgumentException( "Strong reference count cannot exceed soft reference count" );
-		}
+    /**
+     * Constructs a cache with the specified settings.
+     *
+     * @param strongRefCount the strong reference count.
+     * @param softRefCount the soft reference count.
+     *
+     * @throws IllegalArgumentException if either of the arguments is less than one, or if the strong
+     * reference count is higher than the soft reference count.
+     */
+    public SoftLimitMRUCache(int strongRefCount, int softRefCount) {
+        if ( strongRefCount < 1 || softRefCount < 1 ) {
+            throw new IllegalArgumentException( "Reference counts must be greater than zero" );
+        }
+        if ( strongRefCount > softRefCount ) {
+            throw new IllegalArgumentException( "Strong reference count cannot exceed soft reference count" );
+        }
 
-		this.strongRefCount = strongRefCount;
-		this.softRefCount = softRefCount;
-		init();
-	}
+        this.strongRefCount = strongRefCount;
+        this.softRefCount = softRefCount;
+        init();
+    }
 
-	/**
-	 * Gets an object from the cache.
-	 *
-	 * @param key the cache key.
-	 * @return the stored value, or <code>null</code> if no entry exists.
-	 */
-	public synchronized Object get(Object key) {
-		if ( key == null ) {
-			throw new NullPointerException( "Key to get cannot be null" );
-		}
+    /**
+     * Gets an object from the cache.
+     *
+     * @param key the cache key.
+     * @return the stored value, or <code>null</code> if no entry exists.
+     */
+    public synchronized Object get(Object key) {
+        if ( key == null ) {
+            throw new NullPointerException( "Key to get cannot be null" );
+        }
 
-		clearObsoleteReferences();
+        clearObsoleteReferences();
 
-		SoftReference ref = (SoftReference) softRefCache.get( key );
-		if ( ref != null ) {
-			Object refValue = ref.get();
-			if ( refValue != null ) {
-				// This ensures recently used entries are strongly-reachable
-				strongRefCache.put( key, refValue );
-				return refValue;
-			}
-		}
+        SoftReference ref = (SoftReference) softRefCache.get( key );
+        if ( ref != null ) {
+            Object refValue = ref.get();
+            if ( refValue != null ) {
+                // This ensures recently used entries are strongly-reachable
+                strongRefCache.put( key, refValue );
+                return refValue;
+            }
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	/**
-	 * Puts a value in the cache.
-	 *
-	 * @param key the key.
-	 * @param value the value.
-	 * @return the previous value stored in the cache, if any.
-	 */
-	public synchronized Object put(Object key, Object value) {
-		if ( key == null || value == null ) {
-			throw new NullPointerException(
-					getClass().getName() + "does not support null key [" + key + "] or value [" + value + "]"
-			);
-		}
+    /**
+     * Puts a value in the cache.
+     *
+     * @param key the key.
+     * @param value the value.
+     * @return the previous value stored in the cache, if any.
+     */
+    public synchronized Object put(Object key, Object value) {
+        if ( key == null || value == null ) {
+            throw new NullPointerException(
+                    getClass().getName() + "does not support null key [" + key + "] or value [" + value + "]"
+            );
+        }
 
-		clearObsoleteReferences();
+        clearObsoleteReferences();
 
-		strongRefCache.put( key, value );
-		SoftReference ref = (SoftReference) softRefCache.put(
-				key,
-				new KeyedSoftReference( key, value, referenceQueue )
-		);
+        strongRefCache.put( key, value );
+        SoftReference ref = (SoftReference) softRefCache.put(
+                key,
+                new KeyedSoftReference( key, value, referenceQueue )
+        );
 
-		return ( ref != null ) ? ref.get() : null;
-	}
+        return ( ref != null ) ? ref.get() : null;
+    }
 
-	/**
-	 * Gets the strong reference cache size.
-	 *
-	 * @return the strong reference cache size.
-	 */
-	public synchronized int size() {
-		clearObsoleteReferences();
-		return strongRefCache.size();
-	}
+    /**
+     * Gets the strong reference cache size.
+     *
+     * @return the strong reference cache size.
+     */
+    public synchronized int size() {
+        clearObsoleteReferences();
+        return strongRefCache.size();
+    }
 
-	/**
-	 * Gets the soft reference cache size.
-	 *
-	 * @return the soft reference cache size.
-	 */
-	public synchronized int softSize() {
-		clearObsoleteReferences();
-		return softRefCache.size();
-	}
+    /**
+     * Gets the soft reference cache size.
+     *
+     * @return the soft reference cache size.
+     */
+    public synchronized int softSize() {
+        clearObsoleteReferences();
+        return softRefCache.size();
+    }
 
-	/**
-	 * Clears the cache.
-	 */
-	public synchronized void clear() {
-		strongRefCache.clear();
-		softRefCache.clear();
-	}
+    /**
+     * Clears the cache.
+     */
+    public synchronized void clear() {
+        strongRefCache.clear();
+        softRefCache.clear();
+    }
 
-	private void init() {
-		this.strongRefCache = new LRUMap( strongRefCount );
-		this.softRefCache = new LRUMap( softRefCount );
-		this.referenceQueue = new ReferenceQueue();
-	}
+    private void init() {
+        this.strongRefCache = new LRUMap( strongRefCount );
+        this.softRefCache = new LRUMap( softRefCount );
+        this.referenceQueue = new ReferenceQueue();
+    }
 
-	private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		init();
-	}
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        init();
+    }
 
-	private void clearObsoleteReferences() {
-		// Clear entries for soft references removed by garbage collector
-		KeyedSoftReference obsoleteRef;
-		while ( ( obsoleteRef = (KeyedSoftReference) referenceQueue.poll() ) != null ) {
-			Object key = obsoleteRef.getKey();
-			softRefCache.remove( key );
-		}
-	}
+    private void clearObsoleteReferences() {
+        // Clear entries for soft references removed by garbage collector
+        KeyedSoftReference obsoleteRef;
+        while ( ( obsoleteRef = (KeyedSoftReference) referenceQueue.poll() ) != null ) {
+            Object key = obsoleteRef.getKey();
+            softRefCache.remove( key );
+        }
+    }
 
-	private static class KeyedSoftReference extends SoftReference {
-		private final Object key;
+    private static class KeyedSoftReference extends SoftReference {
+        private final Object key;
 
-		@SuppressWarnings({ "unchecked" })
-		private KeyedSoftReference(Object key, Object value, ReferenceQueue q) {
-			super( value, q );
-			this.key = key;
-		}
+        @SuppressWarnings({ "unchecked" })
+        private KeyedSoftReference(Object key, Object value, ReferenceQueue q) {
+            super( value, q );
+            this.key = key;
+        }
 
-		private Object getKey() {
-			return key;
-		}
-	}
+        private Object getKey() {
+            return key;
+        }
+    }
 }
 

@@ -32,5 +32,5 @@ package org.hibernate.search.engine;
  * @see org.hibernate.search.annotations.Boost
  */
 public interface BoostStrategy {
-	public float defineBoost(Object value);
+    public float defineBoost(Object value);
 }

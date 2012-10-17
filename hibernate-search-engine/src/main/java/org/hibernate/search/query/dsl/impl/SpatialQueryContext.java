@@ -27,37 +27,37 @@ import org.hibernate.search.spatial.Coordinates;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SpatialQueryContext {
-	private String coordinatesField;
-	private double radiusDistance;
-	private Unit distanceUnit;
-	private Coordinates coordinates;
+    private String coordinatesField;
+    private double radiusDistance;
+    private Unit distanceUnit;
+    private Coordinates coordinates;
 
-	public String getCoordinatesField() {
-		return coordinatesField;
-	}
+    public String getCoordinatesField() {
+        return coordinatesField;
+    }
 
-	public void setCoordinatesField(String coordinatesField) {
-		this.coordinatesField = coordinatesField;
-	}
+    public void setCoordinatesField(String coordinatesField) {
+        this.coordinatesField = coordinatesField;
+    }
 
-	public double getRadiusDistance() {
-		return radiusDistance;
-	}
+    public double getRadiusDistance() {
+        return radiusDistance;
+    }
 
-	public Unit getDistanceUnit() {
-		return distanceUnit;
-	}
+    public Unit getDistanceUnit() {
+        return distanceUnit;
+    }
 
-	public Coordinates getCoordinates() {
-		return coordinates;
-	}
+    public Coordinates getCoordinates() {
+        return coordinates;
+    }
 
-	public void setCoordinates(Coordinates coordinates) {
-		this.coordinates = coordinates;
-	}
+    public void setCoordinates(Coordinates coordinates) {
+        this.coordinates = coordinates;
+    }
 
-	public void setRadius(double distance, Unit unit) {
-		this.radiusDistance = distance;
-		this.distanceUnit = unit;
-	}
+    public void setRadius(double distance, Unit unit) {
+        this.radiusDistance = distance;
+        this.distanceUnit = unit;
+    }
 }

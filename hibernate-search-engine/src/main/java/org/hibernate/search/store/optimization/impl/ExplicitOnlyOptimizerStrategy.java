@@ -46,42 +46,42 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class ExplicitOnlyOptimizerStrategy implements OptimizerStrategy {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	protected String indexName;
-	private final AtomicBoolean optimizerIsBusy = new AtomicBoolean();
+    protected String indexName;
+    private final AtomicBoolean optimizerIsBusy = new AtomicBoolean();
 
-	@Override
-	public boolean performOptimization(IndexWriter writer) {
-		boolean acquired = optimizerIsBusy.compareAndSet( false, true );
-		if ( acquired ) {
-			try {
-				writer.forceMerge(1, true);
-			}
-			catch (IOException e) {
-				throw new SearchException( "Unable to optimize directoryProvider: " + indexName, e );
-			}
-			finally {
-				optimizerIsBusy.set( false );
-			}
-			return true;
-		}
-		else {
-			log.optimizationSkippedStillBusy( indexName );
-			return false;
-		}
-	}
+    @Override
+    public boolean performOptimization(IndexWriter writer) {
+        boolean acquired = optimizerIsBusy.compareAndSet( false, true );
+        if ( acquired ) {
+            try {
+                writer.forceMerge(1, true);
+            }
+            catch (IOException e) {
+                throw new SearchException( "Unable to optimize directoryProvider: " + indexName, e );
+            }
+            finally {
+                optimizerIsBusy.set( false );
+            }
+            return true;
+        }
+        else {
+            log.optimizationSkippedStillBusy( indexName );
+            return false;
+        }
+    }
 
-	@Override
-	public void addOperationWithinTransactionCount(long operations) {
-	}
+    @Override
+    public void addOperationWithinTransactionCount(long operations) {
+    }
 
-	@Override
-	public void optimize(Workspace workspace) {
-	}
+    @Override
+    public void optimize(Workspace workspace) {
+    }
 
-	@Override
-	public void initialize(IndexManager indexManager, Properties indexProperties) {
-		this.indexName = indexManager.getIndexName();
-	}
+    @Override
+    public void initialize(IndexManager indexManager, Properties indexProperties) {
+        this.indexName = indexManager.getIndexName();
+    }
 }

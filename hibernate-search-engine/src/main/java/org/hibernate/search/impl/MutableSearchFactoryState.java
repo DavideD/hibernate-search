@@ -53,244 +53,244 @@ import org.hibernate.search.spi.internals.SearchFactoryState;
  */
 public class MutableSearchFactoryState implements SearchFactoryState {
 
-	private Map<Class<?>, DocumentBuilderContainedEntity<?>> documentBuildersContainedEntities;
-	private Map<Class<?>, EntityIndexBinder> indexBindingsPerEntity;
-	private String indexingStrategy;
-	private Worker worker;
-	private BackendQueueProcessor backendQueueProcessor;
-	private Map<String, FilterDef> filterDefinitions;
-	private FilterCachingStrategy filterCachingStrategy;
-	private Map<String, Analyzer> analyzers;
-	private int cacheBitResultsSize;
-	private Properties configurationProperties;
-	private PolymorphicIndexHierarchy indexHierarchy;
-	private ServiceManager serviceManager;
-	private boolean transactionManagerExpected;
-	private IndexManagerHolder allIndexesManager;
-	private ErrorHandler errorHandler;
-	private TimeoutExceptionFactory defaultTimeoutExceptionFactory;
-	private InstanceInitializer instanceInitializer;
-	private TimingSource timingSource;
-	private SearchMapping mapping;
-	private boolean indexMetadataIsComplete;
-	private boolean isIdProvidedImplicit;
-	private IndexManagerFactory indexManagerFactory;
+    private Map<Class<?>, DocumentBuilderContainedEntity<?>> documentBuildersContainedEntities;
+    private Map<Class<?>, EntityIndexBinder> indexBindingsPerEntity;
+    private String indexingStrategy;
+    private Worker worker;
+    private BackendQueueProcessor backendQueueProcessor;
+    private Map<String, FilterDef> filterDefinitions;
+    private FilterCachingStrategy filterCachingStrategy;
+    private Map<String, Analyzer> analyzers;
+    private int cacheBitResultsSize;
+    private Properties configurationProperties;
+    private PolymorphicIndexHierarchy indexHierarchy;
+    private ServiceManager serviceManager;
+    private boolean transactionManagerExpected;
+    private IndexManagerHolder allIndexesManager;
+    private ErrorHandler errorHandler;
+    private TimeoutExceptionFactory defaultTimeoutExceptionFactory;
+    private InstanceInitializer instanceInitializer;
+    private TimingSource timingSource;
+    private SearchMapping mapping;
+    private boolean indexMetadataIsComplete;
+    private boolean isIdProvidedImplicit;
+    private IndexManagerFactory indexManagerFactory;
 
-	public void copyStateFromOldFactory(SearchFactoryState oldFactoryState) {
-		indexingStrategy = oldFactoryState.getIndexingStrategy();
-		indexBindingsPerEntity = oldFactoryState.getIndexBindingForEntity();
-		documentBuildersContainedEntities = oldFactoryState.getDocumentBuildersContainedEntities();
-		worker = oldFactoryState.getWorker();
-		filterDefinitions = oldFactoryState.getFilterDefinitions();
-		filterCachingStrategy = oldFactoryState.getFilterCachingStrategy();
-		analyzers = oldFactoryState.getAnalyzers();
-		cacheBitResultsSize = oldFactoryState.getCacheBitResultsSize();
-		configurationProperties = oldFactoryState.getConfigurationProperties();
-		indexHierarchy = oldFactoryState.getIndexHierarchy();
-		serviceManager = oldFactoryState.getServiceManager();
-		transactionManagerExpected = oldFactoryState.isTransactionManagerExpected();
-		allIndexesManager = oldFactoryState.getAllIndexesManager();
-		errorHandler = oldFactoryState.getErrorHandler();
-		defaultTimeoutExceptionFactory = oldFactoryState.getDefaultTimeoutExceptionFactory();
-		instanceInitializer = oldFactoryState.getInstanceInitializer();
-		timingSource = oldFactoryState.getTimingSource();
-		mapping = oldFactoryState.getProgrammaticMapping();
-		indexMetadataIsComplete = oldFactoryState.isIndexMetadataComplete();
-		isIdProvidedImplicit = oldFactoryState.isIdProvidedImplicit();
-		indexManagerFactory = oldFactoryState.getIndexManagerFactory();
-	}
+    public void copyStateFromOldFactory(SearchFactoryState oldFactoryState) {
+        indexingStrategy = oldFactoryState.getIndexingStrategy();
+        indexBindingsPerEntity = oldFactoryState.getIndexBindingForEntity();
+        documentBuildersContainedEntities = oldFactoryState.getDocumentBuildersContainedEntities();
+        worker = oldFactoryState.getWorker();
+        filterDefinitions = oldFactoryState.getFilterDefinitions();
+        filterCachingStrategy = oldFactoryState.getFilterCachingStrategy();
+        analyzers = oldFactoryState.getAnalyzers();
+        cacheBitResultsSize = oldFactoryState.getCacheBitResultsSize();
+        configurationProperties = oldFactoryState.getConfigurationProperties();
+        indexHierarchy = oldFactoryState.getIndexHierarchy();
+        serviceManager = oldFactoryState.getServiceManager();
+        transactionManagerExpected = oldFactoryState.isTransactionManagerExpected();
+        allIndexesManager = oldFactoryState.getAllIndexesManager();
+        errorHandler = oldFactoryState.getErrorHandler();
+        defaultTimeoutExceptionFactory = oldFactoryState.getDefaultTimeoutExceptionFactory();
+        instanceInitializer = oldFactoryState.getInstanceInitializer();
+        timingSource = oldFactoryState.getTimingSource();
+        mapping = oldFactoryState.getProgrammaticMapping();
+        indexMetadataIsComplete = oldFactoryState.isIndexMetadataComplete();
+        isIdProvidedImplicit = oldFactoryState.isIdProvidedImplicit();
+        indexManagerFactory = oldFactoryState.getIndexManagerFactory();
+    }
 
-	public ServiceManager getServiceManager() {
-		return serviceManager;
-	}
+    public ServiceManager getServiceManager() {
+        return serviceManager;
+    }
 
-	public void setServiceManager(ServiceManager serviceManager) {
-		this.serviceManager = serviceManager;
-	}
+    public void setServiceManager(ServiceManager serviceManager) {
+        this.serviceManager = serviceManager;
+    }
 
-	public Map<Class<?>, DocumentBuilderContainedEntity<?>> getDocumentBuildersContainedEntities() {
-		return documentBuildersContainedEntities;
-	}
+    public Map<Class<?>, DocumentBuilderContainedEntity<?>> getDocumentBuildersContainedEntities() {
+        return documentBuildersContainedEntities;
+    }
 
-	public Map<Class<?>, EntityIndexBinder> getIndexBindingForEntity() {
-		return indexBindingsPerEntity;
-	}
+    public Map<Class<?>, EntityIndexBinder> getIndexBindingForEntity() {
+        return indexBindingsPerEntity;
+    }
 
-	public String getIndexingStrategy() {
-		return indexingStrategy;
-	}
+    public String getIndexingStrategy() {
+        return indexingStrategy;
+    }
 
-	public Worker getWorker() {
-		return worker;
-	}
+    public Worker getWorker() {
+        return worker;
+    }
 
-	public BackendQueueProcessor getBackendQueueProcessor() {
-		return backendQueueProcessor;
-	}
+    public BackendQueueProcessor getBackendQueueProcessor() {
+        return backendQueueProcessor;
+    }
 
-	public Map<String, FilterDef> getFilterDefinitions() {
-		return filterDefinitions;
-	}
+    public Map<String, FilterDef> getFilterDefinitions() {
+        return filterDefinitions;
+    }
 
-	public FilterCachingStrategy getFilterCachingStrategy() {
-		return filterCachingStrategy;
-	}
+    public FilterCachingStrategy getFilterCachingStrategy() {
+        return filterCachingStrategy;
+    }
 
-	public Map<String, Analyzer> getAnalyzers() {
-		return analyzers;
-	}
+    public Map<String, Analyzer> getAnalyzers() {
+        return analyzers;
+    }
 
-	public int getCacheBitResultsSize() {
-		return cacheBitResultsSize;
-	}
+    public int getCacheBitResultsSize() {
+        return cacheBitResultsSize;
+    }
 
-	public Properties getConfigurationProperties() {
-		return configurationProperties;
-	}
+    public Properties getConfigurationProperties() {
+        return configurationProperties;
+    }
 
-	public PolymorphicIndexHierarchy getIndexHierarchy() {
-		return indexHierarchy;
-	}
+    public PolymorphicIndexHierarchy getIndexHierarchy() {
+        return indexHierarchy;
+    }
 
-	public void setDocumentBuildersContainedEntities(Map<Class<?>, DocumentBuilderContainedEntity<?>> documentBuildersContainedEntities) {
-		this.documentBuildersContainedEntities = documentBuildersContainedEntities;
-	}
+    public void setDocumentBuildersContainedEntities(Map<Class<?>, DocumentBuilderContainedEntity<?>> documentBuildersContainedEntities) {
+        this.documentBuildersContainedEntities = documentBuildersContainedEntities;
+    }
 
-	public void setDocumentBuildersIndexedEntities(Map<Class<?>, EntityIndexBinder> documentBuildersIndexedEntities) {
-		this.indexBindingsPerEntity = documentBuildersIndexedEntities;
-	}
+    public void setDocumentBuildersIndexedEntities(Map<Class<?>, EntityIndexBinder> documentBuildersIndexedEntities) {
+        this.indexBindingsPerEntity = documentBuildersIndexedEntities;
+    }
 
-	public void setIndexingStrategy(String indexingStrategy) {
-		this.indexingStrategy = indexingStrategy;
-	}
+    public void setIndexingStrategy(String indexingStrategy) {
+        this.indexingStrategy = indexingStrategy;
+    }
 
-	public void setWorker(Worker worker) {
-		this.worker = worker;
-	}
+    public void setWorker(Worker worker) {
+        this.worker = worker;
+    }
 
-	public void setBackendQueueProcessor(BackendQueueProcessor backendQueueProcessor) {
-		this.backendQueueProcessor = backendQueueProcessor;
-	}
+    public void setBackendQueueProcessor(BackendQueueProcessor backendQueueProcessor) {
+        this.backendQueueProcessor = backendQueueProcessor;
+    }
 
-	public void setFilterDefinitions(Map<String, FilterDef> filterDefinitions) {
-		this.filterDefinitions = filterDefinitions;
-	}
+    public void setFilterDefinitions(Map<String, FilterDef> filterDefinitions) {
+        this.filterDefinitions = filterDefinitions;
+    }
 
-	public void setFilterCachingStrategy(FilterCachingStrategy filterCachingStrategy) {
-		this.filterCachingStrategy = filterCachingStrategy;
-	}
+    public void setFilterCachingStrategy(FilterCachingStrategy filterCachingStrategy) {
+        this.filterCachingStrategy = filterCachingStrategy;
+    }
 
-	public void setAnalyzers(Map<String, Analyzer> analyzers) {
-		this.analyzers = analyzers;
-	}
+    public void setAnalyzers(Map<String, Analyzer> analyzers) {
+        this.analyzers = analyzers;
+    }
 
-	public void setCacheBitResultsSize(int cacheBitResultsSize) {
-		this.cacheBitResultsSize = cacheBitResultsSize;
-	}
+    public void setCacheBitResultsSize(int cacheBitResultsSize) {
+        this.cacheBitResultsSize = cacheBitResultsSize;
+    }
 
-	public void setConfigurationProperties(Properties configurationProperties) {
-		this.configurationProperties = configurationProperties;
-	}
+    public void setConfigurationProperties(Properties configurationProperties) {
+        this.configurationProperties = configurationProperties;
+    }
 
-	public void setIndexHierarchy(PolymorphicIndexHierarchy indexHierarchy) {
-		this.indexHierarchy = indexHierarchy;
-	}
+    public void setIndexHierarchy(PolymorphicIndexHierarchy indexHierarchy) {
+        this.indexHierarchy = indexHierarchy;
+    }
 
-	public boolean isTransactionManagerExpected() {
-		return transactionManagerExpected;
-	}
+    public boolean isTransactionManagerExpected() {
+        return transactionManagerExpected;
+    }
 
-	public void setTransactionManagerExpected(boolean transactionManagerExpected) {
-		this.transactionManagerExpected = transactionManagerExpected;
-	}
+    public void setTransactionManagerExpected(boolean transactionManagerExpected) {
+        this.transactionManagerExpected = transactionManagerExpected;
+    }
 
-	public void setAllIndexesManager(IndexManagerHolder indexesFactory) {
-		this.allIndexesManager = indexesFactory;
-	}
+    public void setAllIndexesManager(IndexManagerHolder indexesFactory) {
+        this.allIndexesManager = indexesFactory;
+    }
 
-	@Override
-	public IndexManagerHolder getAllIndexesManager() {
-		return allIndexesManager;
-	}
+    @Override
+    public IndexManagerHolder getAllIndexesManager() {
+        return allIndexesManager;
+    }
 
-	public void setActiveSearchFactory(SearchFactoryImplementorWithShareableState factory) {
-		allIndexesManager.setActiveSearchFactory( factory );
-	}
+    public void setActiveSearchFactory(SearchFactoryImplementorWithShareableState factory) {
+        allIndexesManager.setActiveSearchFactory( factory );
+    }
 
-	@Override
-	public ErrorHandler getErrorHandler() {
-		return this.errorHandler;
-	}
+    @Override
+    public ErrorHandler getErrorHandler() {
+        return this.errorHandler;
+    }
 
-	public void setErrorHandler(ErrorHandler errorHandler) {
-		this.errorHandler = errorHandler;
-	}
+    public void setErrorHandler(ErrorHandler errorHandler) {
+        this.errorHandler = errorHandler;
+    }
 
-	@Override
-	public InstanceInitializer getInstanceInitializer() {
-		return instanceInitializer;
-	}
+    @Override
+    public InstanceInitializer getInstanceInitializer() {
+        return instanceInitializer;
+    }
 
-	public void setInstanceInitializer(InstanceInitializer instanceInitializer) {
-		this.instanceInitializer = instanceInitializer;
-	}
+    public void setInstanceInitializer(InstanceInitializer instanceInitializer) {
+        this.instanceInitializer = instanceInitializer;
+    }
 
-	@Override
-	public TimeoutExceptionFactory getDefaultTimeoutExceptionFactory() {
-		return defaultTimeoutExceptionFactory;
-	}
+    @Override
+    public TimeoutExceptionFactory getDefaultTimeoutExceptionFactory() {
+        return defaultTimeoutExceptionFactory;
+    }
 
-	public void setDefaultTimeoutExceptionFactory(TimeoutExceptionFactory defaultTimeoutExceptionFactory) {
-		this.defaultTimeoutExceptionFactory = defaultTimeoutExceptionFactory;
-	}
+    public void setDefaultTimeoutExceptionFactory(TimeoutExceptionFactory defaultTimeoutExceptionFactory) {
+        this.defaultTimeoutExceptionFactory = defaultTimeoutExceptionFactory;
+    }
 
-	@Override
-	public TimingSource getTimingSource() {
-		return this.timingSource;
-	}
+    @Override
+    public TimingSource getTimingSource() {
+        return this.timingSource;
+    }
 
-	public void setTimingSource(TimingSource timingSource) {
-		this.timingSource = timingSource;
-	}
+    public void setTimingSource(TimingSource timingSource) {
+        this.timingSource = timingSource;
+    }
 
-	public void setProgrammaticMapping(SearchMapping mapping) {
-		this.mapping = mapping;
-	}
+    public void setProgrammaticMapping(SearchMapping mapping) {
+        this.mapping = mapping;
+    }
 
-	@Override
-	public SearchMapping getProgrammaticMapping() {
-		return mapping;
-	}
+    @Override
+    public SearchMapping getProgrammaticMapping() {
+        return mapping;
+    }
 
-	public void setSearchMapping(SearchMapping mapping) {
-		this.mapping = mapping;
-	}
+    public void setSearchMapping(SearchMapping mapping) {
+        this.mapping = mapping;
+    }
 
-	@Override
-	public boolean isIndexMetadataComplete() {
-		return this.indexMetadataIsComplete;
-	}
+    @Override
+    public boolean isIndexMetadataComplete() {
+        return this.indexMetadataIsComplete;
+    }
 
-	public void setIndexMetadataComplete(boolean indexMetadataIsComplete) {
-		this.indexMetadataIsComplete = indexMetadataIsComplete;
-	}
+    public void setIndexMetadataComplete(boolean indexMetadataIsComplete) {
+        this.indexMetadataIsComplete = indexMetadataIsComplete;
+    }
 
-	@Override
-	public boolean isIdProvidedImplicit() {
-		return this.isIdProvidedImplicit;
-	}
+    @Override
+    public boolean isIdProvidedImplicit() {
+        return this.isIdProvidedImplicit;
+    }
 
-	public void setIdProvidedImplicit(boolean idProvidedImplicit) {
-		this.isIdProvidedImplicit = idProvidedImplicit;
-	}
+    public void setIdProvidedImplicit(boolean idProvidedImplicit) {
+        this.isIdProvidedImplicit = idProvidedImplicit;
+    }
 
-	@Override
-	public IndexManagerFactory getIndexManagerFactory() {
-		return indexManagerFactory;
-	}
+    @Override
+    public IndexManagerFactory getIndexManagerFactory() {
+        return indexManagerFactory;
+    }
 
-	public void setIndexManagerFactory(IndexManagerFactory indexManagerFactory) {
-		this.indexManagerFactory = indexManagerFactory;
-	}
+    public void setIndexManagerFactory(IndexManagerFactory indexManagerFactory) {
+        this.indexManagerFactory = indexManagerFactory;
+    }
 
 }

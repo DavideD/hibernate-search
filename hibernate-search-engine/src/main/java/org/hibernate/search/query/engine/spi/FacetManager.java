@@ -35,38 +35,38 @@ import org.hibernate.search.query.facet.FacetingRequest;
  * @author Hardy Ferentschik
  */
 public interface FacetManager {
-	/**
-	 * Enable a facet request.
-	 *
-	 * @param facetingRequest the faceting request
-	 * @return {@code this} to allow method chaining
-	 */
-	FacetManager enableFaceting(FacetingRequest facetingRequest);
+    /**
+     * Enable a facet request.
+     *
+     * @param facetingRequest the faceting request
+     * @return {@code this} to allow method chaining
+     */
+    FacetManager enableFaceting(FacetingRequest facetingRequest);
 
-	/**
-	 * Disable a facet with the given name.
-	 *
-	 * @param facetingName the name of the facet to disable.
-	 */
-	void disableFaceting(String facetingName);
+    /**
+     * Disable a facet with the given name.
+     *
+     * @param facetingName the name of the facet to disable.
+     */
+    void disableFaceting(String facetingName);
 
-	/**
-	 * Returns the {@code Facet}s for a given facet name
-	 *
-	 * @param facetingName the facet name for which to return the facet list
-	 * @return the facet result list which corresponds to the facet request with the given name. The empty list
-	 *         is returned for an unknown facet name.
-	 * @see #enableFaceting(org.hibernate.search.query.facet.FacetingRequest)
-	 */
-	List<Facet> getFacets(String facetingName);
+    /**
+     * Returns the {@code Facet}s for a given facet name
+     *
+     * @param facetingName the facet name for which to return the facet list
+     * @return the facet result list which corresponds to the facet request with the given name. The empty list
+     *         is returned for an unknown facet name.
+     * @see #enableFaceting(org.hibernate.search.query.facet.FacetingRequest)
+     */
+    List<Facet> getFacets(String facetingName);
 
-	/**
-	 * Returns a instance of {@code FacetSelection} instance in order to apply a disjunction of facet criteria on
-	 * the current query.
-	 *
-	 * @param groupName the name the group. If the name is unknown an empty selection group is returned. {@code null}
-	 * is not allowed.
-	 * @return the {@code FacetSelection} for this group name if it exists., otherwise a new selection is created.
-	 */
-	FacetSelection getFacetGroup(String groupName);
+    /**
+     * Returns a instance of {@code FacetSelection} instance in order to apply a disjunction of facet criteria on
+     * the current query.
+     *
+     * @param groupName the name the group. If the name is unknown an empty selection group is returned. {@code null}
+     * is not allowed.
+     * @return the {@code FacetSelection} for this group name if it exists., otherwise a new selection is created.
+     */
+    FacetSelection getFacetGroup(String groupName);
 }

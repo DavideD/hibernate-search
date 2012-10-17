@@ -37,51 +37,51 @@ import org.hibernate.search.backend.LuceneWork;
  */
 public interface Serializer {
 
-	void luceneWorks(List<LuceneWork> works);
+    void luceneWorks(List<LuceneWork> works);
 
-	void addOptimizeAll();
+    void addOptimizeAll();
 
-	void addPurgeAll(String entityClassName);
+    void addPurgeAll(String entityClassName);
 
-	void addIdSerializedInJava(byte[] id);
+    void addIdSerializedInJava(byte[] id);
 
-	void addIdAsInteger(int id);
+    void addIdAsInteger(int id);
 
-	void addIdAsLong(long id);
+    void addIdAsLong(long id);
 
-	void addIdAsFloat(float id);
+    void addIdAsFloat(float id);
 
-	void addIdAsDouble(double id);
+    void addIdAsDouble(double id);
 
-	void addIdAsString(String id);
+    void addIdAsString(String id);
 
-	void addDelete(String entityClassName);
+    void addDelete(String entityClassName);
 
-	void addAdd(String entityClassName, Map<String, String> fieldToAnalyzerMap);
+    void addAdd(String entityClassName, Map<String, String> fieldToAnalyzerMap);
 
-	void addUpdate(String entityClassName, Map<String, String> fieldToAnalyzerMap);
+    void addUpdate(String entityClassName, Map<String, String> fieldToAnalyzerMap);
 
-	byte[] serialize();
+    byte[] serialize();
 
-	void fields(List<Fieldable> fields);
+    void fields(List<Fieldable> fields);
 
-	void addIntNumericField(int value, LuceneNumericFieldContext context);
+    void addIntNumericField(int value, LuceneNumericFieldContext context);
 
-	void addLongNumericField(long value, LuceneNumericFieldContext context);
+    void addLongNumericField(long value, LuceneNumericFieldContext context);
 
-	void addFloatNumericField(float value, LuceneNumericFieldContext context);
+    void addFloatNumericField(float value, LuceneNumericFieldContext context);
 
-	void addDoubleNumericField(double value, LuceneNumericFieldContext context);
+    void addDoubleNumericField(double value, LuceneNumericFieldContext context);
 
-	void addFieldWithBinaryData(LuceneFieldContext luceneFieldContext);
+    void addFieldWithBinaryData(LuceneFieldContext luceneFieldContext);
 
-	void addFieldWithStringData(LuceneFieldContext luceneFieldContext);
+    void addFieldWithStringData(LuceneFieldContext luceneFieldContext);
 
-	void addFieldWithTokenStreamData(LuceneFieldContext luceneFieldContext);
+    void addFieldWithTokenStreamData(LuceneFieldContext luceneFieldContext);
 
-	void addFieldWithSerializableReaderData(LuceneFieldContext luceneFieldContext);
+    void addFieldWithSerializableReaderData(LuceneFieldContext luceneFieldContext);
 
-	void addFieldWithSerializableFieldable(byte[] fieldable);
+    void addFieldWithSerializableFieldable(byte[] fieldable);
 
-	void addDocument(float boost);
+    void addDocument(float boost);
 }

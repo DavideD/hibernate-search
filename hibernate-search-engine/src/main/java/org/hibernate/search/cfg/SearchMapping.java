@@ -36,70 +36,70 @@ import org.apache.solr.analysis.TokenizerFactory;
  * @author Emmanuel Bernard
  */
 public class SearchMapping {
-	private Set<Map<String, Object>> analyzerDefs = new HashSet<Map<String, Object>>();
-	private Set<Map<String, Object>> fullTextFilterDefs = new HashSet<Map<String, Object>>();
-	private Map<Class<?>, EntityDescriptor> entities = new HashMap<Class<?>, EntityDescriptor>();
+    private Set<Map<String, Object>> analyzerDefs = new HashSet<Map<String, Object>>();
+    private Set<Map<String, Object>> fullTextFilterDefs = new HashSet<Map<String, Object>>();
+    private Map<Class<?>, EntityDescriptor> entities = new HashMap<Class<?>, EntityDescriptor>();
 
-	public Set<Map<String, Object>> getAnalyzerDefs() {
-		return analyzerDefs;
-	}
+    public Set<Map<String, Object>> getAnalyzerDefs() {
+        return analyzerDefs;
+    }
 
-	public Set<Map<String, Object>> getFullTextFilterDefs() {
-		return fullTextFilterDefs;
-	}
+    public Set<Map<String, Object>> getFullTextFilterDefs() {
+        return fullTextFilterDefs;
+    }
 
-	public EntityDescriptor getEntityDescriptor(Class<?> entityType) {
-		return entities.get( entityType );
-	}
+    public EntityDescriptor getEntityDescriptor(Class<?> entityType) {
+        return entities.get( entityType );
+    }
 
-	public Set<Class<?>> getMappedEntities() {
-		return entities.keySet();
-	}
+    public Set<Class<?>> getMappedEntities() {
+        return entities.keySet();
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping(name, tokenizerFactory, this);
-	}
-	
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping(entityType, this);
-	}
-	
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping(this, name, impl );
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping(name, tokenizerFactory, this);
+    }
+    
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping(entityType, this);
+    }
+    
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping(this, name, impl );
+    }
 
-	/**
-	 * eg @Containing(things={@Thing(...), @Thing(...)}
-	 * Map<String, Object> addedThing = addElementToAnnotationArray(containing, "things");
-	 */
+    /**
+     * eg @Containing(things={@Thing(...), @Thing(...)}
+     * Map<String, Object> addedThing = addElementToAnnotationArray(containing, "things");
+     */
 
-	static Map<String, Object> addElementToAnnotationArray(Map<String, Object> containingAnnotation,
-													  String attributeName) {
-		@SuppressWarnings("unchecked") List<Map<String, Object>> array = (List<Map<String, Object>>) containingAnnotation.get( attributeName );
-		if ( array == null) {
-			array = new ArrayList<Map<String, Object>>();
-			containingAnnotation.put( attributeName, array );
-		}
-		Map<String, Object> param = new HashMap<String, Object>();
-		array.add( param );
-		return param;
-	}
+    static Map<String, Object> addElementToAnnotationArray(Map<String, Object> containingAnnotation,
+                                                      String attributeName) {
+        @SuppressWarnings("unchecked") List<Map<String, Object>> array = (List<Map<String, Object>>) containingAnnotation.get( attributeName );
+        if ( array == null) {
+            array = new ArrayList<Map<String, Object>>();
+            containingAnnotation.put( attributeName, array );
+        }
+        Map<String, Object> param = new HashMap<String, Object>();
+        array.add( param );
+        return param;
+    }
 
-	void addAnalyzerDef(Map<String, Object> analyzerDef) {
-		analyzerDefs.add( analyzerDef );
-	}
+    void addAnalyzerDef(Map<String, Object> analyzerDef) {
+        analyzerDefs.add( analyzerDef );
+    }
 
-	EntityDescriptor getEntity(Class<?> entityType) {
-		EntityDescriptor entity = entities.get( entityType );
-		if (entity == null) {
-			entity = new EntityDescriptor(entityType);
-			entities.put( entityType, entity );
-		}
-		return entity;
-	}
+    EntityDescriptor getEntity(Class<?> entityType) {
+        EntityDescriptor entity = entities.get( entityType );
+        if (entity == null) {
+            entity = new EntityDescriptor(entityType);
+            entities.put( entityType, entity );
+        }
+        return entity;
+    }
 
-	void addFulltextFilterDef(Map<String, Object> fullTextFilterDef) {
-		fullTextFilterDefs.add(fullTextFilterDef);
-	}
-	
+    void addFulltextFilterDef(Map<String, Object> fullTextFilterDef) {
+        fullTextFilterDefs.add(fullTextFilterDef);
+    }
+    
 }

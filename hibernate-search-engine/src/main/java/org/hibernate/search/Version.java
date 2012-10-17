@@ -31,14 +31,14 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class Version {
 
-	public static String getVersionString() {
-		return "[WORKING]";
-	}
+    public static String getVersionString() {
+        return "[WORKING]";
+    }
 
-	static {
-		LoggerFactory.make().version( getVersionString() );
-	}
+    static {
+        LoggerFactory.make().version( getVersionString() );
+    }
 
-	public static void touch() {
-	}
+    public static void touch() {
+    }
 }

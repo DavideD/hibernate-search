@@ -30,8 +30,8 @@ import org.apache.lucene.search.Query;
  * @author Emmanuel Bernard
  */
 public interface Termination<T> {
-	/**
-	 * Return the lucene query representing the operation
-	 */
-	Query createQuery();
+    /**
+     * Return the lucene query representing the operation
+     */
+    Query createQuery();
 }

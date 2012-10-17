@@ -33,22 +33,22 @@ package org.hibernate.search.filter;
  * @author Emmanuel Bernard
  */
 public abstract class FilterKey {
-	// FilterKey implementations do not have to be thread-safe as FilterCachingStrategy ensure
-	// a memory barrier between usages
-	private Class<?> impl;
+    // FilterKey implementations do not have to be thread-safe as FilterCachingStrategy ensure
+    // a memory barrier between usages
+    private Class<?> impl;
 
-	/**
-	 * @return the {@code @FullTextFilterDef.impl} class
-	 */
-	public Class<?> getImpl() {
-		return impl;
-	}
+    /**
+     * @return the {@code @FullTextFilterDef.impl} class
+     */
+    public Class<?> getImpl() {
+        return impl;
+    }
 
-	public void setImpl(Class<?> impl) {
-		this.impl = impl;
-	}
+    public void setImpl(Class<?> impl) {
+        this.impl = impl;
+    }
 
-	public abstract int hashCode();
+    public abstract int hashCode();
 
-	public abstract boolean equals(Object obj);
+    public abstract boolean equals(Object obj);
 }

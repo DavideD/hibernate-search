@@ -30,25 +30,25 @@ import org.hibernate.search.spi.WorkerBuildContext;
  */
 public class ExclusiveIndexWorkspaceImpl extends AbstractWorkspaceImpl {
 
-	public ExclusiveIndexWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties cfg) {
-		super( indexManager, context, cfg );
-	}
+    public ExclusiveIndexWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties cfg) {
+        super( indexManager, context, cfg );
+    }
 
-	@Override
-	public void afterTransactionApplied(boolean someFailureHappened, boolean streaming) {
-		if ( someFailureHappened ) {
-			writerHolder.forceLockRelease();
-		}
-		else {
-			if ( ! streaming ) {
-				writerHolder.commitIndexWriter();
-			}
-		}
-	}
+    @Override
+    public void afterTransactionApplied(boolean someFailureHappened, boolean streaming) {
+        if ( someFailureHappened ) {
+            writerHolder.forceLockRelease();
+        }
+        else {
+            if ( ! streaming ) {
+                writerHolder.commitIndexWriter();
+            }
+        }
+    }
 
-	@Override
-	public void flush() {
-		writerHolder.commitIndexWriter();
-	}
+    @Override
+    public void flush() {
+        writerHolder.commitIndexWriter();
+    }
 
 }

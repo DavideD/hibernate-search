@@ -29,35 +29,35 @@ import org.hibernate.search.bridge.StringBridge;
  */
 public class NullEncodingFieldBridge implements FieldBridge, StringBridge {
 
-	private final String2FieldBridgeAdaptor bridge;
-	private final String nullMarker;
+    private final String2FieldBridgeAdaptor bridge;
+    private final String nullMarker;
 
-	public NullEncodingFieldBridge(StringBridge bridge, String nullMarker) {
-		this.bridge = new String2FieldBridgeAdaptor( bridge );
-		this.nullMarker = nullMarker;
-	}
+    public NullEncodingFieldBridge(StringBridge bridge, String nullMarker) {
+        this.bridge = new String2FieldBridgeAdaptor( bridge );
+        this.nullMarker = nullMarker;
+    }
 
-	@Override
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		if ( value == null ) {
-			luceneOptions.addFieldToDocument( name, nullMarker, document );
-		}
-		else {
-			bridge.set( name, value, document, luceneOptions );
-		}
-	}
+    @Override
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        if ( value == null ) {
+            luceneOptions.addFieldToDocument( name, nullMarker, document );
+        }
+        else {
+            bridge.set( name, value, document, luceneOptions );
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.hibernate.search.bridge.StringBridge#objectToString(java.lang.Object)
-	 */
-	@Override
-	public String objectToString(Object object) {
-		if ( object == null )
-			return nullMarker;
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.hibernate.search.bridge.StringBridge#objectToString(java.lang.Object)
+     */
+    @Override
+    public String objectToString(Object object) {
+        if ( object == null )
+            return nullMarker;
 
-		return bridge.objectToString( object );
-	}
+        return bridge.objectToString( object );
+    }
 
 }

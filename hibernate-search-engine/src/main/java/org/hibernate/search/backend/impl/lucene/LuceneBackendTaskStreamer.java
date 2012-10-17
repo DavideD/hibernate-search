@@ -41,38 +41,38 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 final class LuceneBackendTaskStreamer {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final LuceneWorkVisitor workVisitor;
-	private final Lock modificationLock;
-	private final AbstractWorkspaceImpl workspace;
+    private final LuceneWorkVisitor workVisitor;
+    private final Lock modificationLock;
+    private final AbstractWorkspaceImpl workspace;
 
-	public LuceneBackendTaskStreamer(LuceneBackendResources resources) {
-		this.workVisitor = resources.getVisitor();
-		this.workspace = resources.getWorkspace();
-		this.modificationLock = resources.getParallelModificationLock();
-	}
+    public LuceneBackendTaskStreamer(LuceneBackendResources resources) {
+        this.workVisitor = resources.getVisitor();
+        this.workspace = resources.getWorkspace();
+        this.modificationLock = resources.getParallelModificationLock();
+    }
 
-	public void doWork(final LuceneWork work, final IndexingMonitor monitor) {
-		modificationLock.lock();
-		try {
-			IndexWriter indexWriter = workspace.getIndexWriter();
-			if ( indexWriter == null ) {
-				log.cannotOpenIndexWriterCausePreviousError();
-				return;
-			}
-			boolean errors = true;
-			try {
-				work.getWorkDelegate( workVisitor ).performWork( work, indexWriter, monitor );
-				errors = false;
-			}
-			finally {
-				workspace.afterTransactionApplied( errors, true );
-			}
-		}
-		finally {
-			modificationLock.unlock();
-		}
-	}
+    public void doWork(final LuceneWork work, final IndexingMonitor monitor) {
+        modificationLock.lock();
+        try {
+            IndexWriter indexWriter = workspace.getIndexWriter();
+            if ( indexWriter == null ) {
+                log.cannotOpenIndexWriterCausePreviousError();
+                return;
+            }
+            boolean errors = true;
+            try {
+                work.getWorkDelegate( workVisitor ).performWork( work, indexWriter, monitor );
+                errors = false;
+            }
+            finally {
+                workspace.afterTransactionApplied( errors, true );
+            }
+        }
+        finally {
+            modificationLock.unlock();
+        }
+    }
 
 }

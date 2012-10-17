@@ -32,63 +32,63 @@ import org.hibernate.search.spi.WorkerBuildContext;
  */
 public class SharedIndexWorkspaceImpl extends AbstractWorkspaceImpl {
 
-	private final Object lock = new Object();
-	private int openWriterUsers = 0;
-	private boolean lastExitCloses = false;
+    private final Object lock = new Object();
+    private int openWriterUsers = 0;
+    private boolean lastExitCloses = false;
 
-	public SharedIndexWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties cfg) {
-		super( indexManager, context, cfg );
-	}
+    public SharedIndexWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties cfg) {
+        super( indexManager, context, cfg );
+    }
 
-	@Override
-	public void afterTransactionApplied(boolean someFailureHappened, boolean streaming) {
-		synchronized ( lock ) {
-			openWriterUsers--;
-			if ( openWriterUsers == 0 ) {
-				if ( someFailureHappened ) {
-					writerHolder.forceLockRelease();
-				}
-				else {
-					if ( ! streaming || lastExitCloses ) {
-						lastExitCloses = false;
-						writerHolder.closeIndexWriter();
-					}
-				}
-			}
-			else {
-				if ( ! someFailureHappened && ! streaming ) {
-					writerHolder.commitIndexWriter();
-				}
-			}
-		}
-	}
+    @Override
+    public void afterTransactionApplied(boolean someFailureHappened, boolean streaming) {
+        synchronized ( lock ) {
+            openWriterUsers--;
+            if ( openWriterUsers == 0 ) {
+                if ( someFailureHappened ) {
+                    writerHolder.forceLockRelease();
+                }
+                else {
+                    if ( ! streaming || lastExitCloses ) {
+                        lastExitCloses = false;
+                        writerHolder.closeIndexWriter();
+                    }
+                }
+            }
+            else {
+                if ( ! someFailureHappened && ! streaming ) {
+                    writerHolder.commitIndexWriter();
+                }
+            }
+        }
+    }
 
-	@Override
-	public IndexWriter getIndexWriter() {
-		synchronized ( lock ) {
-			openWriterUsers++;
-			return super.getIndexWriter();
-		}
-	}
+    @Override
+    public IndexWriter getIndexWriter() {
+        synchronized ( lock ) {
+            openWriterUsers++;
+            return super.getIndexWriter();
+        }
+    }
 
-	public IndexWriter getIndexWriter(ErrorContextBuilder errorContextBuilder) {
-		synchronized ( lock ) {
-			openWriterUsers++;
-			return super.getIndexWriter( errorContextBuilder );
-		}
-	}
+    public IndexWriter getIndexWriter(ErrorContextBuilder errorContextBuilder) {
+        synchronized ( lock ) {
+            openWriterUsers++;
+            return super.getIndexWriter( errorContextBuilder );
+        }
+    }
 
-	@Override
-	public void flush() {
-		synchronized ( lock ) {
-			if ( openWriterUsers == 0 ) {
-				writerHolder.closeIndexWriter();
-			}
-			else {
-				lastExitCloses = true;
-				writerHolder.commitIndexWriter();
-			}
-		}
-	}
+    @Override
+    public void flush() {
+        synchronized ( lock ) {
+            if ( openWriterUsers == 0 ) {
+                writerHolder.closeIndexWriter();
+            }
+            else {
+                lastExitCloses = true;
+                writerHolder.commitIndexWriter();
+            }
+        }
+    }
 
 }

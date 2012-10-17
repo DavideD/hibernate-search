@@ -38,47 +38,47 @@ import org.jgroups.MessageListener;
  */
 class ClassloaderMessageListener implements MessageListener {
 
-	private final MessageListener delegate;
-	private final ClassLoader cl;
+    private final MessageListener delegate;
+    private final ClassLoader cl;
 
-	ClassloaderMessageListener(MessageListener delegate, ClassLoader cl) {
-		this.delegate = delegate;
-		this.cl = cl;
-	}
+    ClassloaderMessageListener(MessageListener delegate, ClassLoader cl) {
+        this.delegate = delegate;
+        this.cl = cl;
+    }
 
-	public void receive(final Message msg) {
-		final Thread currentThread = Thread.currentThread();
-		final ClassLoader previous = currentThread.getContextClassLoader();
-		currentThread.setContextClassLoader( cl );
-		try {
-			delegate.receive( msg );
-		}
-		finally {
-			currentThread.setContextClassLoader( previous );
-		}
-	}
+    public void receive(final Message msg) {
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previous = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader( cl );
+        try {
+            delegate.receive( msg );
+        }
+        finally {
+            currentThread.setContextClassLoader( previous );
+        }
+    }
 
-	public void getState(final OutputStream output) throws Exception {
-		final Thread currentThread = Thread.currentThread();
-		final ClassLoader previous = currentThread.getContextClassLoader();
-		currentThread.setContextClassLoader( cl );
-		try {
-			delegate.getState( output );
-		}
-		finally {
-			currentThread.setContextClassLoader( previous );
-		}
-	}
+    public void getState(final OutputStream output) throws Exception {
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previous = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader( cl );
+        try {
+            delegate.getState( output );
+        }
+        finally {
+            currentThread.setContextClassLoader( previous );
+        }
+    }
 
-	public void setState(final InputStream input) throws Exception {
-		final Thread currentThread = Thread.currentThread();
-		final ClassLoader previous = currentThread.getContextClassLoader();
-		currentThread.setContextClassLoader( cl );
-		try {
-			delegate.setState( input );
-		}
-		finally {
-			currentThread.setContextClassLoader( previous );
-		}
-	}
+    public void setState(final InputStream input) throws Exception {
+        final Thread currentThread = Thread.currentThread();
+        final ClassLoader previous = currentThread.getContextClassLoader();
+        currentThread.setContextClassLoader( cl );
+        try {
+            delegate.setState( input );
+        }
+        finally {
+            currentThread.setContextClassLoader( previous );
+        }
+    }
 }

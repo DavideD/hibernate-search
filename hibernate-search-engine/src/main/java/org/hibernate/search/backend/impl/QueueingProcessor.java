@@ -35,25 +35,25 @@ import org.hibernate.search.backend.spi.Work;
  * @author Emmanuel Bernard
  */
 public interface QueueingProcessor {
-	/**
-	 * Add a work
-	 * TODO move that somewhere else, it does not really fit here
-	 */
-	void add(Work work, WorkQueue workQueue);
+    /**
+     * Add a work
+     * TODO move that somewhere else, it does not really fit here
+     */
+    void add(Work work, WorkQueue workQueue);
 
-	/**
-	 * prepare resources for a later performWorks call
-	 */
-	void prepareWorks(WorkQueue workQueue);
+    /**
+     * prepare resources for a later performWorks call
+     */
+    void prepareWorks(WorkQueue workQueue);
 
-	/**
-	 * Execute works
-	 */
-	void performWorks(WorkQueue workQueue);
+    /**
+     * Execute works
+     */
+    void performWorks(WorkQueue workQueue);
 
-	/**
-	 * Rollback works
-	 */
-	void cancelWorks(WorkQueue workQueue);
+    /**
+     * Rollback works
+     */
+    void cancelWorks(WorkQueue workQueue);
 
 }

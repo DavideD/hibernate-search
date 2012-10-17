@@ -36,10 +36,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface TestForIssue {
-	/**
-	 * The key of a JIRA issue tested.
-	 *
-	 * @return The jira issue key
-	 */
-	String jiraKey();
+    /**
+     * The key of a JIRA issue tested.
+     *
+     * @return The jira issue key
+     */
+    String jiraKey();
 }

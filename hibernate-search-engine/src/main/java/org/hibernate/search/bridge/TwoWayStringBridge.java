@@ -38,12 +38,12 @@ package org.hibernate.search.bridge;
  */
 public interface TwoWayStringBridge extends StringBridge {
 
-	/**
-	 * Convert the index string representation to an object.
-	 *
-	 * @param stringValue The index value.
-	 * @return Takes the string representation from the Lucene index and transforms it back into the original
-	 * <code>Object</code>.
-	 */
-	Object stringToObject(String stringValue);
+    /**
+     * Convert the index string representation to an object.
+     *
+     * @param stringValue The index value.
+     * @return Takes the string representation from the Lucene index and transforms it back into the original
+     * <code>Object</code>.
+     */
+    Object stringToObject(String stringValue);
 }

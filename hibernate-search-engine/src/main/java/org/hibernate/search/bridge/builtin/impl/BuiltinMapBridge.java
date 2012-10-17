@@ -30,32 +30,32 @@ import org.hibernate.search.bridge.builtin.MapBridge;
  */
 public class BuiltinMapBridge extends MapBridge implements StringBridge {
 
-	private static final String2FieldBridgeAdaptor DEFAULT_STRING_BRIDGE = new String2FieldBridgeAdaptor( new DefaultStringBridge() );
+    private static final String2FieldBridgeAdaptor DEFAULT_STRING_BRIDGE = new String2FieldBridgeAdaptor( new DefaultStringBridge() );
 
-	private final StringBridge bridge;
+    private final StringBridge bridge;
 
-	public BuiltinMapBridge() {
-		this( DEFAULT_STRING_BRIDGE );
-	}
+    public BuiltinMapBridge() {
+        this( DEFAULT_STRING_BRIDGE );
+    }
 
-	public BuiltinMapBridge(final FieldBridge fieldBridge) {
-		super( fieldBridge );
-		if ( fieldBridge instanceof StringBridge ) {
-			this.bridge = (StringBridge) fieldBridge;
-		}
-		else {
-			this.bridge = DEFAULT_STRING_BRIDGE;
-		}
-	}
+    public BuiltinMapBridge(final FieldBridge fieldBridge) {
+        super( fieldBridge );
+        if ( fieldBridge instanceof StringBridge ) {
+            this.bridge = (StringBridge) fieldBridge;
+        }
+        else {
+            this.bridge = DEFAULT_STRING_BRIDGE;
+        }
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.hibernate.search.bridge.StringBridge#objectToString(java.lang.Object)
-	 */
-	@Override
-	public String objectToString(Object object) {
-		return bridge.objectToString( object );
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.hibernate.search.bridge.StringBridge#objectToString(java.lang.Object)
+     */
+    @Override
+    public String objectToString(Object object) {
+        return bridge.objectToString( object );
+    }
 
 }

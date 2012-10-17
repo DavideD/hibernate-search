@@ -57,132 +57,132 @@ import static org.apache.tika.io.IOUtils.closeQuietly;
  * @author Hardy Ferentschik
  */
 public class TikaBridge implements FieldBridge {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private TikaMetadataProcessor metadataProcessor;
-	private TikaParseContextProvider parseContextProvider;
+    private TikaMetadataProcessor metadataProcessor;
+    private TikaParseContextProvider parseContextProvider;
 
-	public TikaBridge() {
-		setMetadataProcessorClass( null );
-		setParseContextProviderClass( null );
-	}
+    public TikaBridge() {
+        setMetadataProcessorClass( null );
+        setParseContextProviderClass( null );
+    }
 
-	public void setParseContextProviderClass(Class<?> parseContextProviderClass) {
-		if ( parseContextProviderClass == null ) {
-			parseContextProvider = new NoopParseContextProvider();
-		}
-		else {
-			parseContextProvider = ClassLoaderHelper.instanceFromClass(
-					TikaParseContextProvider.class,
-					parseContextProviderClass,
-					"Tika metadata processor"
-			);
-		}
-	}
+    public void setParseContextProviderClass(Class<?> parseContextProviderClass) {
+        if ( parseContextProviderClass == null ) {
+            parseContextProvider = new NoopParseContextProvider();
+        }
+        else {
+            parseContextProvider = ClassLoaderHelper.instanceFromClass(
+                    TikaParseContextProvider.class,
+                    parseContextProviderClass,
+                    "Tika metadata processor"
+            );
+        }
+    }
 
-	public void setMetadataProcessorClass(Class<?> metadataProcessorClass) {
-		if ( metadataProcessorClass == null ) {
-			metadataProcessor = new NoopTikaMetadataProcessor();
-		}
-		else {
-			metadataProcessor = ClassLoaderHelper.instanceFromClass(
-					TikaMetadataProcessor.class,
-					metadataProcessorClass,
-					"Tika parse context provider"
-			);
-		}
-	}
+    public void setMetadataProcessorClass(Class<?> metadataProcessorClass) {
+        if ( metadataProcessorClass == null ) {
+            metadataProcessor = new NoopTikaMetadataProcessor();
+        }
+        else {
+            metadataProcessor = ClassLoaderHelper.instanceFromClass(
+                    TikaMetadataProcessor.class,
+                    metadataProcessorClass,
+                    "Tika parse context provider"
+            );
+        }
+    }
 
-	@Override
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		if ( value == null ) {
-			throw new IllegalArgumentException( "null cannot be passed to Tika bridge" );
-		}
-		InputStream in = null;
-		try {
-			in = getInputStreamForData( value );
+    @Override
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        if ( value == null ) {
+            throw new IllegalArgumentException( "null cannot be passed to Tika bridge" );
+        }
+        InputStream in = null;
+        try {
+            in = getInputStreamForData( value );
 
-			Metadata metadata = metadataProcessor.prepareMetadata();
-			ParseContext parseContext = parseContextProvider.getParseContext( name, value );
+            Metadata metadata = metadataProcessor.prepareMetadata();
+            ParseContext parseContext = parseContextProvider.getParseContext( name, value );
 
-			StringWriter writer = new StringWriter();
-			WriteOutContentHandler contentHandler = new WriteOutContentHandler( writer );
+            StringWriter writer = new StringWriter();
+            WriteOutContentHandler contentHandler = new WriteOutContentHandler( writer );
 
-			Parser parser = new AutoDetectParser();
-			parser.parse( in, contentHandler, metadata, parseContext );
-			luceneOptions.addFieldToDocument( name, writer.toString(), document );
+            Parser parser = new AutoDetectParser();
+            parser.parse( in, contentHandler, metadata, parseContext );
+            luceneOptions.addFieldToDocument( name, writer.toString(), document );
 
-			// allow for optional indexing of metadata by the user
-			metadataProcessor.set( name, value, document, luceneOptions, metadata );
-		}
-		catch ( Exception e ) {
-			throw propagate( e );
-		}
-		finally {
-			closeQuietly( in );
-		}
-	}
+            // allow for optional indexing of metadata by the user
+            metadataProcessor.set( name, value, document, luceneOptions, metadata );
+        }
+        catch ( Exception e ) {
+            throw propagate( e );
+        }
+        finally {
+            closeQuietly( in );
+        }
+    }
 
-	private InputStream getInputStreamForData(Object object) throws Exception {
-		InputStream in;
-		if ( object instanceof Blob ) {
-			try {
-				in = ( ( Blob ) object ).getBinaryStream();
-			}
-			catch ( SQLException e ) {
-				throw log.unableToGetInputStreamFromBlob( e );
-			}
-		}
-		else if ( object instanceof byte[] ) {
-			byte[] data = ( byte[] ) object;
-			in = new ByteArrayInputStream( data );
-		}
-		else if ( object instanceof String ) {
-			String path = ( String ) object;
-			File file = new File( path );
-			in = openInputStream( file );
-		}
-		else if ( object instanceof URI ) {
-			URI uri = ( URI ) object;
-			File file = new File( uri );
-			in = openInputStream( file );
-		}
-		else {
-			throw log.unsupportedTikaBridgeType();
-		}
-		return in;
-	}
+    private InputStream getInputStreamForData(Object object) throws Exception {
+        InputStream in;
+        if ( object instanceof Blob ) {
+            try {
+                in = ( ( Blob ) object ).getBinaryStream();
+            }
+            catch ( SQLException e ) {
+                throw log.unableToGetInputStreamFromBlob( e );
+            }
+        }
+        else if ( object instanceof byte[] ) {
+            byte[] data = ( byte[] ) object;
+            in = new ByteArrayInputStream( data );
+        }
+        else if ( object instanceof String ) {
+            String path = ( String ) object;
+            File file = new File( path );
+            in = openInputStream( file );
+        }
+        else if ( object instanceof URI ) {
+            URI uri = ( URI ) object;
+            File file = new File( uri );
+            in = openInputStream( file );
+        }
+        else {
+            throw log.unsupportedTikaBridgeType();
+        }
+        return in;
+    }
 
-	private FileInputStream openInputStream(File file) throws IOException {
-		if ( file.exists() ) {
-			if ( file.isDirectory() ) {
-				throw log.fileIsADirectory( file.toString() );
-			}
-			if ( !file.canRead() ) {
-				throw log.fileIsNotReadable( file.toString() );
-			}
-		}
-		else {
-			throw log.fileDoesNotExist( file.toString() );
-		}
-		return new FileInputStream( file );
-	}
+    private FileInputStream openInputStream(File file) throws IOException {
+        if ( file.exists() ) {
+            if ( file.isDirectory() ) {
+                throw log.fileIsADirectory( file.toString() );
+            }
+            if ( !file.canRead() ) {
+                throw log.fileIsNotReadable( file.toString() );
+            }
+        }
+        else {
+            throw log.fileDoesNotExist( file.toString() );
+        }
+        return new FileInputStream( file );
+    }
 
-	private static class NoopTikaMetadataProcessor implements TikaMetadataProcessor {
-		@Override
-		public Metadata prepareMetadata() {
-			return new Metadata();
-		}
+    private static class NoopTikaMetadataProcessor implements TikaMetadataProcessor {
+        @Override
+        public Metadata prepareMetadata() {
+            return new Metadata();
+        }
 
-		@Override
-		public void set(String name, Object value, Document document, LuceneOptions luceneOptions, Metadata metadata) {
-		}
-	}
+        @Override
+        public void set(String name, Object value, Document document, LuceneOptions luceneOptions, Metadata metadata) {
+        }
+    }
 
-	private static class NoopParseContextProvider implements TikaParseContextProvider {
-		@Override
-		public ParseContext getParseContext(String name, Object value) {
-			return new ParseContext();
-		}
-	}
+    private static class NoopParseContextProvider implements TikaParseContextProvider {
+        @Override
+        public ParseContext getParseContext(String name, Object value) {
+            return new ParseContext();
+        }
+    }
 }

@@ -37,29 +37,29 @@ import org.hibernate.search.store.IndexShardingStrategy;
  */
 public class NotShardedStrategy implements IndexShardingStrategy {
 
-	private IndexManager[] directoryProvider;
+    private IndexManager[] directoryProvider;
 
-	public void initialize(Properties properties, IndexManager[] providers) {
-		this.directoryProvider = providers;
-		if ( directoryProvider.length > 1) {
-			throw new AssertionFailure("Using SingleDirectoryProviderSelectionStrategy with multiple DirectryProviders");
-		}
-	}
+    public void initialize(Properties properties, IndexManager[] providers) {
+        this.directoryProvider = providers;
+        if ( directoryProvider.length > 1) {
+            throw new AssertionFailure("Using SingleDirectoryProviderSelectionStrategy with multiple DirectryProviders");
+        }
+    }
 
-	public IndexManager[] getIndexManagersForAllShards() {
-		return directoryProvider;
-	}
+    public IndexManager[] getIndexManagersForAllShards() {
+        return directoryProvider;
+    }
 
-	public IndexManager getIndexManagerForAddition(Class<?> entity, Serializable id, String idInString, Document document) {
-		return directoryProvider[0];
-	}
+    public IndexManager getIndexManagerForAddition(Class<?> entity, Serializable id, String idInString, Document document) {
+        return directoryProvider[0];
+    }
 
-	public IndexManager[] getIndexManagersForDeletion(Class<?> entity, Serializable id, String idInString) {
-		return directoryProvider;
-	}
+    public IndexManager[] getIndexManagersForDeletion(Class<?> entity, Serializable id, String idInString) {
+        return directoryProvider;
+    }
 
-	public IndexManager[] getIndexManagersForQuery(FullTextFilterImplementor[] fullTextFilters) {
-		return directoryProvider;
-	}
+    public IndexManager[] getIndexManagersForQuery(FullTextFilterImplementor[] fullTextFilters) {
+        return directoryProvider;
+    }
 
 }

@@ -68,406 +68,406 @@ import static org.hibernate.search.indexes.serialization.impl.SerializationHelpe
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class LuceneWorkHydrator implements LuceneWorksBuilder {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private SearchFactoryImplementor searchFactory;
-	private List<LuceneWork> results;
-	private ClassLoader loader;
-	private Document luceneDocument;
-	private List<AttributeImpl> attributes;
-	private List<List<AttributeImpl>> tokens;
-	private Serializable id;
+    private SearchFactoryImplementor searchFactory;
+    private List<LuceneWork> results;
+    private ClassLoader loader;
+    private Document luceneDocument;
+    private List<AttributeImpl> attributes;
+    private List<List<AttributeImpl>> tokens;
+    private Serializable id;
 
-	public LuceneWorkHydrator(SearchFactoryImplementor searchFactory) {
-		this.searchFactory = searchFactory;
-		this.results = new ArrayList<LuceneWork>();
-		this.loader = Thread.currentThread().getContextClassLoader();
-	}
+    public LuceneWorkHydrator(SearchFactoryImplementor searchFactory) {
+        this.searchFactory = searchFactory;
+        this.results = new ArrayList<LuceneWork>();
+        this.loader = Thread.currentThread().getContextClassLoader();
+    }
 
-	public List<LuceneWork> getLuceneWorks() {
-		return results;
-	}
+    public List<LuceneWork> getLuceneWorks() {
+        return results;
+    }
 
-	@Override
-	public void addOptimizeAll() {
-		results.add( OptimizeLuceneWork.INSTANCE );
-	}
+    @Override
+    public void addOptimizeAll() {
+        results.add( OptimizeLuceneWork.INSTANCE );
+    }
 
-	@Override
-	public void addPurgeAllLuceneWork(String entityClassName) {
-		Class<?> entityClass = ClassLoaderHelper.classForName(
-				entityClassName,
-				LuceneWorkHydrator.class.getClassLoader(),
-				"entity class"
-		);
-		results.add( new PurgeAllLuceneWork( entityClass ) );
-	}
+    @Override
+    public void addPurgeAllLuceneWork(String entityClassName) {
+        Class<?> entityClass = ClassLoaderHelper.classForName(
+                entityClassName,
+                LuceneWorkHydrator.class.getClassLoader(),
+                "entity class"
+        );
+        results.add( new PurgeAllLuceneWork( entityClass ) );
+    }
 
-	@Override
-	public void addIdAsJavaSerialized(byte[] idAsByte) {
-		this.id = toSerializable( idAsByte, loader );
-	}
+    @Override
+    public void addIdAsJavaSerialized(byte[] idAsByte) {
+        this.id = toSerializable( idAsByte, loader );
+    }
 
-	@Override
-	public void addId(Serializable id) {
-		this.id = id;
-	}
+    @Override
+    public void addId(Serializable id) {
+        this.id = id;
+    }
 
-	@Override
-	public void addDeleteLuceneWork(String entityClassName, ConversionContext conversionContext) {
-		Class<?> entityClass = ClassLoaderHelper.classForName(
-				entityClassName,
-				LuceneWorkHydrator.class.getClassLoader(),
-				"entity class"
-		);
-		LuceneWork result = new DeleteLuceneWork(
-				id,
-				objectIdInString( entityClass, id, conversionContext ),
-				entityClass
-		);
-		results.add( result );
-		id = null;
-	}
+    @Override
+    public void addDeleteLuceneWork(String entityClassName, ConversionContext conversionContext) {
+        Class<?> entityClass = ClassLoaderHelper.classForName(
+                entityClassName,
+                LuceneWorkHydrator.class.getClassLoader(),
+                "entity class"
+        );
+        LuceneWork result = new DeleteLuceneWork(
+                id,
+                objectIdInString( entityClass, id, conversionContext ),
+                entityClass
+        );
+        results.add( result );
+        id = null;
+    }
 
-	@Override
-	public void addAddLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext) {
-		Class<?> entityClass = ClassLoaderHelper.classForName(
-				entityClassName,
-				LuceneWorkHydrator.class.getClassLoader(),
-				"entity class"
-		);
-		LuceneWork result = new AddLuceneWork(
-				id,
-				objectIdInString( entityClass, id, conversionContext ),
-				entityClass,
-				getLuceneDocument(),
-				fieldToAnalyzerMap
-		);
-		results.add( result );
-		clearDocument();
-		id = null;
-	}
+    @Override
+    public void addAddLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext) {
+        Class<?> entityClass = ClassLoaderHelper.classForName(
+                entityClassName,
+                LuceneWorkHydrator.class.getClassLoader(),
+                "entity class"
+        );
+        LuceneWork result = new AddLuceneWork(
+                id,
+                objectIdInString( entityClass, id, conversionContext ),
+                entityClass,
+                getLuceneDocument(),
+                fieldToAnalyzerMap
+        );
+        results.add( result );
+        clearDocument();
+        id = null;
+    }
 
-	@Override
-	public void addUpdateLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext) {
-		Class<?> entityClass = ClassLoaderHelper.classForName(
-				entityClassName,
-				LuceneWorkHydrator.class.getClassLoader(),
-				"entity class"
-		);
-		LuceneWork result = new UpdateLuceneWork(
-				id,
-				objectIdInString( entityClass, id, conversionContext ),
-				entityClass,
-				getLuceneDocument(),
-				fieldToAnalyzerMap
-		);
-		results.add( result );
-		clearDocument();
-		id = null;
-	}
+    @Override
+    public void addUpdateLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext) {
+        Class<?> entityClass = ClassLoaderHelper.classForName(
+                entityClassName,
+                LuceneWorkHydrator.class.getClassLoader(),
+                "entity class"
+        );
+        LuceneWork result = new UpdateLuceneWork(
+                id,
+                objectIdInString( entityClass, id, conversionContext ),
+                entityClass,
+                getLuceneDocument(),
+                fieldToAnalyzerMap
+        );
+        results.add( result );
+        clearDocument();
+        id = null;
+    }
 
-	private void clearDocument() {
-		luceneDocument = null;
-	}
+    private void clearDocument() {
+        luceneDocument = null;
+    }
 
-	@Override
-	public void defineDocument(float boost) {
-		getLuceneDocument().setBoost( boost );
-	}
+    @Override
+    public void defineDocument(float boost) {
+        getLuceneDocument().setBoost( boost );
+    }
 
-	@Override
-	public void addFieldable(byte[] instanceAsByte) {
-		getLuceneDocument().add( (Fieldable) toSerializable( instanceAsByte, loader ) );
-	}
+    @Override
+    public void addFieldable(byte[] instanceAsByte) {
+        getLuceneDocument().add( (Fieldable) toSerializable( instanceAsByte, loader ) );
+    }
 
-	@Override
-	public void addIntNumericField(int value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		NumericField numField = buildNumericField(
-				name,
-				precisionStep,
-				store,
-				indexed,
-				boost,
-				omitNorms,
-				omitTermFreqAndPositions
-		);
-		numField.setIntValue( value );
-		getLuceneDocument().add( numField );
-	}
+    @Override
+    public void addIntNumericField(int value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        NumericField numField = buildNumericField(
+                name,
+                precisionStep,
+                store,
+                indexed,
+                boost,
+                omitNorms,
+                omitTermFreqAndPositions
+        );
+        numField.setIntValue( value );
+        getLuceneDocument().add( numField );
+    }
 
-	@Override
-	public void addLongNumericField(long value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		NumericField numField = buildNumericField(
-				name,
-				precisionStep,
-				store,
-				indexed,
-				boost,
-				omitNorms,
-				omitTermFreqAndPositions
-		);
-		numField.setLongValue( value );
-		getLuceneDocument().add( numField );
-	}
+    @Override
+    public void addLongNumericField(long value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        NumericField numField = buildNumericField(
+                name,
+                precisionStep,
+                store,
+                indexed,
+                boost,
+                omitNorms,
+                omitTermFreqAndPositions
+        );
+        numField.setLongValue( value );
+        getLuceneDocument().add( numField );
+    }
 
-	@Override
-	public void addFloatNumericField(float value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		NumericField numField = buildNumericField(
-				name,
-				precisionStep,
-				store,
-				indexed,
-				boost,
-				omitNorms,
-				omitTermFreqAndPositions
-		);
-		numField.setFloatValue( value );
-		getLuceneDocument().add( numField );
-	}
+    @Override
+    public void addFloatNumericField(float value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        NumericField numField = buildNumericField(
+                name,
+                precisionStep,
+                store,
+                indexed,
+                boost,
+                omitNorms,
+                omitTermFreqAndPositions
+        );
+        numField.setFloatValue( value );
+        getLuceneDocument().add( numField );
+    }
 
-	private NumericField buildNumericField(String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		NumericField numField = new NumericField(
-				name,
-				precisionStep,
-				getStore( store ),
-				indexed
-		);
-		numField.setBoost( boost );
-		numField.setOmitNorms( omitNorms );
-		if ( omitTermFreqAndPositions ) {
-			numField.setIndexOptions( IndexOptions.DOCS_ONLY );
-		}
-		else {
-			numField.setIndexOptions( IndexOptions.DOCS_AND_FREQS_AND_POSITIONS );
-		}
-		return numField;
-	}
+    private NumericField buildNumericField(String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        NumericField numField = new NumericField(
+                name,
+                precisionStep,
+                getStore( store ),
+                indexed
+        );
+        numField.setBoost( boost );
+        numField.setOmitNorms( omitNorms );
+        if ( omitTermFreqAndPositions ) {
+            numField.setIndexOptions( IndexOptions.DOCS_ONLY );
+        }
+        else {
+            numField.setIndexOptions( IndexOptions.DOCS_AND_FREQS_AND_POSITIONS );
+        }
+        return numField;
+    }
 
-	@Override
-	public void addDoubleNumericField(double value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		NumericField numField = buildNumericField(
-				name,
-				precisionStep,
-				store,
-				indexed,
-				boost,
-				omitNorms,
-				omitTermFreqAndPositions
-		);
-		numField.setDoubleValue( value );
-		getLuceneDocument().add( numField );
-	}
+    @Override
+    public void addDoubleNumericField(double value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        NumericField numField = buildNumericField(
+                name,
+                precisionStep,
+                store,
+                indexed,
+                boost,
+                omitNorms,
+                omitTermFreqAndPositions
+        );
+        numField.setDoubleValue( value );
+        getLuceneDocument().add( numField );
+    }
 
-	@Override
-	public void addFieldWithBinaryData(String name, byte[] value, int offset, int length, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		Field luceneField = new Field( name, value, offset, length );
-		setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
-	}
+    @Override
+    public void addFieldWithBinaryData(String name, byte[] value, int offset, int length, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        Field luceneField = new Field( name, value, offset, length );
+        setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
+    }
 
-	private void setCommonFieldAttributesAddAddToDocument(float boost, boolean omitNorms, boolean omitTermFreqAndPositions, Field luceneField) {
-		luceneField.setBoost( boost );
-		luceneField.setOmitNorms( omitNorms );
-		if ( omitTermFreqAndPositions ) {
-			luceneField.setIndexOptions( IndexOptions.DOCS_ONLY );
-		}
-		else {
-			luceneField.setIndexOptions( IndexOptions.DOCS_AND_FREQS_AND_POSITIONS );
-		}
-		getLuceneDocument().add( luceneField );
-	}
+    private void setCommonFieldAttributesAddAddToDocument(float boost, boolean omitNorms, boolean omitTermFreqAndPositions, Field luceneField) {
+        luceneField.setBoost( boost );
+        luceneField.setOmitNorms( omitNorms );
+        if ( omitTermFreqAndPositions ) {
+            luceneField.setIndexOptions( IndexOptions.DOCS_ONLY );
+        }
+        else {
+            luceneField.setIndexOptions( IndexOptions.DOCS_AND_FREQS_AND_POSITIONS );
+        }
+        getLuceneDocument().add( luceneField );
+    }
 
-	@Override
-	public void addFieldWithStringData(String name, String value, SerializableStore store, SerializableIndex index, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		Field luceneField = new Field( name, value, getStore( store ), getIndex( index ), getTermVector( termVector ) );
-		setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
-	}
+    @Override
+    public void addFieldWithStringData(String name, String value, SerializableStore store, SerializableIndex index, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        Field luceneField = new Field( name, value, getStore( store ), getIndex( index ), getTermVector( termVector ) );
+        setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
+    }
 
-	@Override
-	public void addFieldWithTokenStreamData(String name, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		Field luceneField = new Field( name, new CopyTokenStream( tokens ), getTermVector( termVector ) );
-		setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
-		clearTokens();
-	}
+    @Override
+    public void addFieldWithTokenStreamData(String name, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        Field luceneField = new Field( name, new CopyTokenStream( tokens ), getTermVector( termVector ) );
+        setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
+        clearTokens();
+    }
 
-	private void clearTokens() {
-		tokens = new ArrayList<List<AttributeImpl>>();
-	}
+    private void clearTokens() {
+        tokens = new ArrayList<List<AttributeImpl>>();
+    }
 
-	@Override
-	public void addFieldWithSerializableReaderData(String name, byte[] valueAsByte, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
-		Reader value = (Reader) toSerializable( valueAsByte, loader );
-		Field luceneField = new Field( name, value, getTermVector( termVector ) );
-		setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
-	}
+    @Override
+    public void addFieldWithSerializableReaderData(String name, byte[] valueAsByte, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions) {
+        Reader value = (Reader) toSerializable( valueAsByte, loader );
+        Field luceneField = new Field( name, value, getTermVector( termVector ) );
+        setCommonFieldAttributesAddAddToDocument( boost, omitNorms, omitTermFreqAndPositions, luceneField );
+    }
 
-	@Override
-	public void addSerializedAttribute(byte[] bytes) {
-		getAttributes().add( (AttributeImpl) toSerializable( bytes, loader ) );
-	}
+    @Override
+    public void addSerializedAttribute(byte[] bytes) {
+        getAttributes().add( (AttributeImpl) toSerializable( bytes, loader ) );
+    }
 
-	@Override
-	public void addAttributeInstance(AttributeImpl attribute) {
-		getAttributes().add( attribute );
-	}
+    @Override
+    public void addAttributeInstance(AttributeImpl attribute) {
+        getAttributes().add( attribute );
+    }
 
-	@Override
-	public void addTokenTrackingAttribute(List<Integer> positions) {
-		AnalysisRequestHandlerBase.TokenTrackingAttributeImpl attr = new AnalysisRequestHandlerBase.TokenTrackingAttributeImpl();
-		int size = positions.size() - 1;
-		int[] basePosition = new int[size];
-		for ( int index = 0; index < size; index++ ) {
-			basePosition[index] = positions.get( index );
-		}
-		attr.reset( basePosition, positions.get( size ) );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addTokenTrackingAttribute(List<Integer> positions) {
+        AnalysisRequestHandlerBase.TokenTrackingAttributeImpl attr = new AnalysisRequestHandlerBase.TokenTrackingAttributeImpl();
+        int size = positions.size() - 1;
+        int[] basePosition = new int[size];
+        for ( int index = 0; index < size; index++ ) {
+            basePosition[index] = positions.get( index );
+        }
+        attr.reset( basePosition, positions.get( size ) );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addCharTermAttribute(CharSequence sequence) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( CharTermAttribute.class );
-		( (CharTermAttribute) attr ).append( sequence );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addCharTermAttribute(CharSequence sequence) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( CharTermAttribute.class );
+        ( (CharTermAttribute) attr ).append( sequence );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addPayloadAttribute(byte[] payloads) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( PayloadAttribute.class );
-		( (PayloadAttribute) attr ).setPayload( new Payload( payloads ) );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addPayloadAttribute(byte[] payloads) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( PayloadAttribute.class );
+        ( (PayloadAttribute) attr ).setPayload( new Payload( payloads ) );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addKeywordAttribute(boolean isKeyword) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( KeywordAttribute.class );
-		( (KeywordAttribute) attr ).setKeyword( isKeyword );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addKeywordAttribute(boolean isKeyword) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( KeywordAttribute.class );
+        ( (KeywordAttribute) attr ).setKeyword( isKeyword );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addPositionIncrementAttribute(int positionIncrement) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( PositionIncrementAttribute.class );
-		( (PositionIncrementAttribute) attr ).setPositionIncrement( positionIncrement );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addPositionIncrementAttribute(int positionIncrement) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( PositionIncrementAttribute.class );
+        ( (PositionIncrementAttribute) attr ).setPositionIncrement( positionIncrement );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addFlagsAttribute(int flags) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( FlagsAttribute.class );
-		( (FlagsAttribute) attr ).setFlags( flags );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addFlagsAttribute(int flags) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( FlagsAttribute.class );
+        ( (FlagsAttribute) attr ).setFlags( flags );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addTypeAttribute(String type) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( TypeAttribute.class );
-		( (TypeAttribute) attr ).setType( type );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addTypeAttribute(String type) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( TypeAttribute.class );
+        ( (TypeAttribute) attr ).setType( type );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addOffsetAttribute(int startOffset, int endOffset) {
-		AttributeImpl attr = AttributeSource.AttributeFactory
-				.DEFAULT_ATTRIBUTE_FACTORY
-				.createAttributeInstance( OffsetAttribute.class );
-		( (OffsetAttribute) attr ).setOffset( startOffset, endOffset );
-		getAttributes().add( attr );
-	}
+    @Override
+    public void addOffsetAttribute(int startOffset, int endOffset) {
+        AttributeImpl attr = AttributeSource.AttributeFactory
+                .DEFAULT_ATTRIBUTE_FACTORY
+                .createAttributeInstance( OffsetAttribute.class );
+        ( (OffsetAttribute) attr ).setOffset( startOffset, endOffset );
+        getAttributes().add( attr );
+    }
 
-	@Override
-	public void addToken() {
-		getTokens().add( getAttributes() );
-		clearAttributes();
-	}
+    @Override
+    public void addToken() {
+        getTokens().add( getAttributes() );
+        clearAttributes();
+    }
 
-	private void clearAttributes() {
-		attributes = new ArrayList<AttributeImpl>();
-	}
+    private void clearAttributes() {
+        attributes = new ArrayList<AttributeImpl>();
+    }
 
-	private Document getLuceneDocument() {
-		if ( luceneDocument == null ) {
-			luceneDocument = new Document();
-		}
-		return luceneDocument;
-	}
+    private Document getLuceneDocument() {
+        if ( luceneDocument == null ) {
+            luceneDocument = new Document();
+        }
+        return luceneDocument;
+    }
 
-	private String objectIdInString(Class<?> entityClass, Serializable id, ConversionContext conversionContext) {
-		EntityIndexBinder indexBindingForEntity = searchFactory.getIndexBindingForEntity( entityClass );
-		if ( indexBindingForEntity == null ) {
-			throw new SearchException( "Unable to find entity type metadata while deserializing: " + entityClass );
-		}
-		DocumentBuilderIndexedEntity<?> documentBuilder = indexBindingForEntity.getDocumentBuilder();
-		return documentBuilder.objectToString( documentBuilder.getIdKeywordName(), id, conversionContext );
-	}
+    private String objectIdInString(Class<?> entityClass, Serializable id, ConversionContext conversionContext) {
+        EntityIndexBinder indexBindingForEntity = searchFactory.getIndexBindingForEntity( entityClass );
+        if ( indexBindingForEntity == null ) {
+            throw new SearchException( "Unable to find entity type metadata while deserializing: " + entityClass );
+        }
+        DocumentBuilderIndexedEntity<?> documentBuilder = indexBindingForEntity.getDocumentBuilder();
+        return documentBuilder.objectToString( documentBuilder.getIdKeywordName(), id, conversionContext );
+    }
 
-	private static Field.TermVector getTermVector(SerializableTermVector termVector) {
-		switch ( termVector ) {
-			case NO:
-				return Field.TermVector.NO;
-			case WITH_OFFSETS:
-				return Field.TermVector.WITH_OFFSETS;
-			case WITH_POSITIONS:
-				return Field.TermVector.WITH_POSITIONS;
-			case WITH_POSITIONS_OFFSETS:
-				return Field.TermVector.WITH_POSITIONS_OFFSETS;
-			case YES:
-				return Field.TermVector.YES;
-			default:
-				throw log.unableToConvertSerializableTermVectorToLuceneTermVector( termVector.toString() );
-		}
-	}
+    private static Field.TermVector getTermVector(SerializableTermVector termVector) {
+        switch ( termVector ) {
+            case NO:
+                return Field.TermVector.NO;
+            case WITH_OFFSETS:
+                return Field.TermVector.WITH_OFFSETS;
+            case WITH_POSITIONS:
+                return Field.TermVector.WITH_POSITIONS;
+            case WITH_POSITIONS_OFFSETS:
+                return Field.TermVector.WITH_POSITIONS_OFFSETS;
+            case YES:
+                return Field.TermVector.YES;
+            default:
+                throw log.unableToConvertSerializableTermVectorToLuceneTermVector( termVector.toString() );
+        }
+    }
 
-	private static Field.Index getIndex(SerializableIndex index) {
-		switch ( index ) {
-			case ANALYZED:
-				return Field.Index.ANALYZED;
-			case ANALYZED_NO_NORMS:
-				return Field.Index.ANALYZED_NO_NORMS;
-			case NO:
-				return Field.Index.NO;
-			case NOT_ANALYZED:
-				return Field.Index.NOT_ANALYZED;
-			case NOT_ANALYZED_NO_NORMS:
-				return Field.Index.NOT_ANALYZED_NO_NORMS;
-			default:
-				throw log.unableToConvertSerializableIndexToLuceneIndex( index.toString() );
-		}
-	}
+    private static Field.Index getIndex(SerializableIndex index) {
+        switch ( index ) {
+            case ANALYZED:
+                return Field.Index.ANALYZED;
+            case ANALYZED_NO_NORMS:
+                return Field.Index.ANALYZED_NO_NORMS;
+            case NO:
+                return Field.Index.NO;
+            case NOT_ANALYZED:
+                return Field.Index.NOT_ANALYZED;
+            case NOT_ANALYZED_NO_NORMS:
+                return Field.Index.NOT_ANALYZED_NO_NORMS;
+            default:
+                throw log.unableToConvertSerializableIndexToLuceneIndex( index.toString() );
+        }
+    }
 
-	private static Field.Store getStore(SerializableStore store) {
-		switch ( store ) {
-			case NO:
-				return Field.Store.NO;
-			case YES:
-				return Field.Store.YES;
-			default:
-				throw log.unableToConvertSerializableStoreToLuceneStore( store.toString() );
-		}
-	}
+    private static Field.Store getStore(SerializableStore store) {
+        switch ( store ) {
+            case NO:
+                return Field.Store.NO;
+            case YES:
+                return Field.Store.YES;
+            default:
+                throw log.unableToConvertSerializableStoreToLuceneStore( store.toString() );
+        }
+    }
 
-	public List<AttributeImpl> getAttributes() {
-		if ( attributes == null ) {
-			attributes = new ArrayList<AttributeImpl>();
-		}
-		return attributes;
-	}
+    public List<AttributeImpl> getAttributes() {
+        if ( attributes == null ) {
+            attributes = new ArrayList<AttributeImpl>();
+        }
+        return attributes;
+    }
 
-	public List<List<AttributeImpl>> getTokens() {
-		if ( tokens == null ) {
-			tokens = new ArrayList<List<AttributeImpl>>();
-		}
-		return tokens;
-	}
+    public List<List<AttributeImpl>> getTokens() {
+        if ( tokens == null ) {
+            tokens = new ArrayList<List<AttributeImpl>>();
+        }
+        return tokens;
+    }
 }

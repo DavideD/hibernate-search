@@ -38,41 +38,41 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class SerializerService implements ServiceProvider<LuceneWorkSerializer> {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private PluggableSerializationLuceneWorkSerializer workSerializer;
-	private ServiceManager serviceManager;
+    private PluggableSerializationLuceneWorkSerializer workSerializer;
+    private ServiceManager serviceManager;
 
-	@Override
-	public void start(Properties properties, BuildContext buildContext) {
-		serviceManager = buildContext.getServiceManager();
-		SerializationProvider serializationProvider = serviceManager.requestService( SerializationProviderService.class, buildContext );
-		try {
-			workSerializer = new PluggableSerializationLuceneWorkSerializer(
-					serializationProvider,
-					buildContext.getUninitializedSearchFactory()
-			);
-		}
-		catch ( RuntimeException e ) {
-			if ( e instanceof SearchException ) {
-				throw e;
-			}
-			else {
-				throw log.unableToStartSerializationLayer( e );
-			}
-		}
-	}
+    @Override
+    public void start(Properties properties, BuildContext buildContext) {
+        serviceManager = buildContext.getServiceManager();
+        SerializationProvider serializationProvider = serviceManager.requestService( SerializationProviderService.class, buildContext );
+        try {
+            workSerializer = new PluggableSerializationLuceneWorkSerializer(
+                    serializationProvider,
+                    buildContext.getUninitializedSearchFactory()
+            );
+        }
+        catch ( RuntimeException e ) {
+            if ( e instanceof SearchException ) {
+                throw e;
+            }
+            else {
+                throw log.unableToStartSerializationLayer( e );
+            }
+        }
+    }
 
-	@Override
-	public LuceneWorkSerializer getService() {
-		return workSerializer;
-	}
+    @Override
+    public LuceneWorkSerializer getService() {
+        return workSerializer;
+    }
 
-	@Override
-	public void stop() {
-		if ( workSerializer != null ) {
-			serviceManager.releaseService( SerializationProviderService.class );
-		}
-	}
+    @Override
+    public void stop() {
+        if ( workSerializer != null ) {
+            serviceManager.releaseService( SerializationProviderService.class );
+        }
+    }
 
 }

@@ -34,24 +34,24 @@ import org.apache.lucene.util.Counter;
  */
 public interface TimingSource {
 
-	/**
-	 * Returns an approximation of {@link java.lang.System#nanoTime()}.
-	 * Performance should be preferred over accuracy by the implementation, but the value is monotonic
-	 * and expresses time in milliseconds, however, subsequent invocations could return the same value.
-	 *
-	 * @return an increasing value related to time in milliseconds. Only meaningful to compare time intervals, with no guarantees of high precision.
-	 */
-	long getMonotonicTimeEstimate();
+    /**
+     * Returns an approximation of {@link java.lang.System#nanoTime()}.
+     * Performance should be preferred over accuracy by the implementation, but the value is monotonic
+     * and expresses time in milliseconds, however, subsequent invocations could return the same value.
+     *
+     * @return an increasing value related to time in milliseconds. Only meaningful to compare time intervals, with no guarantees of high precision.
+     */
+    long getMonotonicTimeEstimate();
 
-	/**
-	 * Invoked on SearchFactory shutdown. There is no start method as it's expected to be lazily initialized
-	 */
-	void stop();
+    /**
+     * Invoked on SearchFactory shutdown. There is no start method as it's expected to be lazily initialized
+     */
+    void stop();
 
-	/**
-	 * Needs to be invoked at least once before {@link #getMonotonicTimeEstimate()} can be used.
-	 * Safe to be invoked multiple times.
-	 */
-	void ensureInitialized();
+    /**
+     * Needs to be invoked at least once before {@link #getMonotonicTimeEstimate()} can be used.
+     * Safe to be invoked multiple times.
+     */
+    void ensureInitialized();
 
 }

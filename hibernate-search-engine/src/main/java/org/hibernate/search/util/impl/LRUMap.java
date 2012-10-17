@@ -33,16 +33,16 @@ import java.util.Map;
  */
 public class LRUMap extends LinkedHashMap implements Serializable {
 
-	private static final long serialVersionUID = -2613234214057068628L;
+    private static final long serialVersionUID = -2613234214057068628L;
 
-	private final int maxEntries;
+    private final int maxEntries;
 
-	public LRUMap(int maxEntries) {
-		super( maxEntries, .75f, true );
-		this.maxEntries = maxEntries;
-	}
+    public LRUMap(int maxEntries) {
+        super( maxEntries, .75f, true );
+        this.maxEntries = maxEntries;
+    }
 
-	protected boolean removeEldestEntry(Map.Entry eldest) {
-		return ( size() > maxEntries );
-	}
+    protected boolean removeEldestEntry(Map.Entry eldest) {
+        return ( size() > maxEntries );
+    }
 }

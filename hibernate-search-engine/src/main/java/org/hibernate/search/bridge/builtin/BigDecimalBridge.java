@@ -33,8 +33,8 @@ import org.hibernate.annotations.common.util.StringHelper;
  * @author Emmanuel Bernard
  */
 public class BigDecimalBridge extends NumberBridge {
-	public Object stringToObject(String stringValue) {
-		if ( StringHelper.isEmpty( stringValue ) ) return null;
-		return new BigDecimal( stringValue );
-	}
+    public Object stringToObject(String stringValue) {
+        if ( StringHelper.isEmpty( stringValue ) ) return null;
+        return new BigDecimal( stringValue );
+    }
 }

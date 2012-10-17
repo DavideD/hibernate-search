@@ -39,39 +39,39 @@ import org.hibernate.search.query.dsl.TermContext;
  * @author Emmanuel Bernard
  */
 public class ConnectedQueryBuilder implements QueryBuilder {
-	private final QueryBuildingContext context;
+    private final QueryBuildingContext context;
 
-	public ConnectedQueryBuilder(QueryBuildingContext context) {
-		this.context = context;
-	}
+    public ConnectedQueryBuilder(QueryBuildingContext context) {
+        this.context = context;
+    }
 
-	public TermContext keyword() {
-		return new ConnectedTermContext( context );
-	}
+    public TermContext keyword() {
+        return new ConnectedTermContext( context );
+    }
 
-	public RangeContext range() {
-		return new ConnectedRangeContext( context );
-	}
+    public RangeContext range() {
+        return new ConnectedRangeContext( context );
+    }
 
-	public PhraseContext phrase() {
-		return new ConnectedPhraseContext( context );
-	}
+    public PhraseContext phrase() {
+        return new ConnectedPhraseContext( context );
+    }
 
-	//fixme Have to use raw types but would be nice to not have to
-	public BooleanJunction bool() {
-		return new BooleanQueryBuilder();
-	}
+    //fixme Have to use raw types but would be nice to not have to
+    public BooleanJunction bool() {
+        return new BooleanQueryBuilder();
+    }
 
-	public AllContext all() {
-		return new ConnectedAllContext();
-	}
+    public AllContext all() {
+        return new ConnectedAllContext();
+    }
 
-	public FacetContext facet() {
-		return new ConnectedFacetContext( new FacetBuildingContext( context.getFactory(), context.getEntityType() ) );
-	}
+    public FacetContext facet() {
+        return new ConnectedFacetContext( new FacetBuildingContext( context.getFactory(), context.getEntityType() ) );
+    }
 
-	@Override
-	public SpatialContext spatial() {
-		return new ConnectedSpatialContext( context, this );
-	}
+    @Override
+    public SpatialContext spatial() {
+        return new ConnectedSpatialContext( context, this );
+    }
 }

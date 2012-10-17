@@ -41,91 +41,91 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Emmanuel Bernard
  */
 public abstract class ReaderProviderHelper {
-	
-	private static final Log log = LoggerFactory.make();
-	
-	private static final Field subReadersField = getSubReadersField();
-	
-	private static Field getSubReadersField() {
-		try {
-			Field field = MultiReader.class.getDeclaredField( "subReaders" );
-			ReflectionHelper.setAccessible( field );
-			return field;
-		}
-		catch (NoSuchFieldException e) {
-			throw new SearchException( "Incompatible version of Lucene: MultiReader.subReaders not available", e );
-		}
-	}
-	
-	public static IndexReader[] getSubReadersFromMultiReader(MultiReader parentReader) {
-		try {
-			return (IndexReader[]) subReadersField.get( parentReader );
-		} catch (IllegalAccessException e) {
-			throw new SearchException( "Incompatible version of Lucene: MultiReader.subReaders not accessible", e );
-		}
-	}
-	
-	public static IndexReader buildMultiReader(int length, IndexReader[] readers, ReaderProvider[] managers) {
-		if ( length == 0 ) {
-			return null;
-		}
-		else {
-			//everything should be the same so wrap in an MultiReader
-			return new CacheableMultiReader( readers, managers );
-		}
-	}
+    
+    private static final Log log = LoggerFactory.make();
+    
+    private static final Field subReadersField = getSubReadersField();
+    
+    private static Field getSubReadersField() {
+        try {
+            Field field = MultiReader.class.getDeclaredField( "subReaders" );
+            ReflectionHelper.setAccessible( field );
+            return field;
+        }
+        catch (NoSuchFieldException e) {
+            throw new SearchException( "Incompatible version of Lucene: MultiReader.subReaders not available", e );
+        }
+    }
+    
+    public static IndexReader[] getSubReadersFromMultiReader(MultiReader parentReader) {
+        try {
+            return (IndexReader[]) subReadersField.get( parentReader );
+        } catch (IllegalAccessException e) {
+            throw new SearchException( "Incompatible version of Lucene: MultiReader.subReaders not accessible", e );
+        }
+    }
+    
+    public static IndexReader buildMultiReader(int length, IndexReader[] readers, ReaderProvider[] managers) {
+        if ( length == 0 ) {
+            return null;
+        }
+        else {
+            //everything should be the same so wrap in an MultiReader
+            return new CacheableMultiReader( readers, managers );
+        }
+    }
 
-	public static void clean(SearchException e, IndexReader... readers) {
-		for (IndexReader reader : readers) {
-			if ( reader != null ) {
-				try {
-					reader.close();
-				}
-				catch (IOException ee) {
-					log.unableToCloseLuceneIndexReader( e );
-				}
-			}
-		}
-		throw e;
-	}
+    public static void clean(SearchException e, IndexReader... readers) {
+        for (IndexReader reader : readers) {
+            if ( reader != null ) {
+                try {
+                    reader.close();
+                }
+                catch (IOException ee) {
+                    log.unableToCloseLuceneIndexReader( e );
+                }
+            }
+        }
+        throw e;
+    }
 
-	/**
-	 * Find the underlying IndexReaders for the given searchable
-	 *
-	 * @param searchable The searchable to find the IndexReaders for
-	 * @return A list of all base IndexReaders used within this searchable
-	 */
-	public static Set<IndexReader> getIndexReaders(IndexSearcher searchable) {
-		Set<IndexReader> readers = new HashSet<IndexReader>();
-		getIndexReadersInternal( readers, searchable );
-		return readers;
-	}
+    /**
+     * Find the underlying IndexReaders for the given searchable
+     *
+     * @param searchable The searchable to find the IndexReaders for
+     * @return A list of all base IndexReaders used within this searchable
+     */
+    public static Set<IndexReader> getIndexReaders(IndexSearcher searchable) {
+        Set<IndexReader> readers = new HashSet<IndexReader>();
+        getIndexReadersInternal( readers, searchable );
+        return readers;
+    }
 
-	/**
-	 * Find the underlying IndexReaders for the given reader
-	 *
-	 * @param reader The reader to find the IndexReaders for
-	 * @return A list of all base IndexReaders used within this searchable
-	 */
-	public static Set<IndexReader> getIndexReaders(IndexReader reader) {
-		Set<IndexReader> readers = new HashSet<IndexReader>();
-		getIndexReadersInternal( readers, reader );
-		return readers;
-	}
+    /**
+     * Find the underlying IndexReaders for the given reader
+     *
+     * @param reader The reader to find the IndexReaders for
+     * @return A list of all base IndexReaders used within this searchable
+     */
+    public static Set<IndexReader> getIndexReaders(IndexReader reader) {
+        Set<IndexReader> readers = new HashSet<IndexReader>();
+        getIndexReadersInternal( readers, reader );
+        return readers;
+    }
 
-	/**
-	 * Recursive method should identify all underlying readers for any nested structure of Lucene Searchable or IndexReader
-	 *
-	 * @param readers The working list of all readers found
-	 * @param obj	 The object to find the readers within
-	 */
-	private static void getIndexReadersInternal(Set<IndexReader> readers, Object obj) {
-		if ( obj instanceof IndexSearcher ) {
-			getIndexReadersInternal( readers, ( (IndexSearcher) obj ).getIndexReader() );
-		}
-		else if ( obj instanceof IndexReader ) {
-			readers.add( (IndexReader) obj );
-		}
-	}
+    /**
+     * Recursive method should identify all underlying readers for any nested structure of Lucene Searchable or IndexReader
+     *
+     * @param readers The working list of all readers found
+     * @param obj     The object to find the readers within
+     */
+    private static void getIndexReadersInternal(Set<IndexReader> readers, Object obj) {
+        if ( obj instanceof IndexSearcher ) {
+            getIndexReadersInternal( readers, ( (IndexSearcher) obj ).getIndexReader() );
+        }
+        else if ( obj instanceof IndexReader ) {
+            readers.add( (IndexReader) obj );
+        }
+    }
 
 }

@@ -38,44 +38,44 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Sanne Grinovero
  */
 public class NotSharedReaderProvider implements DirectoryBasedReaderProvider {
-	
-	private static final Log log = LoggerFactory.make();
+    
+    private static final Log log = LoggerFactory.make();
 
-	private DirectoryProvider directoryProvider;
-	private String indexName;
+    private DirectoryProvider directoryProvider;
+    private String indexName;
 
-	@Override
-	public IndexReader openIndexReader() {
-		// #getDirectory must be invoked each time as the underlying directory might "dance" as in
-		// org.hibernate.search.store.impl.FSSlaveDirectoryProvider
-		Directory directory = directoryProvider.getDirectory();
-		try {
-			return IndexReader.open( directory );
-		}
-		catch ( IOException e ) {
-			throw new SearchException( "Could not open index \"" + indexName + "\"", e );
-		}
-	}
+    @Override
+    public IndexReader openIndexReader() {
+        // #getDirectory must be invoked each time as the underlying directory might "dance" as in
+        // org.hibernate.search.store.impl.FSSlaveDirectoryProvider
+        Directory directory = directoryProvider.getDirectory();
+        try {
+            return IndexReader.open( directory );
+        }
+        catch ( IOException e ) {
+            throw new SearchException( "Could not open index \"" + indexName + "\"", e );
+        }
+    }
 
-	@Override
-	public void closeIndexReader(IndexReader reader) {
-		try {
-			reader.close();
-		}
-		catch ( IOException e ) {
-			log.unableToCloseLuceneIndexReader( e );
-		}
-	}
+    @Override
+    public void closeIndexReader(IndexReader reader) {
+        try {
+            reader.close();
+        }
+        catch ( IOException e ) {
+            log.unableToCloseLuceneIndexReader( e );
+        }
+    }
 
-	@Override
-	public void initialize(DirectoryBasedIndexManager indexManager, Properties props) {
-		directoryProvider = indexManager.getDirectoryProvider();
-		indexName = indexManager.getIndexName();
-	}
+    @Override
+    public void initialize(DirectoryBasedIndexManager indexManager, Properties props) {
+        directoryProvider = indexManager.getDirectoryProvider();
+        indexName = indexManager.getIndexName();
+    }
 
-	@Override
-	public void stop() {
-		//nothing to do for this implementation
-	}
+    @Override
+    public void stop() {
+        //nothing to do for this implementation
+    }
 
 }

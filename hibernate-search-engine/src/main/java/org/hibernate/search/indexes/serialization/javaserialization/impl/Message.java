@@ -32,13 +32,13 @@ import java.util.Set;
  */
 
 public class Message implements Serializable {
-	private Set<Operation> operations;
+    private Set<Operation> operations;
 
-	public Message(Set<Operation> operations) {
-		this.operations = operations;
-	}
+    public Message(Set<Operation> operations) {
+        this.operations = operations;
+    }
 
-	public Set<Operation> getOperations() {
-		return operations;
-	}
+    public Set<Operation> getOperations() {
+        return operations;
+    }
 }

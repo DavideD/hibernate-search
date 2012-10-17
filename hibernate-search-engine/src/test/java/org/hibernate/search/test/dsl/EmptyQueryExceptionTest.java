@@ -42,40 +42,40 @@ import org.junit.rules.ExpectedException;
  */
 public class EmptyQueryExceptionTest {
 
-	@Rule
-	public TestingSearchFactoryHolder sfHolder = new TestingSearchFactoryHolder( Book.class );
+    @Rule
+    public TestingSearchFactoryHolder sfHolder = new TestingSearchFactoryHolder( Book.class );
 
-	@Rule
-	public ExpectedException exceptions = ExpectedException.none();
+    @Rule
+    public ExpectedException exceptions = ExpectedException.none();
 
-	@Test
-	public void verifyExceptionOnNonMeaningfullQueries() {
-		final SearchFactoryImplementor searchFactory = sfHolder.getSearchFactory();
+    @Test
+    public void verifyExceptionOnNonMeaningfullQueries() {
+        final SearchFactoryImplementor searchFactory = sfHolder.getSearchFactory();
 
-		Book book = new Book();
-		book.title = "Empty Book";
-		book.text = "The question is, does an empty book have 'space' tokens in it?";
+        Book book = new Book();
+        book.title = "Empty Book";
+        book.text = "The question is, does an empty book have 'space' tokens in it?";
 
-		Work work = new Work( book, book.title, WorkType.ADD, false );
-		ManualTransactionContext tc = new ManualTransactionContext();
-		searchFactory.getWorker().performWork( work, tc );
-		tc.end();
+        Work work = new Work( book, book.title, WorkType.ADD, false );
+        ManualTransactionContext tc = new ManualTransactionContext();
+        searchFactory.getWorker().performWork( work, tc );
+        tc.end();
 
-		QueryBuilder queryBuilder = searchFactory.buildQueryBuilder().forEntity( Book.class ).get();
+        QueryBuilder queryBuilder = searchFactory.buildQueryBuilder().forEntity( Book.class ).get();
 
-		exceptions.expect( EmptyQueryException.class );
+        exceptions.expect( EmptyQueryException.class );
 
-		queryBuilder.keyword().onField( "text" ).matching( " " ).createQuery();
-		// Hence the answer is: a program won't be able to tell you.
-	}
+        queryBuilder.keyword().onField( "text" ).matching( " " ).createQuery();
+        // Hence the answer is: a program won't be able to tell you.
+    }
 
-	@Indexed
-	static class Book {
-		@DocumentId
-		String title;
+    @Indexed
+    static class Book {
+        @DocumentId
+        String title;
 
-		@Field
-		String text;
-	}
+        @Field
+        String text;
+    }
 
 }

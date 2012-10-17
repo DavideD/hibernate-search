@@ -28,20 +28,20 @@ import org.hibernate.search.indexes.serialization.spi.SerializableTokenStream;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableTokenStreamField extends SerializableField {
-	private SerializableTokenStream value;
-	private SerializableTermVector termVector;
+    private SerializableTokenStream value;
+    private SerializableTermVector termVector;
 
-	public SerializableTokenStreamField(LuceneFieldContext context) {
-		super( context );
-		this.value = context.getTokenStream();
-		this.termVector = context.getTermVector();
-	}
+    public SerializableTokenStreamField(LuceneFieldContext context) {
+        super( context );
+        this.value = context.getTokenStream();
+        this.termVector = context.getTermVector();
+    }
 
-	public SerializableTokenStream getValue() {
-		return value;
-	}
+    public SerializableTokenStream getValue() {
+        return value;
+    }
 
-	public SerializableTermVector getTermVector() {
-		return termVector;
-	}
+    public SerializableTermVector getTermVector() {
+        return termVector;
+    }
 }

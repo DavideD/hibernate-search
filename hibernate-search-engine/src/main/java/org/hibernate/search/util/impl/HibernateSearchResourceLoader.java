@@ -41,63 +41,63 @@ import org.hibernate.search.SearchException;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class HibernateSearchResourceLoader implements ResourceLoader {
-	private final String charset;
+    private final String charset;
 
-	public HibernateSearchResourceLoader() {
-		this.charset = null;
-	}
+    public HibernateSearchResourceLoader() {
+        this.charset = null;
+    }
 
-	public HibernateSearchResourceLoader(String charset) {
-		this.charset = charset;
-	}
+    public HibernateSearchResourceLoader(String charset) {
+        this.charset = charset;
+    }
 
-	public InputStream openResource(String resource) throws IOException {
-		return FileHelper.openResource( resource );
-	}
+    public InputStream openResource(String resource) throws IOException {
+        return FileHelper.openResource( resource );
+    }
 
-	public List<String> getLines(String resource) throws IOException {
-		final InputStream stream = openResource( resource );
-		if ( stream == null ) {
-			throw new SearchException( "Resource not found: " + resource );
-		}
-		try {
-			final InputStreamReader charsetAwareReader;
-			charsetAwareReader = charset == null ?
-					new InputStreamReader( stream ) :
-					new InputStreamReader( stream, charset );
-			final List<String> results = new ArrayList<String>();
-			final BufferedReader reader = new BufferedReader( charsetAwareReader );
-			try {
-				String line = reader.readLine();
-				while ( line != null ) {
-					// comment or empty line
-					if ( line.length() != 0 && !line.startsWith( "#" ) ) {
-						results.add( line );
-					}
-					line = reader.readLine();
-				}
-			}
-			finally {
-				FileHelper.closeResource( reader );
-			}
-			return Collections.unmodifiableList( results );
-		}
-		finally {
-			FileHelper.closeResource( stream );
-		}
-	}
+    public List<String> getLines(String resource) throws IOException {
+        final InputStream stream = openResource( resource );
+        if ( stream == null ) {
+            throw new SearchException( "Resource not found: " + resource );
+        }
+        try {
+            final InputStreamReader charsetAwareReader;
+            charsetAwareReader = charset == null ?
+                    new InputStreamReader( stream ) :
+                    new InputStreamReader( stream, charset );
+            final List<String> results = new ArrayList<String>();
+            final BufferedReader reader = new BufferedReader( charsetAwareReader );
+            try {
+                String line = reader.readLine();
+                while ( line != null ) {
+                    // comment or empty line
+                    if ( line.length() != 0 && !line.startsWith( "#" ) ) {
+                        results.add( line );
+                    }
+                    line = reader.readLine();
+                }
+            }
+            finally {
+                FileHelper.closeResource( reader );
+            }
+            return Collections.unmodifiableList( results );
+        }
+        finally {
+            FileHelper.closeResource( stream );
+        }
+    }
 
-	public Object newInstance(String cname, String... subpackages) {
-		if ( subpackages != null && subpackages.length > 0 ) {
-			throw new UnsupportedOperationException( "newInstance(classname, packages) not implemented" );
-		}
+    public Object newInstance(String cname, String... subpackages) {
+        if ( subpackages != null && subpackages.length > 0 ) {
+            throw new UnsupportedOperationException( "newInstance(classname, packages) not implemented" );
+        }
 
-		final Object instance = ClassLoaderHelper.instanceFromName(
-				Object.class, cname, this.getClass(), "Solr resource"
-		);
-		if ( instance instanceof ResourceLoaderAware ) {
-			( (ResourceLoaderAware) instance ).inform( this );
-		}
-		return instance;
-	}
+        final Object instance = ClassLoaderHelper.instanceFromName(
+                Object.class, cname, this.getClass(), "Solr resource"
+        );
+        if ( instance instanceof ResourceLoaderAware ) {
+            ( (ResourceLoaderAware) instance ).inform( this );
+        }
+        return instance;
+    }
 }

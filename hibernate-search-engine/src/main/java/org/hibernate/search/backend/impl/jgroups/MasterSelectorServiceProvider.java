@@ -35,21 +35,21 @@ import org.hibernate.search.spi.ServiceProvider;
  */
 public class MasterSelectorServiceProvider implements ServiceProvider<NodeSelectorStrategyHolder> {
 
-	private final NodeSelectorStrategyHolder selector = new NodeSelectorStrategyHolderImplementation();
+    private final NodeSelectorStrategyHolder selector = new NodeSelectorStrategyHolderImplementation();
 
-	@Override
-	public void start(Properties properties, BuildContext context) {
-		// nothing to do
-	}
+    @Override
+    public void start(Properties properties, BuildContext context) {
+        // nothing to do
+    }
 
-	@Override
-	public NodeSelectorStrategyHolder getService() {
-		return selector;
-	}
+    @Override
+    public NodeSelectorStrategyHolder getService() {
+        return selector;
+    }
 
-	@Override
-	public void stop() {
-		// nothing to do
-	}
+    @Override
+    public void stop() {
+        // nothing to do
+    }
 
 }

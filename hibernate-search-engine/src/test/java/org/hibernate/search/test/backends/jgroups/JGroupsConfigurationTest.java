@@ -40,70 +40,70 @@ import org.junit.rules.ExpectedException;
  */
 public class JGroupsConfigurationTest {
 
-	@Rule
-	public ExpectedException error = ExpectedException.none();
+    @Rule
+    public ExpectedException error = ExpectedException.none();
 
-	@Test
-	public void refuseConfigurationFileOnDefaultIndex() throws Throwable {
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.worker.backend", "jgroupsMaster" )
-			.addProperty( "hibernate.search.default.worker.backend.jgroups.configurationFile", "some non existing file" )
-			;
-		error.expect( SearchException.class );
-		error.expectMessage( "JGroups channel configuration should be specified in the global section" );
-		bootConfiguration( cfg );
-	}
+    @Test
+    public void refuseConfigurationFileOnDefaultIndex() throws Throwable {
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.worker.backend", "jgroupsMaster" )
+            .addProperty( "hibernate.search.default.worker.backend.jgroups.configurationFile", "some non existing file" )
+            ;
+        error.expect( SearchException.class );
+        error.expectMessage( "JGroups channel configuration should be specified in the global section" );
+        bootConfiguration( cfg );
+    }
 
-	@Test
-	public void refuseConfigurationFileOnSpecificIndex() throws Throwable {
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.dvds.worker.backend", "jgroupsMaster" )
-			.addProperty( "hibernate.search.dvds.worker.backend.jgroups.configurationFile", "some non existing file" )
-			;
-		error.expect( SearchException.class );
-		error.expectMessage( "JGroups channel configuration should be specified in the global section" );
-		bootConfiguration( cfg );
-	}
+    @Test
+    public void refuseConfigurationFileOnSpecificIndex() throws Throwable {
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.dvds.worker.backend", "jgroupsMaster" )
+            .addProperty( "hibernate.search.dvds.worker.backend.jgroups.configurationFile", "some non existing file" )
+            ;
+        error.expect( SearchException.class );
+        error.expectMessage( "JGroups channel configuration should be specified in the global section" );
+        bootConfiguration( cfg );
+    }
 
-	@Test
-	public void acceptConfigurationFile() throws Throwable {
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.dvds.worker.backend", "jgroupsMaster" )
-			.addProperty( "hibernate.search.services.jgroups.configurationFile", "some non existing file" )
-			;
-		error.expect( SearchException.class );
-		error.expectMessage( "Error while trying to create a channel using config file: some non existing file" );
-		bootConfiguration( cfg );
-	}
+    @Test
+    public void acceptConfigurationFile() throws Throwable {
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.dvds.worker.backend", "jgroupsMaster" )
+            .addProperty( "hibernate.search.services.jgroups.configurationFile", "some non existing file" )
+            ;
+        error.expect( SearchException.class );
+        error.expectMessage( "Error while trying to create a channel using config file: some non existing file" );
+        bootConfiguration( cfg );
+    }
 
-	/**
-	 * Attempts to start a SearchFactory, and make sure we close it if it happens to start
-	 * correctly.
-	 * @param cfg a configuration to try booting
-	 * @throws Throwable 
-	 */
-	private static void bootConfiguration(ManualConfiguration cfg) throws Throwable {
-		cfg.addClass( Dvd.class );
-		cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		SearchFactoryImplementor buildSearchFactory = null;
-		try {
-			buildSearchFactory = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
-		}
-		catch (SearchException se) {
-			//we know we're getting a generic failure, but we want to make assert on the details message of
-			// the cause:
-			throw se.getCause();
-		}
-		finally {
-			if ( buildSearchFactory != null )
-				buildSearchFactory.close();
-		}
-	}
+    /**
+     * Attempts to start a SearchFactory, and make sure we close it if it happens to start
+     * correctly.
+     * @param cfg a configuration to try booting
+     * @throws Throwable 
+     */
+    private static void bootConfiguration(ManualConfiguration cfg) throws Throwable {
+        cfg.addClass( Dvd.class );
+        cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        SearchFactoryImplementor buildSearchFactory = null;
+        try {
+            buildSearchFactory = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+        }
+        catch (SearchException se) {
+            //we know we're getting a generic failure, but we want to make assert on the details message of
+            // the cause:
+            throw se.getCause();
+        }
+        finally {
+            if ( buildSearchFactory != null )
+                buildSearchFactory.close();
+        }
+    }
 
-	@Indexed(index = "dvds")
-	public static final class Dvd {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed(index = "dvds")
+    public static final class Dvd {
+        @DocumentId long id;
+        @Field String title;
+    }
 
 }

@@ -32,16 +32,16 @@ import org.hibernate.search.indexes.spi.IndexManager;
  */
 public interface IndexManagerFactory {
 
-	/**
-	 * @return a new instance of the default IndexManager
-	 */
-	IndexManager createDefaultIndexManager();
+    /**
+     * @return a new instance of the default IndexManager
+     */
+    IndexManager createDefaultIndexManager();
 
-	/**
-	 * @param indexManagerImplementationName how this is resolved to an IndexManager type
-	 *   is left to the implementor.
-	 * @return a new IndexManager instance of the chosen type
-	 */
-	IndexManager createIndexManagerByName(String indexManagerImplementationName);
+    /**
+     * @param indexManagerImplementationName how this is resolved to an IndexManager type
+     *   is left to the implementor.
+     * @return a new IndexManager instance of the chosen type
+     */
+    IndexManager createIndexManagerByName(String indexManagerImplementationName);
 
 }

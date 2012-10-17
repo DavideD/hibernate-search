@@ -38,16 +38,16 @@ import org.apache.lucene.store.LockFactory;
  * @author Sanne Grinovero
  */
 public interface LockFactoryProvider {
-	
-	/**
-	 * Creates a LockFactory implementation.
-	 * A different LockFactory is created for each DirectoryProvider.
-	 *
-	 * @param indexDir path to the indexBase setting, or null for
-	 * DirectoryProviders which don't rely on filesystem
-	 * @param dirConfiguration the properties set on the current DirectoryProvider
-	 * @return the created LockFactory
-	 */
-	LockFactory createLockFactory(File indexDir, Properties dirConfiguration);
+    
+    /**
+     * Creates a LockFactory implementation.
+     * A different LockFactory is created for each DirectoryProvider.
+     *
+     * @param indexDir path to the indexBase setting, or null for
+     * DirectoryProviders which don't rely on filesystem
+     * @param dirConfiguration the properties set on the current DirectoryProvider
+     * @return the created LockFactory
+     */
+    LockFactory createLockFactory(File indexDir, Properties dirConfiguration);
 
 }

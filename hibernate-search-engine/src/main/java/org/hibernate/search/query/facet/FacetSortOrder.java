@@ -30,23 +30,23 @@ package org.hibernate.search.query.facet;
  * @author Hardy Ferentschik
  */
 public enum FacetSortOrder {
-	/**
-	 * Facets are returned by count with the lowest count first
-	 */
-	COUNT_ASC,
+    /**
+     * Facets are returned by count with the lowest count first
+     */
+    COUNT_ASC,
 
-	/**
-	 * Facets are returned by count with the lowest count first
-	 */
-	COUNT_DESC,
+    /**
+     * Facets are returned by count with the lowest count first
+     */
+    COUNT_DESC,
 
-	/**
-	 * Facets are returned in the alphabetical order
-	 */
-	FIELD_VALUE,
+    /**
+     * Facets are returned in the alphabetical order
+     */
+    FIELD_VALUE,
 
-	/**
-	 * The order in which ranges were defined. Only valid for range faceting
-	 */
-	RANGE_DEFINITION_ODER
+    /**
+     * The order in which ranges were defined. Only valid for range faceting
+     */
+    RANGE_DEFINITION_ODER
 }

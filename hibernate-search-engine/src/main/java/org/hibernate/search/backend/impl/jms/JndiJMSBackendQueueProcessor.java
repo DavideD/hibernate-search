@@ -41,47 +41,47 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class JndiJMSBackendQueueProcessor extends JmsBackendQueueProcessor {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private String jmsConnectionFactoryName;
+    private String jmsConnectionFactoryName;
 
-	@Override
-	protected QueueConnectionFactory initializeJMSQueueConnectionFactory(Properties properties) {
-		this.jmsConnectionFactoryName = properties.getProperty( JMS_CONNECTION_FACTORY );
-		try {
-			InitialContext initialContext = JNDIHelper.getInitialContext( properties, JNDI_PREFIX );
-			return ( QueueConnectionFactory ) initialContext.lookup( jmsConnectionFactoryName );
-		}
-		catch ( NamingException e ) {
-			throw log.jmsLookupException( getJmsQueueName(), jmsConnectionFactoryName, getIndexName(), e );
-		}
-	}
+    @Override
+    protected QueueConnectionFactory initializeJMSQueueConnectionFactory(Properties properties) {
+        this.jmsConnectionFactoryName = properties.getProperty( JMS_CONNECTION_FACTORY );
+        try {
+            InitialContext initialContext = JNDIHelper.getInitialContext( properties, JNDI_PREFIX );
+            return ( QueueConnectionFactory ) initialContext.lookup( jmsConnectionFactoryName );
+        }
+        catch ( NamingException e ) {
+            throw log.jmsLookupException( getJmsQueueName(), jmsConnectionFactoryName, getIndexName(), e );
+        }
+    }
 
-	@Override
-	protected Queue initializeJMSQueue(QueueConnectionFactory factory, Properties properties) {
-		try {
-			InitialContext initialContext = JNDIHelper.getInitialContext( properties, JNDI_PREFIX );
-			return ( Queue ) initialContext.lookup( getJmsQueueName() );
-		}
-		catch ( NamingException e ) {
-			throw log.jmsLookupException( getJmsQueueName(), jmsConnectionFactoryName, getIndexName(), e );
-		}
-	}
+    @Override
+    protected Queue initializeJMSQueue(QueueConnectionFactory factory, Properties properties) {
+        try {
+            InitialContext initialContext = JNDIHelper.getInitialContext( properties, JNDI_PREFIX );
+            return ( Queue ) initialContext.lookup( getJmsQueueName() );
+        }
+        catch ( NamingException e ) {
+            throw log.jmsLookupException( getJmsQueueName(), jmsConnectionFactoryName, getIndexName(), e );
+        }
+    }
 
-	@Override
-	protected QueueConnection initializeJMSConnection(QueueConnectionFactory factory, Properties properties) {
-		final String login = properties.getProperty( JMS_CONNECTION_LOGIN );
-		final String password = properties.getProperty( JMS_CONNECTION_PASSWORD );
-		try {
-			if ( login == null && password == null ) {
-				return factory.createQueueConnection();
-			}
-			else {
-				return factory.createQueueConnection( login, password );
-			}
-		} catch (JMSException e) {
-			throw log.unableToOpenJMSConnection( getIndexName(), getJmsQueueName(), e );
-		}
-	}
+    @Override
+    protected QueueConnection initializeJMSConnection(QueueConnectionFactory factory, Properties properties) {
+        final String login = properties.getProperty( JMS_CONNECTION_LOGIN );
+        final String password = properties.getProperty( JMS_CONNECTION_PASSWORD );
+        try {
+            if ( login == null && password == null ) {
+                return factory.createQueueConnection();
+            }
+            else {
+                return factory.createQueueConnection( login, password );
+            }
+        } catch (JMSException e) {
+            throw log.unableToOpenJMSConnection( getIndexName(), getJmsQueueName(), e );
+        }
+    }
 
 }

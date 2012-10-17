@@ -42,26 +42,26 @@ import org.jgroups.View;
  */
 public class SlaveNodeSelector implements NodeSelectorStrategy {
 
-	private Address localAddress;
+    private Address localAddress;
 
-	@Override
-	public boolean isIndexOwnerLocal() {
-		return false;
-	}
+    @Override
+    public boolean isIndexOwnerLocal() {
+        return false;
+    }
 
-	@Override
-	public void setLocalAddress(Address address) {
-		this.localAddress = address;
-	}
+    @Override
+    public void setLocalAddress(Address address) {
+        this.localAddress = address;
+    }
 
-	@Override
-	public void viewAccepted(View view) {
-		//nothing to do
-	}
+    @Override
+    public void viewAccepted(View view) {
+        //nothing to do
+    }
 
-	@Override
-	public Message createMessage(byte[] data) {
-		return new Message( null, localAddress, data );
-	}
+    @Override
+    public Message createMessage(byte[] data) {
+        return new Message( null, localAddress, data );
+    }
 
 }

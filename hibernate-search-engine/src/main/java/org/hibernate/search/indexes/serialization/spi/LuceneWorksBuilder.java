@@ -31,60 +31,60 @@ import org.hibernate.search.bridge.spi.ConversionContext;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface LuceneWorksBuilder {
-	void addOptimizeAll();
+    void addOptimizeAll();
 
-	void addPurgeAllLuceneWork(String entityClassName);
+    void addPurgeAllLuceneWork(String entityClassName);
 
-	void addIdAsJavaSerialized(byte[] idAsByte);
+    void addIdAsJavaSerialized(byte[] idAsByte);
 
-	void addId(Serializable id);
+    void addId(Serializable id);
 
-	void addDeleteLuceneWork(String entityClassName, ConversionContext conversionContext);
+    void addDeleteLuceneWork(String entityClassName, ConversionContext conversionContext);
 
-	void addAddLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext);
+    void addAddLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext);
 
-	void addUpdateLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext);
+    void addUpdateLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext);
 
-	void defineDocument(float boost);
+    void defineDocument(float boost);
 
-	void addFieldable(byte[] instance);
+    void addFieldable(byte[] instance);
 
-	//TODO forgot boost => do it across the whole chain
-	void addIntNumericField(int value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    //TODO forgot boost => do it across the whole chain
+    void addIntNumericField(int value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addLongNumericField(long value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addLongNumericField(long value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addFloatNumericField(float value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addFloatNumericField(float value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addDoubleNumericField(double value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addDoubleNumericField(double value, String name, int precisionStep, SerializableStore store, boolean indexed, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addFieldWithBinaryData(String name, byte[] value, int offset, int length, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addFieldWithBinaryData(String name, byte[] value, int offset, int length, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addFieldWithStringData(String name, String value, SerializableStore store, SerializableIndex index, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addFieldWithStringData(String name, String value, SerializableStore store, SerializableIndex index, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addFieldWithTokenStreamData(String name, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addFieldWithTokenStreamData(String name, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addFieldWithSerializableReaderData(String name, byte[] value, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
+    void addFieldWithSerializableReaderData(String name, byte[] value, SerializableTermVector termVector, float boost, boolean omitNorms, boolean omitTermFreqAndPositions);
 
-	void addSerializedAttribute(byte[] bytes);
+    void addSerializedAttribute(byte[] bytes);
 
-	void addAttributeInstance(AttributeImpl attribute);
+    void addAttributeInstance(AttributeImpl attribute);
 
-	void addTokenTrackingAttribute(List<Integer> positions);
+    void addTokenTrackingAttribute(List<Integer> positions);
 
-	void addCharTermAttribute(CharSequence sequence);
+    void addCharTermAttribute(CharSequence sequence);
 
-	void addPayloadAttribute(byte[] payloads);
+    void addPayloadAttribute(byte[] payloads);
 
-	void addKeywordAttribute(boolean isKeyword);
+    void addKeywordAttribute(boolean isKeyword);
 
-	void addPositionIncrementAttribute(int positionIncrement);
+    void addPositionIncrementAttribute(int positionIncrement);
 
-	void addFlagsAttribute(int flags);
+    void addFlagsAttribute(int flags);
 
-	void addTypeAttribute(String type);
+    void addTypeAttribute(String type);
 
-	void addOffsetAttribute(int startOffset, int endOffset);
+    void addOffsetAttribute(int startOffset, int endOffset);
 
-	void addToken();
+    void addToken();
 }

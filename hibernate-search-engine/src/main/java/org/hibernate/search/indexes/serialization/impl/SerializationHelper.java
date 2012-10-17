@@ -36,67 +36,67 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializationHelper {
-	private static Log log = LoggerFactory.make();
-	public static byte[] toByteArray(Serializable instance) {
-		//no need to close ByteArrayOutputStream
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try {
-			ObjectOutputStream stream = new ObjectOutputStream(out);
-			stream.writeObject( instance );
-			stream.close();
-		}
-		catch ( IOException e ) {
-			throw log.failToSerializeObject(instance.getClass(), e);
-		}
-		return out.toByteArray();
-	}
+    private static Log log = LoggerFactory.make();
+    public static byte[] toByteArray(Serializable instance) {
+        //no need to close ByteArrayOutputStream
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream stream = new ObjectOutputStream(out);
+            stream.writeObject( instance );
+            stream.close();
+        }
+        catch ( IOException e ) {
+            throw log.failToSerializeObject(instance.getClass(), e);
+        }
+        return out.toByteArray();
+    }
 
-	public static <T> T toInstance(byte[] data, Class<T> clazz) {
-		try {
-			ByteArrayInputStream byteIn = new ByteArrayInputStream( data );
-			ObjectInputStream in = new ClassLoaderAwareObjectInputStream( byteIn, clazz.getClassLoader() );
-			return (T) in.readObject();
-		}
-		catch ( IOException e ) {
-			throw log.failToDeserializeObject(e);
-		}
-		catch ( ClassNotFoundException e ) {
-			throw log.failToDeserializeObject(e);
-		}
-	}
+    public static <T> T toInstance(byte[] data, Class<T> clazz) {
+        try {
+            ByteArrayInputStream byteIn = new ByteArrayInputStream( data );
+            ObjectInputStream in = new ClassLoaderAwareObjectInputStream( byteIn, clazz.getClassLoader() );
+            return (T) in.readObject();
+        }
+        catch ( IOException e ) {
+            throw log.failToDeserializeObject(e);
+        }
+        catch ( ClassNotFoundException e ) {
+            throw log.failToDeserializeObject(e);
+        }
+    }
 
-	public static Serializable toSerializable(byte[] data, ClassLoader loader) {
-		try {
-			ByteArrayInputStream byteIn = new ByteArrayInputStream( data );
-			ObjectInputStream in = new ClassLoaderAwareObjectInputStream( byteIn, loader );
-			return (Serializable) in.readObject();
-		}
-		catch ( IOException e ) {
-			throw log.failToDeserializeObject(e);
-		}
-		catch ( ClassNotFoundException e ) {
-			throw log.failToDeserializeObject(e);
-		}
-	}
+    public static Serializable toSerializable(byte[] data, ClassLoader loader) {
+        try {
+            ByteArrayInputStream byteIn = new ByteArrayInputStream( data );
+            ObjectInputStream in = new ClassLoaderAwareObjectInputStream( byteIn, loader );
+            return (Serializable) in.readObject();
+        }
+        catch ( IOException e ) {
+            throw log.failToDeserializeObject(e);
+        }
+        catch ( ClassNotFoundException e ) {
+            throw log.failToDeserializeObject(e);
+        }
+    }
 
-	private static class ClassLoaderAwareObjectInputStream extends ObjectInputStream {
+    private static class ClassLoaderAwareObjectInputStream extends ObjectInputStream {
 
-		private ClassLoader classLoader;
+        private ClassLoader classLoader;
 
-		public ClassLoaderAwareObjectInputStream(InputStream in, ClassLoader classLoader) throws IOException {
-			super( in );
-			this.classLoader = classLoader;
-		}
+        public ClassLoaderAwareObjectInputStream(InputStream in, ClassLoader classLoader) throws IOException {
+            super( in );
+            this.classLoader = classLoader;
+        }
 
-		@Override
-		protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-			try {
-				Class<?> clazz = Class.forName( desc.getName(), false, classLoader );
-				return clazz;
-			}
-			catch ( ClassNotFoundException ex ) {
-				return super.resolveClass( desc );
-			}
-		}
-	}
+        @Override
+        protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+            try {
+                Class<?> clazz = Class.forName( desc.getName(), false, classLoader );
+                return clazz;
+            }
+            catch ( ClassNotFoundException ex ) {
+                return super.resolveClass( desc );
+            }
+        }
+    }
 }

@@ -46,110 +46,110 @@ import org.hibernate.search.spi.ServiceProvider;
  */
 public class ManualConfiguration extends SearchConfigurationBase implements SearchConfiguration {
 
-	private final Map<String,Class<?>>  classes;
-	private final Properties properties;
-	private final HashMap<Class<? extends ServiceProvider<?>>, Object> providedServices;
-	private final InstanceInitializer initializer;
-	private SearchMapping programmaticMapping;
-	private boolean transactionsExpected = true;
-	private boolean indexMetadataComplete = true;
-	private boolean idProvidedImplicit = false;
-	private IndexManagerFactory indexManagerFactory = new DefaultIndexManagerFactory();
+    private final Map<String,Class<?>>  classes;
+    private final Properties properties;
+    private final HashMap<Class<? extends ServiceProvider<?>>, Object> providedServices;
+    private final InstanceInitializer initializer;
+    private SearchMapping programmaticMapping;
+    private boolean transactionsExpected = true;
+    private boolean indexMetadataComplete = true;
+    private boolean idProvidedImplicit = false;
+    private IndexManagerFactory indexManagerFactory = new DefaultIndexManagerFactory();
 
-	public ManualConfiguration() {
-		this(SimpleInitializer.INSTANCE);
-	}
+    public ManualConfiguration() {
+        this(SimpleInitializer.INSTANCE);
+    }
 
-	public ManualConfiguration(InstanceInitializer init) {
-		initializer = init;
-		classes = new HashMap<String,Class<?>>();
-		properties = new Properties( );
-		providedServices = new HashMap<Class<? extends ServiceProvider<?>>, Object>();
-	}
+    public ManualConfiguration(InstanceInitializer init) {
+        initializer = init;
+        classes = new HashMap<String,Class<?>>();
+        properties = new Properties( );
+        providedServices = new HashMap<Class<? extends ServiceProvider<?>>, Object>();
+    }
 
-	public ManualConfiguration addProperty(String key , String value) {
-		properties.setProperty( key, value );
-		return this;
-	}
+    public ManualConfiguration addProperty(String key , String value) {
+        properties.setProperty( key, value );
+        return this;
+    }
 
-	public ManualConfiguration addClass(Class<?> indexed) {
-		classes.put( indexed.getName(), indexed );
-		return this;
-	}
+    public ManualConfiguration addClass(Class<?> indexed) {
+        classes.put( indexed.getName(), indexed );
+        return this;
+    }
 
-	public Iterator<Class<?>> getClassMappings() {
-		return classes.values().iterator();
-	}
+    public Iterator<Class<?>> getClassMappings() {
+        return classes.values().iterator();
+    }
 
-	public Class<?> getClassMapping(String name) {
-		return classes.get( name );
-	}
+    public Class<?> getClassMapping(String name) {
+        return classes.get( name );
+    }
 
-	public String getProperty(String propertyName) {
-		return properties.getProperty( propertyName );
-	}
+    public String getProperty(String propertyName) {
+        return properties.getProperty( propertyName );
+    }
 
-	public Properties getProperties() {
-		return properties;
-	}
+    public Properties getProperties() {
+        return properties;
+    }
 
-	public ReflectionManager getReflectionManager() {
-		return null;
-	}
+    public ReflectionManager getReflectionManager() {
+        return null;
+    }
 
-	public SearchMapping getProgrammaticMapping() {
-		return programmaticMapping;
-	}
+    public SearchMapping getProgrammaticMapping() {
+        return programmaticMapping;
+    }
 
-	public ManualConfiguration setProgrammaticMapping(SearchMapping programmaticMapping) {
-		this.programmaticMapping = programmaticMapping;
-		return this;
-	}
+    public ManualConfiguration setProgrammaticMapping(SearchMapping programmaticMapping) {
+        this.programmaticMapping = programmaticMapping;
+        return this;
+    }
 
-	public Map<Class<? extends ServiceProvider<?>>, Object> getProvidedServices() {
-		return providedServices;
-	}
+    public Map<Class<? extends ServiceProvider<?>>, Object> getProvidedServices() {
+        return providedServices;
+    }
 
-	@Override
-	public boolean isTransactionManagerExpected() {
-		return this.transactionsExpected;
-	}
+    @Override
+    public boolean isTransactionManagerExpected() {
+        return this.transactionsExpected;
+    }
 
-	public void setTransactionsExpected(boolean transactionsExpected) {
-		this.transactionsExpected = transactionsExpected;
-	}
+    public void setTransactionsExpected(boolean transactionsExpected) {
+        this.transactionsExpected = transactionsExpected;
+    }
 
-	@Override
-	public InstanceInitializer getInstanceInitializer() {
-		return initializer;
-	}
+    @Override
+    public InstanceInitializer getInstanceInitializer() {
+        return initializer;
+    }
 
-	@Override
-	public boolean isIndexMetadataComplete() {
-		return indexMetadataComplete;
-	}
+    @Override
+    public boolean isIndexMetadataComplete() {
+        return indexMetadataComplete;
+    }
 
-	public void setIndexMetadataComplete(boolean indexMetadataComplete) {
-		this.indexMetadataComplete = indexMetadataComplete;
-	}
+    public void setIndexMetadataComplete(boolean indexMetadataComplete) {
+        this.indexMetadataComplete = indexMetadataComplete;
+    }
 
-	@Override
-	public boolean isIdProvidedImplicit() {
-		return idProvidedImplicit;
-	}
+    @Override
+    public boolean isIdProvidedImplicit() {
+        return idProvidedImplicit;
+    }
 
-	public ManualConfiguration setIdProvidedImplicit(boolean idProvidedImplicit) {
-		this.idProvidedImplicit = idProvidedImplicit;
-		return this;
-	}
+    public ManualConfiguration setIdProvidedImplicit(boolean idProvidedImplicit) {
+        this.idProvidedImplicit = idProvidedImplicit;
+        return this;
+    }
 
-	@Override
-	public IndexManagerFactory getIndexManagerFactory() {
-		return indexManagerFactory;
-	}
+    @Override
+    public IndexManagerFactory getIndexManagerFactory() {
+        return indexManagerFactory;
+    }
 
-	public void setIndexManagerFactory(IndexManagerFactory indexManagerFactory) {
-		this.indexManagerFactory = indexManagerFactory;
-	}
+    public void setIndexManagerFactory(IndexManagerFactory indexManagerFactory) {
+        this.indexManagerFactory = indexManagerFactory;
+    }
 
 }

@@ -34,83 +34,83 @@ import org.hibernate.search.query.facet.Facet;
  * @author Hardy Ferentschik
  */
 public abstract class AbstractFacet implements Facet {
-	private final String facetingName;
-	private final String fieldName;
-	private final String value;
-	private final int count;
+    private final String facetingName;
+    private final String fieldName;
+    private final String value;
+    private final int count;
 
-	public AbstractFacet(String facetingName, String fieldName, String value, int count) {
-		this.facetingName = facetingName;
-		this.fieldName = fieldName;
-		this.count = count;
-		this.value = value;
-	}
+    public AbstractFacet(String facetingName, String fieldName, String value, int count) {
+        this.facetingName = facetingName;
+        this.fieldName = fieldName;
+        this.count = count;
+        this.value = value;
+    }
 
-	public int getCount() {
-		return count;
-	}
+    public int getCount() {
+        return count;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public String getFieldName() {
-		return fieldName;
-	}
+    public String getFieldName() {
+        return fieldName;
+    }
 
-	public String getFacetingName() {
-		return facetingName;
-	}
+    public String getFacetingName() {
+        return facetingName;
+    }
 
-	public abstract Query getFacetQuery();
+    public abstract Query getFacetQuery();
 
-	@Override
-	public boolean equals(Object o) {
-		if ( this == o ) {
-			return true;
-		}
-		if ( o == null || getClass() != o.getClass() ) {
-			return false;
-		}
+    @Override
+    public boolean equals(Object o) {
+        if ( this == o ) {
+            return true;
+        }
+        if ( o == null || getClass() != o.getClass() ) {
+            return false;
+        }
 
-		AbstractFacet that = (AbstractFacet) o;
+        AbstractFacet that = (AbstractFacet) o;
 
-		if ( count != that.count ) {
-			return false;
-		}
-		if ( facetingName != null ? !facetingName.equals( that.facetingName ) : that.facetingName != null ) {
-			return false;
-		}
-		if ( fieldName != null ? !fieldName.equals( that.fieldName ) : that.fieldName != null ) {
-			return false;
-		}
-		if ( value != null ? !value.equals( that.value ) : that.value != null ) {
-			return false;
-		}
+        if ( count != that.count ) {
+            return false;
+        }
+        if ( facetingName != null ? !facetingName.equals( that.facetingName ) : that.facetingName != null ) {
+            return false;
+        }
+        if ( fieldName != null ? !fieldName.equals( that.fieldName ) : that.fieldName != null ) {
+            return false;
+        }
+        if ( value != null ? !value.equals( that.value ) : that.value != null ) {
+            return false;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = facetingName != null ? facetingName.hashCode() : 0;
-		result = 31 * result + ( fieldName != null ? fieldName.hashCode() : 0 );
-		result = 31 * result + ( value != null ? value.hashCode() : 0 );
-		result = 31 * result + count;
-		return result;
-	}
+    @Override
+    public int hashCode() {
+        int result = facetingName != null ? facetingName.hashCode() : 0;
+        result = 31 * result + ( fieldName != null ? fieldName.hashCode() : 0 );
+        result = 31 * result + ( value != null ? value.hashCode() : 0 );
+        result = 31 * result + count;
+        return result;
+    }
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		sb.append( "AbstractFacet" );
-		sb.append( "{facetingName='" ).append( facetingName ).append( '\'' );
-		sb.append( ", fieldName='" ).append( fieldName ).append( '\'' );
-		sb.append( ", value='" ).append( value ).append( '\'' );
-		sb.append( ", count=" ).append( count );
-		sb.append( '}' );
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append( "AbstractFacet" );
+        sb.append( "{facetingName='" ).append( facetingName ).append( '\'' );
+        sb.append( ", fieldName='" ).append( fieldName ).append( '\'' );
+        sb.append( ", value='" ).append( value ).append( '\'' );
+        sb.append( ", count=" ).append( count );
+        sb.append( '}' );
+        return sb.toString();
+    }
 }
 
 

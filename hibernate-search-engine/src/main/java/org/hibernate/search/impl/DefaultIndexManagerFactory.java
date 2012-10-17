@@ -37,58 +37,58 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class DefaultIndexManagerFactory implements IndexManagerFactory {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	@Override
-	public IndexManager createDefaultIndexManager() {
-		return new DirectoryBasedIndexManager();
-	}
+    @Override
+    public IndexManager createDefaultIndexManager() {
+        return new DirectoryBasedIndexManager();
+    }
 
-	@Override
-	public IndexManager createIndexManagerByName(String indexManagerImplementationName) {
-		if ( StringHelper.isEmpty( indexManagerImplementationName ) ) {
-			return createDefaultIndexManager();
-		}
-		else {
-			String implName = indexManagerImplementationName.trim();
-			IndexManager im = fromAlias( implName );
-			if ( im == null ) {
-				implName = aliasToFQN( implName );
-				im = ClassLoaderHelper.instanceFromName( IndexManager.class, implName,
-						IndexManagerHolder.class, "index manager" );
-			}
-			log.indexManagerAliasResolved( indexManagerImplementationName, im.getClass() );
-			return im;
-		}
-	}
+    @Override
+    public IndexManager createIndexManagerByName(String indexManagerImplementationName) {
+        if ( StringHelper.isEmpty( indexManagerImplementationName ) ) {
+            return createDefaultIndexManager();
+        }
+        else {
+            String implName = indexManagerImplementationName.trim();
+            IndexManager im = fromAlias( implName );
+            if ( im == null ) {
+                implName = aliasToFQN( implName );
+                im = ClassLoaderHelper.instanceFromName( IndexManager.class, implName,
+                        IndexManagerHolder.class, "index manager" );
+            }
+            log.indexManagerAliasResolved( indexManagerImplementationName, im.getClass() );
+            return im;
+        }
+    }
 
-	/**
-	 * Provide a way to expand known aliases to fully qualified class names.
-	 * As opposed to {@link #fromAlias(String)} we can use this to expend to well
-	 * known implementations which are optional on the classpath.
-	 *
-	 * @param implName
-	 * @return the same name, or a fully qualified class name to use instead
-	 */
-	protected String aliasToFQN(final String implName) {
-		// TODO Add the Infinispan implementor here
-		return implName;
-	}
+    /**
+     * Provide a way to expand known aliases to fully qualified class names.
+     * As opposed to {@link #fromAlias(String)} we can use this to expend to well
+     * known implementations which are optional on the classpath.
+     *
+     * @param implName
+     * @return the same name, or a fully qualified class name to use instead
+     */
+    protected String aliasToFQN(final String implName) {
+        // TODO Add the Infinispan implementor here
+        return implName;
+    }
 
-	/**
-	 * Extension point: allow to override aliases or add new ones to
-	 * directly create class instances.
-	 *
-	 * @param implName the requested alias
-	 * @return <code>null</code> if the alias is unknown.
-	 */
-	protected IndexManager fromAlias(String implName) {
-		if ( "directory-based".equals( implName ) ) {
-			return new DirectoryBasedIndexManager();
-		}
-		if ( "near-real-time".equals( implName ) ) {
-			return new NRTIndexManager();
-		}
-		return null;
-	}
+    /**
+     * Extension point: allow to override aliases or add new ones to
+     * directly create class instances.
+     *
+     * @param implName the requested alias
+     * @return <code>null</code> if the alias is unknown.
+     */
+    protected IndexManager fromAlias(String implName) {
+        if ( "directory-based".equals( implName ) ) {
+            return new DirectoryBasedIndexManager();
+        }
+        if ( "near-real-time".equals( implName ) ) {
+            return new NRTIndexManager();
+        }
+        return null;
+    }
 }

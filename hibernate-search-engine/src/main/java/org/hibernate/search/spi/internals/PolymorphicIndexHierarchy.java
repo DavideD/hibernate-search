@@ -39,48 +39,48 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 //FIXME make it immutable (builder pattern)
 public class PolymorphicIndexHierarchy {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private Map<Class<?>, Set<Class<?>>> classToIndexedClass;
+    private Map<Class<?>, Set<Class<?>>> classToIndexedClass;
 
-	public PolymorphicIndexHierarchy() {
-		classToIndexedClass = new HashMap<Class<?>, Set<Class<?>>>();
-	}
+    public PolymorphicIndexHierarchy() {
+        classToIndexedClass = new HashMap<Class<?>, Set<Class<?>>>();
+    }
 
-	public void addIndexedClass(Class<?> indexedClass) {
-		addClass( indexedClass, indexedClass );
-		Class<?> superClass = indexedClass.getSuperclass();
-		while ( superClass != null ) {
-			addClass( superClass, indexedClass );
-			superClass = superClass.getSuperclass();
-		}
-		for ( Class<?> clazz : indexedClass.getInterfaces() ) {
-			addClass( clazz, indexedClass );
-		}
-	}
+    public void addIndexedClass(Class<?> indexedClass) {
+        addClass( indexedClass, indexedClass );
+        Class<?> superClass = indexedClass.getSuperclass();
+        while ( superClass != null ) {
+            addClass( superClass, indexedClass );
+            superClass = superClass.getSuperclass();
+        }
+        for ( Class<?> clazz : indexedClass.getInterfaces() ) {
+            addClass( clazz, indexedClass );
+        }
+    }
 
-	private void addClass(Class<?> superclass, Class<?> indexedClass) {
-		Set<Class<?>> classesSet = classToIndexedClass.get( superclass );
-		if ( classesSet == null ) {
-			classesSet = new HashSet<Class<?>>();
-			classToIndexedClass.put( superclass, classesSet );
-		}
-		classesSet.add( indexedClass );
-	}
+    private void addClass(Class<?> superclass, Class<?> indexedClass) {
+        Set<Class<?>> classesSet = classToIndexedClass.get( superclass );
+        if ( classesSet == null ) {
+            classesSet = new HashSet<Class<?>>();
+            classToIndexedClass.put( superclass, classesSet );
+        }
+        classesSet.add( indexedClass );
+    }
 
-	public Set<Class<?>> getIndexedClasses(Class<?>[] classes) {
-		Set<Class<?>> indexedClasses = new HashSet<Class<?>>();
-		for ( Class<?> clazz : classes ) {
-			Set<Class<?>> set = classToIndexedClass.get( clazz );
-			if ( set != null ) {
-				// at this point we don't have to care about including indexed subclasses of a indexed class
-				// MultiClassesQueryLoader will take care of this later and optimise the queries
-				indexedClasses.addAll( set );
-			}
-		}
-		if ( log.isTraceEnabled() ) {
-			log.tracef( "Targeted indexed classes for %s: %s", Arrays.toString( classes ), indexedClasses );
-		}
-		return indexedClasses;
-	}
+    public Set<Class<?>> getIndexedClasses(Class<?>[] classes) {
+        Set<Class<?>> indexedClasses = new HashSet<Class<?>>();
+        for ( Class<?> clazz : classes ) {
+            Set<Class<?>> set = classToIndexedClass.get( clazz );
+            if ( set != null ) {
+                // at this point we don't have to care about including indexed subclasses of a indexed class
+                // MultiClassesQueryLoader will take care of this later and optimise the queries
+                indexedClasses.addAll( set );
+            }
+        }
+        if ( log.isTraceEnabled() ) {
+            log.tracef( "Targeted indexed classes for %s: %s", Arrays.toString( classes ), indexedClasses );
+        }
+        return indexedClasses;
+    }
 }

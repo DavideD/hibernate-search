@@ -39,34 +39,34 @@ import org.jgroups.View;
  */
 public interface NodeSelectorStrategy {
 
-	/**
-	 * Specifies if the current (local) node should apply
-	 * changes to the index.
-	 */
-	boolean isIndexOwnerLocal();
+    /**
+     * Specifies if the current (local) node should apply
+     * changes to the index.
+     */
+    boolean isIndexOwnerLocal();
 
-	/**
-	 * The implementation might need to know it's own address, so this
-	 * is provided at channel initial connection.
-	 *
-	 * @param address the local address
-	 */
-	void setLocalAddress(Address address);
+    /**
+     * The implementation might need to know it's own address, so this
+     * is provided at channel initial connection.
+     *
+     * @param address the local address
+     */
+    void setLocalAddress(Address address);
 
-	/**
-	 * Invoked by JGroups on view change. {@link org.jgroups.MembershipListener#viewAccepted(View)}
-	 *
-	 * @param view contains information on the current members of the cluster group
-	 */
-	void viewAccepted(View view);
+    /**
+     * Invoked by JGroups on view change. {@link org.jgroups.MembershipListener#viewAccepted(View)}
+     *
+     * @param view contains information on the current members of the cluster group
+     */
+    void viewAccepted(View view);
 
-	/**
-	 * Different message options can be applied using different constructors,
-	 * hence we delegate Message construction to the strategy.
-	 *
-	 * @param data the information to be sent to the master.
-	 * @return the message to be sent.
-	 */
-	Message createMessage(byte[] data);
+    /**
+     * Different message options can be applied using different constructors,
+     * hence we delegate Message construction to the strategy.
+     *
+     * @param data the information to be sent to the master.
+     * @return the message to be sent.
+     */
+    Message createMessage(byte[] data);
 
 }

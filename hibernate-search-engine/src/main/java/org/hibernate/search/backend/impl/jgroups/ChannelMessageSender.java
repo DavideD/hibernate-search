@@ -37,37 +37,37 @@ import org.jgroups.Message;
  */
 final class ChannelMessageSender extends AbstractMessageSender {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final boolean channelIsManaged;
-	private final String clusterName;
+    private final boolean channelIsManaged;
+    private final String clusterName;
 
-	ChannelMessageSender(Channel channel, boolean channelIsManaged, String clusterName) {
-		super( channel );
-		this.channelIsManaged = channelIsManaged;
-		this.clusterName = clusterName;
-	}
+    ChannelMessageSender(Channel channel, boolean channelIsManaged, String clusterName) {
+        super( channel );
+        this.channelIsManaged = channelIsManaged;
+        this.clusterName = clusterName;
+    }
 
-	public void start() {
-		if ( channel != null && channelIsManaged ) {
-			try {
-				channel.connect( clusterName );
-			}
-			catch ( Exception e ) {
-				throw log.unableConnectingToJGroupsCluster( clusterName, e );
-			}
-		}
-	}
+    public void start() {
+        if ( channel != null && channelIsManaged ) {
+            try {
+                channel.connect( clusterName );
+            }
+            catch ( Exception e ) {
+                throw log.unableConnectingToJGroupsCluster( clusterName, e );
+            }
+        }
+    }
 
-	public void stop() {
-		if ( channel != null && channel.isOpen() && channelIsManaged ) {
-			log.jGroupsDisconnectingAndClosingChannel( clusterName );
-			channel.disconnect();
-			channel.close();
-		}
-	}
+    public void stop() {
+        if ( channel != null && channel.isOpen() && channelIsManaged ) {
+            log.jGroupsDisconnectingAndClosingChannel( clusterName );
+            channel.disconnect();
+            channel.close();
+        }
+    }
 
-	public void send(final Message message) throws Exception {
-		channel.send( message );
-	}
+    public void send(final Message message) throws Exception {
+        channel.send( message );
+    }
 }

@@ -36,13 +36,13 @@ import org.hibernate.search.backend.LuceneWork;
  */
 public class GatedLuceneBackend extends LeakingLuceneBackend {
 
-	public static final AtomicBoolean open = new AtomicBoolean( true );
+    public static final AtomicBoolean open = new AtomicBoolean( true );
 
-	@Override
-	public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
-		if ( open.get() ) {
-			super.applyWork( workList, monitor );
-		}
-	}
+    @Override
+    public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
+        if ( open.get() ) {
+            super.applyWork( workList, monitor );
+        }
+    }
 
 }

@@ -34,75 +34,75 @@ import org.hibernate.search.stat.Statistics;
  * @author Hardy Ferentschik
  */
 public class StatisticsInfo implements StatisticsInfoMBean {
-	private final Statistics delegate;
+    private final Statistics delegate;
 
-	public StatisticsInfo(Statistics delegate) {
-		this.delegate = delegate;
-	}
+    public StatisticsInfo(Statistics delegate) {
+        this.delegate = delegate;
+    }
 
-	public void clear() {
-		delegate.clear();
-	}
+    public void clear() {
+        delegate.clear();
+    }
 
-	public long getSearchQueryExecutionCount() {
-		return delegate.getSearchQueryExecutionCount();
-	}
+    public long getSearchQueryExecutionCount() {
+        return delegate.getSearchQueryExecutionCount();
+    }
 
-	public long getSearchQueryTotalTime() {
-		return delegate.getSearchQueryTotalTime();
-	}
+    public long getSearchQueryTotalTime() {
+        return delegate.getSearchQueryTotalTime();
+    }
 
-	public long getSearchQueryExecutionMaxTime() {
-		return delegate.getSearchQueryExecutionMaxTime();
-	}
+    public long getSearchQueryExecutionMaxTime() {
+        return delegate.getSearchQueryExecutionMaxTime();
+    }
 
-	public long getSearchQueryExecutionAvgTime() {
-		return delegate.getSearchQueryExecutionAvgTime();
-	}
+    public long getSearchQueryExecutionAvgTime() {
+        return delegate.getSearchQueryExecutionAvgTime();
+    }
 
-	public String getSearchQueryExecutionMaxTimeQueryString() {
-		return delegate.getSearchQueryExecutionMaxTimeQueryString();
-	}
+    public String getSearchQueryExecutionMaxTimeQueryString() {
+        return delegate.getSearchQueryExecutionMaxTimeQueryString();
+    }
 
-	public long getObjectLoadingTotalTime() {
-		return delegate.getObjectLoadingTotalTime();
-	}
+    public long getObjectLoadingTotalTime() {
+        return delegate.getObjectLoadingTotalTime();
+    }
 
-	public long getObjectLoadingExecutionMaxTime() {
-		return delegate.getObjectLoadingExecutionMaxTime();
-	}
+    public long getObjectLoadingExecutionMaxTime() {
+        return delegate.getObjectLoadingExecutionMaxTime();
+    }
 
-	public long getObjectLoadingExecutionAvgTime() {
-		return delegate.getObjectLoadingExecutionAvgTime();
-	}
+    public long getObjectLoadingExecutionAvgTime() {
+        return delegate.getObjectLoadingExecutionAvgTime();
+    }
 
-	public long getObjectsLoadedCount() {
-		return delegate.getObjectsLoadedCount();
-	}
+    public long getObjectsLoadedCount() {
+        return delegate.getObjectsLoadedCount();
+    }
 
-	public boolean isStatisticsEnabled() {
-		return delegate.isStatisticsEnabled();
-	}
+    public boolean isStatisticsEnabled() {
+        return delegate.isStatisticsEnabled();
+    }
 
-	public void setStatisticsEnabled(boolean b) {
-		delegate.setStatisticsEnabled( b );
-	}
+    public void setStatisticsEnabled(boolean b) {
+        delegate.setStatisticsEnabled( b );
+    }
 
-	public String getSearchVersion() {
-		return delegate.getSearchVersion();
-	}
+    public String getSearchVersion() {
+        return delegate.getSearchVersion();
+    }
 
-	public Set<String> getIndexedClassNames() {
-		return delegate.getIndexedClassNames();
-	}
+    public Set<String> getIndexedClassNames() {
+        return delegate.getIndexedClassNames();
+    }
 
-	public int getNumberOfIndexedEntities(String entity) {
-		return delegate.getNumberOfIndexedEntities( entity );
-	}
+    public int getNumberOfIndexedEntities(String entity) {
+        return delegate.getNumberOfIndexedEntities( entity );
+    }
 
-	public Map<String, Integer> indexedEntitiesCount() {
-		return delegate.indexedEntitiesCount();
-	}
+    public Map<String, Integer> indexedEntitiesCount() {
+        return delegate.indexedEntitiesCount();
+    }
 }
 
 

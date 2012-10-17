@@ -36,106 +36,106 @@ import org.hibernate.search.annotations.TermVector;
 
 public class ClassBridgeMapping {
 
-	private final SearchMapping mapping;
-	private final EntityDescriptor entity;
-	private final Map<String, Object> classBridge;
+    private final SearchMapping mapping;
+    private final EntityDescriptor entity;
+    private final Map<String, Object> classBridge;
 
-	public ClassBridgeMapping(SearchMapping mapping, EntityDescriptor entity, Class<?> impl) {
-		this.mapping = mapping;
-		this.entity = entity;
-		this.classBridge = new HashMap<String,Object>();
-		entity.addClassBridgeDef(classBridge);
-		if (impl != null) {
-			this.classBridge.put("impl", impl);
-		}
-		
-	}
-	
-	public ClassBridgeMapping name(String name) {
-		this.classBridge.put("name", name);
-		return this;
-	}
-	
-	public ClassBridgeMapping store(Store store) {
-		this.classBridge.put("store", store);
-		return this;
-	}
-	
-	public ClassBridgeMapping index(Index index) {
-		this.classBridge.put("index", index);
-		return this;
-	}
-	
-	public ClassBridgeMapping analyze(Analyze analyze) {
-		this.classBridge.put("analyze", analyze);
-		return this;
-	}
+    public ClassBridgeMapping(SearchMapping mapping, EntityDescriptor entity, Class<?> impl) {
+        this.mapping = mapping;
+        this.entity = entity;
+        this.classBridge = new HashMap<String,Object>();
+        entity.addClassBridgeDef(classBridge);
+        if (impl != null) {
+            this.classBridge.put("impl", impl);
+        }
+        
+    }
+    
+    public ClassBridgeMapping name(String name) {
+        this.classBridge.put("name", name);
+        return this;
+    }
+    
+    public ClassBridgeMapping store(Store store) {
+        this.classBridge.put("store", store);
+        return this;
+    }
+    
+    public ClassBridgeMapping index(Index index) {
+        this.classBridge.put("index", index);
+        return this;
+    }
+    
+    public ClassBridgeMapping analyze(Analyze analyze) {
+        this.classBridge.put("analyze", analyze);
+        return this;
+    }
 
-	public ClassBridgeMapping norms(Norms norms) {
-		this.classBridge.put("norms", norms);
-		return this;
-	}
+    public ClassBridgeMapping norms(Norms norms) {
+        this.classBridge.put("norms", norms);
+        return this;
+    }
 
-	public ClassBridgeMapping termVector(TermVector termVector) {
-		this.classBridge.put("termVector", termVector);
-		return this;
-	}
-	
-	public ClassBridgeMapping boost(float boost) {
-		final Map<String, Object> boostAnn = new HashMap<String, Object>();
-		boostAnn.put( "value", boost );
-		classBridge.put( "boost", boostAnn );
-		return this;
-	}
-	
-	public ClassBridgeMapping analyzer(Class<?> analyzerClass) {
-		final Map<String, Object> analyzer = new HashMap<String, Object>();
-		analyzer.put( "impl", analyzerClass );
-		classBridge.put( "analyzer", analyzer );
-		return this;
-	}
+    public ClassBridgeMapping termVector(TermVector termVector) {
+        this.classBridge.put("termVector", termVector);
+        return this;
+    }
+    
+    public ClassBridgeMapping boost(float boost) {
+        final Map<String, Object> boostAnn = new HashMap<String, Object>();
+        boostAnn.put( "value", boost );
+        classBridge.put( "boost", boostAnn );
+        return this;
+    }
+    
+    public ClassBridgeMapping analyzer(Class<?> analyzerClass) {
+        final Map<String, Object> analyzer = new HashMap<String, Object>();
+        analyzer.put( "impl", analyzerClass );
+        classBridge.put( "analyzer", analyzer );
+        return this;
+    }
 
-	public ClassBridgeMapping analyzer(String analyzerDef) {
-		final Map<String, Object> analyzer = new HashMap<String, Object>();
-		analyzer.put( "definition", analyzerDef );
-		classBridge.put( "analyzer", analyzer );
-		return this;
-	}
-	
-	
-	public ClassBridgeMapping param(String name, String value) {
-		Map<String, Object> param = SearchMapping.addElementToAnnotationArray(classBridge, "params");
-		param.put("name", name);
-		param.put("value", value);
-		return this;
-	}
+    public ClassBridgeMapping analyzer(String analyzerDef) {
+        final Map<String, Object> analyzer = new HashMap<String, Object>();
+        analyzer.put( "definition", analyzerDef );
+        classBridge.put( "analyzer", analyzer );
+        return this;
+    }
+    
+    
+    public ClassBridgeMapping param(String name, String value) {
+        Map<String, Object> param = SearchMapping.addElementToAnnotationArray(classBridge, "params");
+        param.put("name", name);
+        param.put("value", value);
+        return this;
+    }
 
-	public ClassBridgeMapping classBridge(Class<?> impl) {
-		return new ClassBridgeMapping( mapping, entity, impl );
-	}
+    public ClassBridgeMapping classBridge(Class<?> impl) {
+        return new ClassBridgeMapping( mapping, entity, impl );
+    }
 
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping( mapping, name, impl );
-	}
-	
-	public PropertyMapping property(String name, ElementType type) {
-		return new PropertyMapping( name, type, entity, mapping );
-	}
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping( mapping, name, impl );
+    }
+    
+    public PropertyMapping property(String name, ElementType type) {
+        return new PropertyMapping( name, type, entity, mapping );
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping( entityType, mapping );
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping( entityType, mapping );
+    }
 
-	public ProvidedIdMapping providedId() {
-		return new ProvidedIdMapping( mapping, entity );
-	}
+    public ProvidedIdMapping providedId() {
+        return new ProvidedIdMapping( mapping, entity );
+    }
 
-	public IndexedMapping indexed() {
-		return new IndexedMapping( mapping, entity );
-	}
-	
+    public IndexedMapping indexed() {
+        return new IndexedMapping( mapping, entity );
+    }
+    
 }

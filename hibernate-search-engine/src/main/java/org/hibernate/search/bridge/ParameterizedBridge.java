@@ -36,11 +36,11 @@ import java.util.Map;
  */
 public interface ParameterizedBridge {
 
-	/**
-	 * Called on the bridge implementation to pass the parameters.
-	 *
-	 * @param parameters map containing string based parameters to be passed to the parameterized bridge. The map is never
-	 * {@code null}.
-	 */
-	void setParameterValues(Map<String, String> parameters);
+    /**
+     * Called on the bridge implementation to pass the parameters.
+     *
+     * @param parameters map containing string based parameters to be passed to the parameterized bridge. The map is never
+     * {@code null}.
+     */
+    void setParameterValues(Map<String, String> parameters);
 }

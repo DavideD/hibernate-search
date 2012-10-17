@@ -33,12 +33,12 @@ import org.hibernate.search.backend.LuceneWork;
  */
 public interface ErrorContext {
 
-	List<LuceneWork> getFailingOperations();
+    List<LuceneWork> getFailingOperations();
 
-	LuceneWork getOperationAtFault();
+    LuceneWork getOperationAtFault();
 
-	Throwable getThrowable();
+    Throwable getThrowable();
 
-	boolean hasErrors();
+    boolean hasErrors();
 
 }

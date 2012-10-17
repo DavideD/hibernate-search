@@ -50,25 +50,25 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class NRTIndexManager extends DirectoryBasedIndexManager {
 
-	private static final Log log = LoggerFactory.make();
-	private NRTWorkspaceImpl nrtWorkspace;
+    private static final Log log = LoggerFactory.make();
+    private NRTWorkspaceImpl nrtWorkspace;
 
-	@Override
-	protected BackendQueueProcessor createBackend(String indexName, Properties cfg, WorkerBuildContext buildContext) {
-		String backend = cfg.getProperty( Environment.WORKER_BACKEND );
-		if ( backend != null ) {
-			log.ignoringBackendOptionForIndex( indexName, "near-real-time" );
-		}
-		LuceneBackendQueueProcessor backendQueueProcessor = new LuceneBackendQueueProcessor();
-		nrtWorkspace = new NRTWorkspaceImpl( this, buildContext, cfg );
-		backendQueueProcessor.setCustomWorkspace( nrtWorkspace );
-		backendQueueProcessor.initialize( cfg, buildContext, this );
-		return backendQueueProcessor;
-	}
+    @Override
+    protected BackendQueueProcessor createBackend(String indexName, Properties cfg, WorkerBuildContext buildContext) {
+        String backend = cfg.getProperty( Environment.WORKER_BACKEND );
+        if ( backend != null ) {
+            log.ignoringBackendOptionForIndex( indexName, "near-real-time" );
+        }
+        LuceneBackendQueueProcessor backendQueueProcessor = new LuceneBackendQueueProcessor();
+        nrtWorkspace = new NRTWorkspaceImpl( this, buildContext, cfg );
+        backendQueueProcessor.setCustomWorkspace( nrtWorkspace );
+        backendQueueProcessor.initialize( cfg, buildContext, this );
+        return backendQueueProcessor;
+    }
 
-	@Override
-	protected DirectoryBasedReaderProvider createIndexReader(String indexName, Properties cfg, WorkerBuildContext buildContext) {
-		return nrtWorkspace;
-	}
+    @Override
+    protected DirectoryBasedReaderProvider createIndexReader(String indexName, Properties cfg, WorkerBuildContext buildContext) {
+        return nrtWorkspace;
+    }
 
 }

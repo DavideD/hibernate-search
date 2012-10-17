@@ -30,22 +30,22 @@ import org.hibernate.search.backend.LuceneWork;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class SingleTaskRunnable implements Runnable {
-	
-	private final LuceneWork work;
-	private final LuceneBackendResources resources;
-	private final IndexWriter indexWriter;
-	private final IndexingMonitor monitor;
+    
+    private final LuceneWork work;
+    private final LuceneBackendResources resources;
+    private final IndexWriter indexWriter;
+    private final IndexingMonitor monitor;
 
-	public SingleTaskRunnable(LuceneWork work, LuceneBackendResources resources, IndexWriter indexWriter, IndexingMonitor monitor) {
-		this.work = work;
-		this.resources = resources;
-		this.indexWriter = indexWriter;
-		this.monitor = monitor;
-	}
+    public SingleTaskRunnable(LuceneWork work, LuceneBackendResources resources, IndexWriter indexWriter, IndexingMonitor monitor) {
+        this.work = work;
+        this.resources = resources;
+        this.indexWriter = indexWriter;
+        this.monitor = monitor;
+    }
 
-	@Override
-	public void run() {
-		work.getWorkDelegate( resources.getVisitor() ).performWork( work, indexWriter, monitor );
-	}
+    @Override
+    public void run() {
+        work.getWorkDelegate( resources.getVisitor() ).performWork( work, indexWriter, monitor );
+    }
 
 }

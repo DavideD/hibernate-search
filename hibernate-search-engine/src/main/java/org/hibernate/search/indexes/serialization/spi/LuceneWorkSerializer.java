@@ -32,14 +32,14 @@ import org.hibernate.search.backend.LuceneWork;
  */
 public interface LuceneWorkSerializer {
 
-	/**
-	 * Convert a List of LuceneWork into a byte[]
-	 */
-	byte[] toSerializedModel(List<LuceneWork> works);
+    /**
+     * Convert a List of LuceneWork into a byte[]
+     */
+    byte[] toSerializedModel(List<LuceneWork> works);
 
-	/**
-	 * Convert a byte[] to a List of LuceneWork
-	 */
-	List<LuceneWork> toLuceneWorks(byte[] data);
+    /**
+     * Convert a byte[] to a List of LuceneWork
+     */
+    List<LuceneWork> toLuceneWorks(byte[] data);
 
 }

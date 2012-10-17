@@ -34,42 +34,42 @@ import static org.junit.Assert.fail;
  * @author Hardy Ferentschik
  */
 public class BytemanHelper extends Helper {
-	public static final Log log = LoggerFactory.make();
+    public static final Log log = LoggerFactory.make();
 
-	public static final AtomicInteger counter = new AtomicInteger();
+    public static final AtomicInteger counter = new AtomicInteger();
 
-	protected BytemanHelper(Rule rule) {
-		super( rule );
-	}
+    protected BytemanHelper(Rule rule) {
+        super( rule );
+    }
 
-	public void sleepASecond() {
-		try {
-			log.info( "Byteman rule triggered: sleeping a second" );
-			Thread.sleep( 1000 );
-		}
-		catch ( InterruptedException e ) {
-			Thread.currentThread().interrupt();
-			log.error( "unexpected interruption", e );
-		}
-	}
+    public void sleepASecond() {
+        try {
+            log.info( "Byteman rule triggered: sleeping a second" );
+            Thread.sleep( 1000 );
+        }
+        catch ( InterruptedException e ) {
+            Thread.currentThread().interrupt();
+            log.error( "unexpected interruption", e );
+        }
+    }
 
-	public void throwNPE(String message) {
-		//Needed because of Bug BYTEMAN-173: can't simply inject a NPE from the rule
-		throw new NullPointerException( message );
-	}
+    public void throwNPE(String message) {
+        //Needed because of Bug BYTEMAN-173: can't simply inject a NPE from the rule
+        throw new NullPointerException( message );
+    }
 
-	public void assertBooleanValue(boolean actual, boolean expected) {
-		if ( actual != expected ) {
-			fail("Unexpected boolean value");
-		}
-	}
+    public void assertBooleanValue(boolean actual, boolean expected) {
+        if ( actual != expected ) {
+            fail("Unexpected boolean value");
+        }
+    }
 
-	public void countInvocation() {
-		log.debug( "Increment call count" );
-		counter.incrementAndGet();
-	}
+    public void countInvocation() {
+        log.debug( "Increment call count" );
+        counter.incrementAndGet();
+    }
 
-	public static int getAndResetInvocationCount() {
-		return counter.getAndSet( 0 );
-	}
+    public static int getAndResetInvocationCount() {
+        return counter.getAndSet( 0 );
+    }
 }

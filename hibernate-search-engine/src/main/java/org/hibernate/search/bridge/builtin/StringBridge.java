@@ -32,13 +32,13 @@ import org.hibernate.search.bridge.TwoWayStringBridge;
  */
 public class StringBridge implements TwoWayStringBridge {
 
-	public static final StringBridge INSTANCE = new StringBridge();
+    public static final StringBridge INSTANCE = new StringBridge();
 
-	public Object stringToObject(String stringValue) {
-		return stringValue;
-	}
+    public Object stringToObject(String stringValue) {
+        return stringValue;
+    }
 
-	public String objectToString(Object object) {
-		return (String) object;
-	}
+    public String objectToString(Object object) {
+        return (String) object;
+    }
 }

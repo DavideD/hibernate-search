@@ -33,150 +33,150 @@ import java.util.Set;
  * @author Emmanuel Bernard
  */
 public class EntityDescriptor {
-	private Map<String, Object> indexed;
-	private Map<PropertyKey, PropertyDescriptor> properties = new HashMap<PropertyKey, PropertyDescriptor>();
-	private Map<String, Object> similarity;
-	private Map<String, Object> boost;
-	private Map<String, Object> analyzerDiscriminator;
-	private Set<Map<String, Object>> fullTextFilterDefs = new HashSet<Map<String, Object>>();
-	private Map<String, Object> providedId;
-	private Set<Map<String, Object>> classBridges = new HashSet<Map<String, Object>>();
-	private Set<Map<String, Object>> spatials = new HashSet<Map<String, Object>>();
-	private Map<String, Object> dynamicBoost;
-	private Map<String, Object> cacheInMemory;
+    private Map<String, Object> indexed;
+    private Map<PropertyKey, PropertyDescriptor> properties = new HashMap<PropertyKey, PropertyDescriptor>();
+    private Map<String, Object> similarity;
+    private Map<String, Object> boost;
+    private Map<String, Object> analyzerDiscriminator;
+    private Set<Map<String, Object>> fullTextFilterDefs = new HashSet<Map<String, Object>>();
+    private Map<String, Object> providedId;
+    private Set<Map<String, Object>> classBridges = new HashSet<Map<String, Object>>();
+    private Set<Map<String, Object>> spatials = new HashSet<Map<String, Object>>();
+    private Map<String, Object> dynamicBoost;
+    private Map<String, Object> cacheInMemory;
 
-	public Map<String, Object> getIndexed() {
-		return indexed;
-	}
+    public Map<String, Object> getIndexed() {
+        return indexed;
+    }
 
-	public EntityDescriptor(Class<?> entityType) {
-	}
+    public EntityDescriptor(Class<?> entityType) {
+    }
 
-	public void setIndexed(Map<String, Object> indexed) {
-		this.indexed = indexed;
-	}
+    public void setIndexed(Map<String, Object> indexed) {
+        this.indexed = indexed;
+    }
 
-	PropertyDescriptor getProperty(String name, ElementType type) {
-		PropertyKey propertyKey = new PropertyKey( name, type );
-		PropertyDescriptor descriptor = properties.get( propertyKey );
-		if ( descriptor == null ) {
-			descriptor = new PropertyDescriptor( name, type );
-			properties.put( propertyKey, descriptor );
-		}
-		return descriptor;
-	}
+    PropertyDescriptor getProperty(String name, ElementType type) {
+        PropertyKey propertyKey = new PropertyKey( name, type );
+        PropertyDescriptor descriptor = properties.get( propertyKey );
+        if ( descriptor == null ) {
+            descriptor = new PropertyDescriptor( name, type );
+            properties.put( propertyKey, descriptor );
+        }
+        return descriptor;
+    }
 
-	public PropertyDescriptor getPropertyDescriptor(String name, ElementType type) {
-		return properties.get( new PropertyKey( name, type ) );
-	}
+    public PropertyDescriptor getPropertyDescriptor(String name, ElementType type) {
+        return properties.get( new PropertyKey( name, type ) );
+    }
 
-	public void setSimilariy(Map<String, Object> similarity) {
-		this.similarity = similarity;
-	}
+    public void setSimilariy(Map<String, Object> similarity) {
+        this.similarity = similarity;
+    }
 
-	public Map<String, Object> getSimilarity() {
-		return similarity;
-	}
+    public Map<String, Object> getSimilarity() {
+        return similarity;
+    }
 
-	public Map<String, Object> getCacheInMemory() {
-		return cacheInMemory;
-	}
+    public Map<String, Object> getCacheInMemory() {
+        return cacheInMemory;
+    }
 
-	public void setCacheInMemory(Map<String, Object> cacheInMemory) {
-		this.cacheInMemory = cacheInMemory;
-	}
+    public void setCacheInMemory(Map<String, Object> cacheInMemory) {
+        this.cacheInMemory = cacheInMemory;
+    }
 
-	public void setBoost(Map<String, Object> boost) {
-		this.boost = boost;
-	}
+    public void setBoost(Map<String, Object> boost) {
+        this.boost = boost;
+    }
 
-	public Map<String, Object> getBoost() {
-		return boost;
-	}
+    public Map<String, Object> getBoost() {
+        return boost;
+    }
 
-	public void setAnalyzerDiscriminator(Map<String, Object> analyzerDiscriminator) {
-		this.analyzerDiscriminator = analyzerDiscriminator;
-	}
+    public void setAnalyzerDiscriminator(Map<String, Object> analyzerDiscriminator) {
+        this.analyzerDiscriminator = analyzerDiscriminator;
+    }
 
-	public Map<String, Object> getAnalyzerDiscriminator() {
-		return analyzerDiscriminator;
-	}
+    public Map<String, Object> getAnalyzerDiscriminator() {
+        return analyzerDiscriminator;
+    }
 
-	public Set<Map<String, Object>> getFullTextFilterDefs() {
-		return fullTextFilterDefs;
-	}
+    public Set<Map<String, Object>> getFullTextFilterDefs() {
+        return fullTextFilterDefs;
+    }
 
-	public void addFulltextFilterDef(Map<String, Object> fullTextFilterDef) {
-		fullTextFilterDefs.add( fullTextFilterDef );
-	}
+    public void addFulltextFilterDef(Map<String, Object> fullTextFilterDef) {
+        fullTextFilterDefs.add( fullTextFilterDef );
+    }
 
-	public void addClassBridgeDef(Map<String, Object> classBridge) {
-		classBridges.add( classBridge );
-	}
+    public void addClassBridgeDef(Map<String, Object> classBridge) {
+        classBridges.add( classBridge );
+    }
 
-	public Set<Map<String, Object>> getClassBridgeDefs() {
-		return classBridges;
-	}
+    public Set<Map<String, Object>> getClassBridgeDefs() {
+        return classBridges;
+    }
 
-	public void addSpatial(Map<String,Object> spatial) {
-		spatials.add(spatial);
-	}
+    public void addSpatial(Map<String,Object> spatial) {
+        spatials.add(spatial);
+    }
 
-	public Set<Map<String, Object>> getSpatials() {
-		return spatials;
-	}
+    public Set<Map<String, Object>> getSpatials() {
+        return spatials;
+    }
 
-	public void setProvidedId(Map<String, Object> providedId) {
-		this.providedId = providedId;
-	}
+    public void setProvidedId(Map<String, Object> providedId) {
+        this.providedId = providedId;
+    }
 
-	public Map<String, Object> getProvidedId() {
-		return this.providedId;
-	}
+    public Map<String, Object> getProvidedId() {
+        return this.providedId;
+    }
 
-	public void setDynamicBoost(Map<String, Object> dynamicEntityBoost) {
-		this.dynamicBoost = dynamicEntityBoost;
-	}
+    public void setDynamicBoost(Map<String, Object> dynamicEntityBoost) {
+        this.dynamicBoost = dynamicEntityBoost;
+    }
 
-	public Map<String, Object> getDynamicBoost() {
-		return this.dynamicBoost;
-	}
+    public Map<String, Object> getDynamicBoost() {
+        return this.dynamicBoost;
+    }
 
-	private static class PropertyKey {
-		private final String name;
-		private final ElementType type;
+    private static class PropertyKey {
+        private final String name;
+        private final ElementType type;
 
-		PropertyKey(String name, ElementType type) {
-			this.name = name;
-			this.type = type;
-		}
+        PropertyKey(String name, ElementType type) {
+            this.name = name;
+            this.type = type;
+        }
 
-		@Override
-		public boolean equals(Object o) {
-			if ( this == o ) {
-				return true;
-			}
-			if ( o == null || getClass() != o.getClass() ) {
-				return false;
-			}
+        @Override
+        public boolean equals(Object o) {
+            if ( this == o ) {
+                return true;
+            }
+            if ( o == null || getClass() != o.getClass() ) {
+                return false;
+            }
 
-			PropertyKey property = (PropertyKey) o;
+            PropertyKey property = (PropertyKey) o;
 
-			if ( name != null ? !name.equals( property.name ) : property.name != null ) {
-				return false;
-			}
-			if ( type != property.type ) {
-				return false;
-			}
+            if ( name != null ? !name.equals( property.name ) : property.name != null ) {
+                return false;
+            }
+            if ( type != property.type ) {
+                return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
-		@Override
-		public int hashCode() {
-			int result = name != null ? name.hashCode() : 0;
-			result = 31 * result + ( type != null ? type.hashCode() : 0 );
-			return result;
-		}
-	}
+        @Override
+        public int hashCode() {
+            int result = name != null ? name.hashCode() : 0;
+            result = 31 * result + ( type != null ? type.hashCode() : 0 );
+            return result;
+        }
+    }
 }

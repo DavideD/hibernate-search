@@ -40,103 +40,103 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class WorkQueue {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private WorkPlan plan;
+    private WorkPlan plan;
 
-	private List<LuceneWork> sealedQueue;
-	//flag indicating if the sealed data has been provided meaning that it should no longer be modified
-	private boolean usedSealedData;
-	//flag indicating if data has been sealed and not modified since
-	private boolean sealedAndUnchanged;
+    private List<LuceneWork> sealedQueue;
+    //flag indicating if the sealed data has been provided meaning that it should no longer be modified
+    private boolean usedSealedData;
+    //flag indicating if data has been sealed and not modified since
+    private boolean sealedAndUnchanged;
 
-	private final SearchFactoryImplementor searchFactoryImplementor;
+    private final SearchFactoryImplementor searchFactoryImplementor;
 
-	public boolean isSealedAndUnchanged() {
-		return sealedAndUnchanged;
-	}
+    public boolean isSealedAndUnchanged() {
+        return sealedAndUnchanged;
+    }
 
-	public WorkQueue(SearchFactoryImplementor searchFactoryImplementor) {
-		this.searchFactoryImplementor = searchFactoryImplementor;
-		this.plan = new WorkPlan( searchFactoryImplementor );
-	}
-	
-	public WorkQueue(SearchFactoryImplementor searchFactoryImplementor, WorkPlan plan) {
-		this.searchFactoryImplementor = searchFactoryImplementor;
-		this.plan = plan;
-	}
+    public WorkQueue(SearchFactoryImplementor searchFactoryImplementor) {
+        this.searchFactoryImplementor = searchFactoryImplementor;
+        this.plan = new WorkPlan( searchFactoryImplementor );
+    }
+    
+    public WorkQueue(SearchFactoryImplementor searchFactoryImplementor, WorkPlan plan) {
+        this.searchFactoryImplementor = searchFactoryImplementor;
+        this.plan = plan;
+    }
 
-	public void add(Work work) {
-		if ( usedSealedData ) {
-			//something is wrong fail with exception
-			throw new AssertionFailure( "Attempting to add a work in a used sealed queue" );
-		}
-		this.sealedAndUnchanged = false;
-		plan.addWork( work );
-	}
+    public void add(Work work) {
+        if ( usedSealedData ) {
+            //something is wrong fail with exception
+            throw new AssertionFailure( "Attempting to add a work in a used sealed queue" );
+        }
+        this.sealedAndUnchanged = false;
+        plan.addWork( work );
+    }
 
-	public WorkQueue splitQueue() {
-		if ( log.isTraceEnabled() ) {
-			log.tracef( "Splitting workqueue with %d works", plan.size() );
-		}
-		WorkQueue subQueue = new WorkQueue( searchFactoryImplementor, plan );
-		this.plan = new WorkPlan( searchFactoryImplementor );
-		this.sealedAndUnchanged = false;
-		return subQueue;
-	}
+    public WorkQueue splitQueue() {
+        if ( log.isTraceEnabled() ) {
+            log.tracef( "Splitting workqueue with %d works", plan.size() );
+        }
+        WorkQueue subQueue = new WorkQueue( searchFactoryImplementor, plan );
+        this.plan = new WorkPlan( searchFactoryImplementor );
+        this.sealedAndUnchanged = false;
+        return subQueue;
+    }
 
-	public List<LuceneWork> getSealedQueue() {
-		if ( sealedQueue == null ) throw new AssertionFailure("Access a Sealed WorkQueue which has not been sealed");
-		this.sealedAndUnchanged = false;
-		return sealedQueue;
-	}
+    public List<LuceneWork> getSealedQueue() {
+        if ( sealedQueue == null ) throw new AssertionFailure("Access a Sealed WorkQueue which has not been sealed");
+        this.sealedAndUnchanged = false;
+        return sealedQueue;
+    }
 
-	private void setSealedQueue(List<LuceneWork> sealedQueue) {
-		//invalidate the working queue for serializability
-		/*
-		 * FIXME workaround for flush phase done later
-		 *
-		 * Due to sometimes flush applied after some beforeCompletion phase
-		 * we cannot safely seal the queue, keep it opened as a temporary measure.
-		 * This is not the proper fix unfortunately as we don't optimize the whole work queue but rather two subsets
-		 *
-		 * when the flush ordering is fixed, add the following line
-		 * queue = Collections.EMPTY_LIST;
-		 */
-		this.sealedAndUnchanged = true;
-		this.sealedQueue = sealedQueue;
-	}
+    private void setSealedQueue(List<LuceneWork> sealedQueue) {
+        //invalidate the working queue for serializability
+        /*
+         * FIXME workaround for flush phase done later
+         *
+         * Due to sometimes flush applied after some beforeCompletion phase
+         * we cannot safely seal the queue, keep it opened as a temporary measure.
+         * This is not the proper fix unfortunately as we don't optimize the whole work queue but rather two subsets
+         *
+         * when the flush ordering is fixed, add the following line
+         * queue = Collections.EMPTY_LIST;
+         */
+        this.sealedAndUnchanged = true;
+        this.sealedQueue = sealedQueue;
+    }
 
-	public void clear() {
-		if ( log.isTraceEnabled() ) {
-			log.trace( "Clearing current workqueue" );
-		}
-		plan.clear();
-		this.sealedAndUnchanged = false;
-		if ( sealedQueue != null )
-			sealedQueue.clear();
-	}
+    public void clear() {
+        if ( log.isTraceEnabled() ) {
+            log.trace( "Clearing current workqueue" );
+        }
+        plan.clear();
+        this.sealedAndUnchanged = false;
+        if ( sealedQueue != null )
+            sealedQueue.clear();
+    }
 
-	/**
-	 * Returns an estimate of the to be performed operations
-	 *
-	 * @see org.hibernate.search.engine.impl.WorkPlan#size()
-	 * @return the approximate size
-	 */
-	public int size() {
-		return plan.size();
-	}
+    /**
+     * Returns an estimate of the to be performed operations
+     *
+     * @see org.hibernate.search.engine.impl.WorkPlan#size()
+     * @return the approximate size
+     */
+    public int size() {
+        return plan.size();
+    }
 
-	/**
-	 * Compiles the work collected so far in an optimal execution plan,
-	 * storing the list of lucene operations to be performed in the sealedQueue.
-	 */
-	public void prepareWorkPlan() {
-		if ( ! sealedAndUnchanged ) {
-			plan.processContainedInAndPrepareExecution();
-			List<LuceneWork> luceneWorkPlan = plan.getPlannedLuceneWork();
-			setSealedQueue( luceneWorkPlan );
-		}
-	}
-	
+    /**
+     * Compiles the work collected so far in an optimal execution plan,
+     * storing the list of lucene operations to be performed in the sealedQueue.
+     */
+    public void prepareWorkPlan() {
+        if ( ! sealedAndUnchanged ) {
+            plan.processContainedInAndPrepareExecution();
+            List<LuceneWork> luceneWorkPlan = plan.getPlannedLuceneWork();
+            setSealedQueue( luceneWorkPlan );
+        }
+    }
+    
 }

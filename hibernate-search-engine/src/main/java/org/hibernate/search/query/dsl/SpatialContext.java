@@ -24,7 +24,7 @@ package org.hibernate.search.query.dsl;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface SpatialContext extends QueryCustomization<SpatialContext> {
-	//TODO score by proximity
+    //TODO score by proximity
 
-	SpatialMatchingContext onCoordinates(String field);
+    SpatialMatchingContext onCoordinates(String field);
 }

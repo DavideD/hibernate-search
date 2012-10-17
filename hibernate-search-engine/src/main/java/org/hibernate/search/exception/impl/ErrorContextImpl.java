@@ -36,41 +36,41 @@ import org.hibernate.search.exception.ErrorContext;
  */
 class ErrorContextImpl implements ErrorContext {
 
-	private List<LuceneWork> failingOperations;
+    private List<LuceneWork> failingOperations;
 
-	private LuceneWork operationAtFault;
+    private LuceneWork operationAtFault;
 
-	private Throwable throwable;
+    private Throwable throwable;
 
-	public List<LuceneWork> getFailingOperations() {
-		if ( failingOperations == null ) {
-			failingOperations = new ArrayList<LuceneWork>();
-		}
-		return Collections.unmodifiableList( failingOperations );
-	}
+    public List<LuceneWork> getFailingOperations() {
+        if ( failingOperations == null ) {
+            failingOperations = new ArrayList<LuceneWork>();
+        }
+        return Collections.unmodifiableList( failingOperations );
+    }
 
-	public LuceneWork getOperationAtFault() {
-		return this.operationAtFault;
-	}
+    public LuceneWork getOperationAtFault() {
+        return this.operationAtFault;
+    }
 
-	public Throwable getThrowable() {
-		return this.throwable;
-	}
+    public Throwable getThrowable() {
+        return this.throwable;
+    }
 
-	public void setFailingOperations(List<LuceneWork> failingOperations) {
-		this.failingOperations = failingOperations;
-	}
+    public void setFailingOperations(List<LuceneWork> failingOperations) {
+        this.failingOperations = failingOperations;
+    }
 
-	public void setThrowable(Throwable th) {
-		this.throwable = th;
-	}
+    public void setThrowable(Throwable th) {
+        this.throwable = th;
+    }
 
-	public void setOperationAtFault(LuceneWork operationAtFault) {
-		this.operationAtFault = operationAtFault;
-	}
+    public void setOperationAtFault(LuceneWork operationAtFault) {
+        this.operationAtFault = operationAtFault;
+    }
 
-	public boolean hasErrors() {
-		return failingOperations != null && failingOperations.size() > 0;
-	}
+    public boolean hasErrors() {
+        return failingOperations != null && failingOperations.size() > 0;
+    }
 
 }

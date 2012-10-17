@@ -38,33 +38,33 @@ import static org.hibernate.search.util.impl.CollectionHelper.newHashMap;
  * @see org.hibernate.search.query.collector.BigArrayFieldCacheCollectorImpl
  */
 final class MapFieldCacheCollectorImpl extends FieldCacheCollector {
-	
-	private final FieldLoadingStrategy collectorStrategy;
-	private final Map<Integer, Object> valuePerDocumentId = newHashMap();
+    
+    private final FieldLoadingStrategy collectorStrategy;
+    private final Map<Integer, Object> valuePerDocumentId = newHashMap();
 
-	private int currentDocBase;
+    private int currentDocBase;
 
-	public MapFieldCacheCollectorImpl(Collector delegate, FieldLoadingStrategy collectorStrategy) {
-		super( delegate );
-		this.collectorStrategy = collectorStrategy;
-	}
+    public MapFieldCacheCollectorImpl(Collector delegate, FieldLoadingStrategy collectorStrategy) {
+        super( delegate );
+        this.collectorStrategy = collectorStrategy;
+    }
 
-	@Override
-	public void collect(int doc) throws IOException {
-		//warning when changing this method: extremely performance sensitive!
-		this.delegate.collect( doc );
-		Object collected = collectorStrategy.collect( doc );
-		this.valuePerDocumentId.put( currentDocBase + doc, collected );
-	}
+    @Override
+    public void collect(int doc) throws IOException {
+        //warning when changing this method: extremely performance sensitive!
+        this.delegate.collect( doc );
+        Object collected = collectorStrategy.collect( doc );
+        this.valuePerDocumentId.put( currentDocBase + doc, collected );
+    }
 
-	@Override
-	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		this.currentDocBase = docBase;
-		this.collectorStrategy.loadNewCacheValues( reader );
-		this.delegate.setNextReader( reader, docBase );
-	}
+    @Override
+    public void setNextReader(IndexReader reader, int docBase) throws IOException {
+        this.currentDocBase = docBase;
+        this.collectorStrategy.loadNewCacheValues( reader );
+        this.delegate.setNextReader( reader, docBase );
+    }
 
-	public Object getValue(int docId) {
-		return valuePerDocumentId.get( docId );
-	}
+    public Object getValue(int docId) {
+        return valuePerDocumentId.get( docId );
+    }
 }

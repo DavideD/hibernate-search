@@ -34,20 +34,20 @@ import org.hibernate.search.backend.spi.BackendQueueProcessor;
  */
 public class BackendQueueProcessorTest {
 
-	@Test
-	public void testCheckingForNullWork() {
-		checkBackendBehaviour( new LuceneBackendQueueProcessor() );
-		checkBackendBehaviour( new BlackHoleBackendQueueProcessor() );
-		checkBackendBehaviour( new JGroupsBackendQueueProcessor( new SlaveNodeSelector() ) );
-		checkBackendBehaviour( new JndiJMSBackendQueueProcessor() );
-	}
+    @Test
+    public void testCheckingForNullWork() {
+        checkBackendBehaviour( new LuceneBackendQueueProcessor() );
+        checkBackendBehaviour( new BlackHoleBackendQueueProcessor() );
+        checkBackendBehaviour( new JGroupsBackendQueueProcessor( new SlaveNodeSelector() ) );
+        checkBackendBehaviour( new JndiJMSBackendQueueProcessor() );
+    }
 
-	private void checkBackendBehaviour(BackendQueueProcessor backend) {
-		try {
-			backend.applyWork( null, null );
-		}
-		catch ( IllegalArgumentException e ) {
-			// this is ok, we just want to avoid other exceptions or NPEs
-		}
-	}
+    private void checkBackendBehaviour(BackendQueueProcessor backend) {
+        try {
+            backend.applyWork( null, null );
+        }
+        catch ( IllegalArgumentException e ) {
+            // this is ok, we just want to avoid other exceptions or NPEs
+        }
+    }
 }

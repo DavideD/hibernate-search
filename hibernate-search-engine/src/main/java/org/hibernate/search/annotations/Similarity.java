@@ -38,5 +38,5 @@ import java.lang.annotation.Target;
  * @author Nick Vincent
  */
 public @interface Similarity {
-	public Class<?> impl();
+    public Class<?> impl();
 }

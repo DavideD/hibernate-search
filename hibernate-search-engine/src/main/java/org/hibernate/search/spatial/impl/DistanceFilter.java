@@ -41,124 +41,124 @@ import org.apache.lucene.search.QueryWrapperFilter;
  */
 public final class DistanceFilter extends Filter {
 
-	private Filter previousFilter;
-	private Point center;
-	private double radius;
-	private String coordinatesField;
-	private String latitudeField;
-	private String longitudeField;
+    private Filter previousFilter;
+    private Point center;
+    private double radius;
+    private String coordinatesField;
+    private String latitudeField;
+    private String longitudeField;
 
-	/**
-	 * Construct a Distance Filter to match document distant at most of radius from center Point
-	 *
-	 * @param previousFilter previous Filter in the chain. As Distance is costly by retrieving the lat and long field
-	 * it is better to use it last
-	 * @param center center of the search perimeter
-	 * @param radius radius of the search perimeter
-	 * @param coordinatesField name of the field implementing Coordinates
-	 * @see org.hibernate.search.spatial.Coordinates
-	 */
-	public DistanceFilter(Filter previousFilter, Point center, double radius, String coordinatesField) {
-		if ( previousFilter != null ) {
-			this.previousFilter = previousFilter;
-		}
-		else {
-			this.previousFilter = new QueryWrapperFilter( new MatchAllDocsQuery() );
-		}
-		this.center = center;
-		this.radius = radius;
-		this.coordinatesField = coordinatesField;
-	}
-	
-	/**
-	 * Construct a Distance Filter to match document distant at most of radius from center Point
-	 *
-	 * @param previousFilter previous Filter in the chain. As Distance is costly by retrieving the lat and long field
-	 * it is better to use it last
-	 * @param center center of the search perimeter
-	 * @param radius radius of the search perimeter
-	 * @param latitudeField name of the field hosting latitude
-	 * @param longitudeField name of the field hosting longitude
-	 * @see org.hibernate.search.spatial.Coordinates
-	 */
-	public DistanceFilter(Filter previousFilter, Point center, double radius, String latitudeField, String longitudeField) {
-		if ( previousFilter != null ) {
-			this.previousFilter = previousFilter;
-		}
-		else {
-			this.previousFilter = new QueryWrapperFilter( new MatchAllDocsQuery() );
-		}
-		this.center = center;
-		this.radius = radius;
-		this.coordinatesField = null;
-		this.latitudeField = latitudeField;
-		this.longitudeField = longitudeField;
-	}
+    /**
+     * Construct a Distance Filter to match document distant at most of radius from center Point
+     *
+     * @param previousFilter previous Filter in the chain. As Distance is costly by retrieving the lat and long field
+     * it is better to use it last
+     * @param center center of the search perimeter
+     * @param radius radius of the search perimeter
+     * @param coordinatesField name of the field implementing Coordinates
+     * @see org.hibernate.search.spatial.Coordinates
+     */
+    public DistanceFilter(Filter previousFilter, Point center, double radius, String coordinatesField) {
+        if ( previousFilter != null ) {
+            this.previousFilter = previousFilter;
+        }
+        else {
+            this.previousFilter = new QueryWrapperFilter( new MatchAllDocsQuery() );
+        }
+        this.center = center;
+        this.radius = radius;
+        this.coordinatesField = coordinatesField;
+    }
+    
+    /**
+     * Construct a Distance Filter to match document distant at most of radius from center Point
+     *
+     * @param previousFilter previous Filter in the chain. As Distance is costly by retrieving the lat and long field
+     * it is better to use it last
+     * @param center center of the search perimeter
+     * @param radius radius of the search perimeter
+     * @param latitudeField name of the field hosting latitude
+     * @param longitudeField name of the field hosting longitude
+     * @see org.hibernate.search.spatial.Coordinates
+     */
+    public DistanceFilter(Filter previousFilter, Point center, double radius, String latitudeField, String longitudeField) {
+        if ( previousFilter != null ) {
+            this.previousFilter = previousFilter;
+        }
+        else {
+            this.previousFilter = new QueryWrapperFilter( new MatchAllDocsQuery() );
+        }
+        this.center = center;
+        this.radius = radius;
+        this.coordinatesField = null;
+        this.latitudeField = latitudeField;
+        this.longitudeField = longitudeField;
+    }
 
-	/**
-	 * Returns Doc Ids by retrieving their lat,long and checking if within distance(radius) of the center of the search
-	 *
-	 * @param reader reader to the index
-	 */
-	@Override
-	public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
+    /**
+     * Returns Doc Ids by retrieving their lat,long and checking if within distance(radius) of the center of the search
+     *
+     * @param reader reader to the index
+     */
+    @Override
+    public DocIdSet getDocIdSet(IndexReader reader) throws IOException {
 
-		final double[] latitudeValues = FieldCache.DEFAULT.getDoubles( reader, getLatitudeField() );
-		final double[] longitudeValues = FieldCache.DEFAULT.getDoubles( reader, getLongitudeField() );
+        final double[] latitudeValues = FieldCache.DEFAULT.getDoubles( reader, getLatitudeField() );
+        final double[] longitudeValues = FieldCache.DEFAULT.getDoubles( reader, getLongitudeField() );
 
-		DocIdSet docs = previousFilter.getDocIdSet( reader );
+        DocIdSet docs = previousFilter.getDocIdSet( reader );
 
-		if ( ( docs == null ) || ( docs.iterator() == null ) ) {
-			return null;
-		}
+        if ( ( docs == null ) || ( docs.iterator() == null ) ) {
+            return null;
+        }
 
-		return new FilteredDocIdSet( docs ) {
-			@Override
-			protected boolean match(int documentIndex) {
+        return new FilteredDocIdSet( docs ) {
+            @Override
+            protected boolean match(int documentIndex) {
 
-				if ( center.getDistanceTo( latitudeValues[documentIndex], longitudeValues[documentIndex] ) <= radius ) {
-					return true;
-				}
-				else {
-					return false;
-				}
-			}
-		};
-	}
+                if ( center.getDistanceTo( latitudeValues[documentIndex], longitudeValues[documentIndex] ) <= radius ) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+        };
+    }
 
-	private String getLatitudeField() {
-		if (latitudeField != null) {
-			return latitudeField;
-		}
-		else {
-			return GridHelper.formatLatitude( coordinatesField );
-		}
-	}
+    private String getLatitudeField() {
+        if (latitudeField != null) {
+            return latitudeField;
+        }
+        else {
+            return GridHelper.formatLatitude( coordinatesField );
+        }
+    }
 
-	private String getLongitudeField() {
-		if (longitudeField != null) {
-			return longitudeField;
-		}
-		else {
-			return GridHelper.formatLongitude( coordinatesField );
-		}
-	}
+    private String getLongitudeField() {
+        if (longitudeField != null) {
+            return longitudeField;
+        }
+        else {
+            return GridHelper.formatLongitude( coordinatesField );
+        }
+    }
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		sb.append( "DistanceFilter" );
-		sb.append( "{previousFilter=" ).append( previousFilter );
-		sb.append( ", center=" ).append( center );
-		sb.append( ", radius=" ).append( radius );
-		if ( coordinatesField != null) {
-			sb.append( ", coordinatesField='" ).append( coordinatesField ).append( '\'' );
-		}
-		else {
-			sb.append( ", latitudeField=" ).append( latitudeField );
-			sb.append( ", longitudeField=" ).append( longitudeField ).append( '\'' );
-		}
-		sb.append( '}' );
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append( "DistanceFilter" );
+        sb.append( "{previousFilter=" ).append( previousFilter );
+        sb.append( ", center=" ).append( center );
+        sb.append( ", radius=" ).append( radius );
+        if ( coordinatesField != null) {
+            sb.append( ", coordinatesField='" ).append( coordinatesField ).append( '\'' );
+        }
+        else {
+            sb.append( ", latitudeField=" ).append( latitudeField );
+            sb.append( ", longitudeField=" ).append( longitudeField ).append( '\'' );
+        }
+        sb.append( '}' );
+        return sb.toString();
+    }
 }

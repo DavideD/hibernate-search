@@ -45,73 +45,73 @@ import org.junit.Test;
  */
 public class OptimizerStrategyLoadTest {
 
-	@Test
-	public void testDefaultImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.addProperty( "hibernate.search.default.optimizer.implementation", "default" );
-		verifyOptimizerImplementationIs( ExplicitOnlyOptimizerStrategy.class, cfg );
-	}
+    @Test
+    public void testDefaultImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.addProperty( "hibernate.search.default.optimizer.implementation", "default" );
+        verifyOptimizerImplementationIs( ExplicitOnlyOptimizerStrategy.class, cfg );
+    }
 
-	@Test
-	public void testUnsetImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		verifyOptimizerImplementationIs( ExplicitOnlyOptimizerStrategy.class, cfg );
-	}
+    @Test
+    public void testUnsetImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        verifyOptimizerImplementationIs( ExplicitOnlyOptimizerStrategy.class, cfg );
+    }
 
-	@Test
-	public void testIncrementalImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.addProperty( "hibernate.search.default.optimizer.transaction_limit.max", "5" );
-		verifyOptimizerImplementationIs( IncrementalOptimizerStrategy.class, cfg );
-	}
+    @Test
+    public void testIncrementalImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.addProperty( "hibernate.search.default.optimizer.transaction_limit.max", "5" );
+        verifyOptimizerImplementationIs( IncrementalOptimizerStrategy.class, cfg );
+    }
 
-	@Test(expected=SearchException.class)
-	public void testIllegalImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.addProperty( "hibernate.search.default.optimizer.implementation", "5" );
-		verifyOptimizerImplementationIs( IncrementalOptimizerStrategy.class, cfg );
-	}
+    @Test(expected=SearchException.class)
+    public void testIllegalImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.addProperty( "hibernate.search.default.optimizer.implementation", "5" );
+        verifyOptimizerImplementationIs( IncrementalOptimizerStrategy.class, cfg );
+    }
 
-	@Test
-	public void testValidExtension() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.addProperty( "hibernate.search.default.optimizer.implementation", CustomOptimizer.class.getName() );
-		verifyOptimizerImplementationIs( CustomOptimizer.class, cfg );
-	}
+    @Test
+    public void testValidExtension() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.addProperty( "hibernate.search.default.optimizer.implementation", CustomOptimizer.class.getName() );
+        verifyOptimizerImplementationIs( CustomOptimizer.class, cfg );
+    }
 
-	@SuppressWarnings("unchecked")
-	private void verifyOptimizerImplementationIs(Class type, ManualConfiguration cfg) {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Document.class ).indexed()
-			.property( "id", ElementType.FIELD ).documentId()
-			.property( "title", ElementType.FIELD ).field()
-			;
-		cfg.setProgrammaticMapping( mapping );
-		cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		cfg.addClass( Document.class );
-		SearchFactoryImplementor sf = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
-		try {
-			EntityIndexBinder indexBindingForEntity = sf.getIndexBindingForEntity( Document.class );
-			DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) indexBindingForEntity.getIndexManagers()[0];
-			OptimizerStrategy optimizerStrategy = indexManager.getOptimizerStrategy();
-			Assert.assertTrue( type.isAssignableFrom( optimizerStrategy.getClass() ) );
-		}
-		finally {
-			sf.close();
-		}
-	}
+    @SuppressWarnings("unchecked")
+    private void verifyOptimizerImplementationIs(Class type, ManualConfiguration cfg) {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Document.class ).indexed()
+            .property( "id", ElementType.FIELD ).documentId()
+            .property( "title", ElementType.FIELD ).field()
+            ;
+        cfg.setProgrammaticMapping( mapping );
+        cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        cfg.addClass( Document.class );
+        SearchFactoryImplementor sf = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+        try {
+            EntityIndexBinder indexBindingForEntity = sf.getIndexBindingForEntity( Document.class );
+            DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) indexBindingForEntity.getIndexManagers()[0];
+            OptimizerStrategy optimizerStrategy = indexManager.getOptimizerStrategy();
+            Assert.assertTrue( type.isAssignableFrom( optimizerStrategy.getClass() ) );
+        }
+        finally {
+            sf.close();
+        }
+    }
 
-	@SuppressWarnings("unused")
-	public static final class Document {
+    @SuppressWarnings("unused")
+    public static final class Document {
 
-		private long id;
-		private String title;
+        private long id;
+        private String title;
 
-	}
+    }
 
-	public static final class CustomOptimizer extends IncrementalOptimizerStrategy {
-		
-	}
+    public static final class CustomOptimizer extends IncrementalOptimizerStrategy {
+        
+    }
 
 }

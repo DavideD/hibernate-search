@@ -30,9 +30,9 @@ package org.hibernate.search.query.dsl;
  * @author Emmanuel Bernard
  */
 public interface MustJunction extends BooleanJunction<MustJunction> {
-	/**
-	 * Negate the must clause.
-	 * Results of the boolean query do NOT match the subquery.
-	 */
-	BooleanJunction not();
+    /**
+     * Negate the must clause.
+     * Results of the boolean query do NOT match the subquery.
+     */
+    BooleanJunction not();
 }

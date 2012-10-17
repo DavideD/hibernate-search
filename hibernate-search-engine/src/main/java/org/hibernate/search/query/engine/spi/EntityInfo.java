@@ -29,17 +29,17 @@ import java.util.List;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface EntityInfo {
-	Class<?> getClazz();
+    Class<?> getClazz();
 
-	Serializable getId();
+    Serializable getId();
 
-	String getIdName();
+    String getIdName();
 
-	Object[] getProjection();
+    Object[] getProjection();
 
-	List<Integer> getIndexesOfThis();
+    List<Integer> getIndexesOfThis();
 
-	boolean isProjectThis();
+    boolean isProjectThis();
 
-	void populateWithEntityInstance(Object entity);
+    void populateWithEntityInstance(Object entity);
 }

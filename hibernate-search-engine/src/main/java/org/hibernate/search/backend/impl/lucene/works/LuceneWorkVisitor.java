@@ -36,52 +36,52 @@ import org.hibernate.search.store.Workspace;
  * @author Sanne Grinovero
  */
 public class LuceneWorkVisitor implements WorkVisitor<LuceneWorkDelegate> {
-	
-	private final AddWorkDelegate addDelegate;
-	private final DeleteWorkDelegate deleteDelegate;
-	private final UpdateWorkDelegate updateDelegate;
-	private final OptimizeWorkDelegate optimizeDelegate;
-	private final PurgeAllWorkDelegate purgeAllDelegate;
-	private final FlushWorkDelegate flushDelegate;
-	
-	public LuceneWorkVisitor(Workspace workspace) {
-		this.addDelegate = new AddWorkDelegate( workspace );
-		if ( workspace.areSingleTermDeletesSafe() ) {
-			this.deleteDelegate = new DeleteExtWorkDelegate( workspace );
-			this.updateDelegate = new UpdateExtWorkDelegate( workspace, addDelegate );
-		}
-		else {
-			this.deleteDelegate = new DeleteWorkDelegate( workspace );
-			this.updateDelegate = new UpdateWorkDelegate( deleteDelegate, addDelegate );
-		}
-		this.purgeAllDelegate = new PurgeAllWorkDelegate( workspace );
-		this.optimizeDelegate = new OptimizeWorkDelegate( workspace );
-		this.flushDelegate = new FlushWorkDelegate( workspace );
-	}
+    
+    private final AddWorkDelegate addDelegate;
+    private final DeleteWorkDelegate deleteDelegate;
+    private final UpdateWorkDelegate updateDelegate;
+    private final OptimizeWorkDelegate optimizeDelegate;
+    private final PurgeAllWorkDelegate purgeAllDelegate;
+    private final FlushWorkDelegate flushDelegate;
+    
+    public LuceneWorkVisitor(Workspace workspace) {
+        this.addDelegate = new AddWorkDelegate( workspace );
+        if ( workspace.areSingleTermDeletesSafe() ) {
+            this.deleteDelegate = new DeleteExtWorkDelegate( workspace );
+            this.updateDelegate = new UpdateExtWorkDelegate( workspace, addDelegate );
+        }
+        else {
+            this.deleteDelegate = new DeleteWorkDelegate( workspace );
+            this.updateDelegate = new UpdateWorkDelegate( deleteDelegate, addDelegate );
+        }
+        this.purgeAllDelegate = new PurgeAllWorkDelegate( workspace );
+        this.optimizeDelegate = new OptimizeWorkDelegate( workspace );
+        this.flushDelegate = new FlushWorkDelegate( workspace );
+    }
 
-	public LuceneWorkDelegate getDelegate(AddLuceneWork addLuceneWork) {
-		return addDelegate;
-	}
+    public LuceneWorkDelegate getDelegate(AddLuceneWork addLuceneWork) {
+        return addDelegate;
+    }
 
-	public LuceneWorkDelegate getDelegate(DeleteLuceneWork deleteLuceneWork) {
-		return deleteDelegate;
-	}
+    public LuceneWorkDelegate getDelegate(DeleteLuceneWork deleteLuceneWork) {
+        return deleteDelegate;
+    }
 
-	public LuceneWorkDelegate getDelegate(OptimizeLuceneWork optimizeLuceneWork) {
-		return optimizeDelegate;
-	}
+    public LuceneWorkDelegate getDelegate(OptimizeLuceneWork optimizeLuceneWork) {
+        return optimizeDelegate;
+    }
 
-	public LuceneWorkDelegate getDelegate(PurgeAllLuceneWork purgeAllLuceneWork) {
-		return purgeAllDelegate;
-	}
+    public LuceneWorkDelegate getDelegate(PurgeAllLuceneWork purgeAllLuceneWork) {
+        return purgeAllDelegate;
+    }
 
-	public LuceneWorkDelegate getDelegate(UpdateLuceneWork updateLuceneWork) {
-		return updateDelegate;
-	}
+    public LuceneWorkDelegate getDelegate(UpdateLuceneWork updateLuceneWork) {
+        return updateDelegate;
+    }
 
-	@Override
-	public LuceneWorkDelegate getDelegate(FlushLuceneWork flushLuceneWork) {
-		return flushDelegate;
-	}
+    @Override
+    public LuceneWorkDelegate getDelegate(FlushLuceneWork flushLuceneWork) {
+        return flushDelegate;
+    }
 
 }

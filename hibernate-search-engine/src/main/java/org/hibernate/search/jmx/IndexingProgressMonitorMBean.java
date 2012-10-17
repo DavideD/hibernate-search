@@ -30,22 +30,22 @@ package org.hibernate.search.jmx;
  */
 public interface IndexingProgressMonitorMBean {
 
-	public static final String INDEXING_PROGRESS_MONITOR_MBEAN_OBJECT_NAME = "org.hibernate.search.jmx:type=IndexingProgressMBean";
+    public static final String INDEXING_PROGRESS_MONITOR_MBEAN_OBJECT_NAME = "org.hibernate.search.jmx:type=IndexingProgressMBean";
 
-	/**
-	 * @return the number of entities loaded so far
-	 */
-	long getLoadedEntitiesCount();
+    /**
+     * @return the number of entities loaded so far
+     */
+    long getLoadedEntitiesCount();
 
-	/**
-	 * @return the number of Lucene {@code Document}s added so far
-	 */
-	long getDocumentsAddedCount();
+    /**
+     * @return the number of Lucene {@code Document}s added so far
+     */
+    long getDocumentsAddedCount();
 
-	/**
-	 * @return the total number of entities which need indexing
-	 */
-	long getNumberOfEntitiesToIndex();
+    /**
+     * @return the total number of entities which need indexing
+     */
+    long getNumberOfEntitiesToIndex();
 }
 
 

@@ -34,25 +34,25 @@ import org.hibernate.search.engine.spi.SearchFactoryImplementor;
  * @author Emmanuel Bernard
  */
 public class QueryBuildingContext {
-	private final SearchFactoryImplementor factory;
-	private final Analyzer queryAnalyzer;
-	private final Class<?> entityType;
+    private final SearchFactoryImplementor factory;
+    private final Analyzer queryAnalyzer;
+    private final Class<?> entityType;
 
-	public QueryBuildingContext(SearchFactoryImplementor factory, Analyzer queryAnalyzer, Class<?> entityType) {
-		this.factory = factory;
-		this.queryAnalyzer = queryAnalyzer;
-		this.entityType = entityType;
-	}
+    public QueryBuildingContext(SearchFactoryImplementor factory, Analyzer queryAnalyzer, Class<?> entityType) {
+        this.factory = factory;
+        this.queryAnalyzer = queryAnalyzer;
+        this.entityType = entityType;
+    }
 
-	public SearchFactoryImplementor getFactory() {
-		return factory;
-	}
+    public SearchFactoryImplementor getFactory() {
+        return factory;
+    }
 
-	public Analyzer getQueryAnalyzer() {
-		return queryAnalyzer;
-	}
+    public Analyzer getQueryAnalyzer() {
+        return queryAnalyzer;
+    }
 
-	public Class<?> getEntityType() {
-		return entityType;
-	}
+    public Class<?> getEntityType() {
+        return entityType;
+    }
 }

@@ -32,18 +32,18 @@ import org.apache.lucene.search.FieldCache;
  * @see FieldLoadingStrategy
  */
 public final class FloatFieldLoadingStrategy implements FieldLoadingStrategy {
-	private final String fieldName;
-	private float[] currentCache;
+    private final String fieldName;
+    private float[] currentCache;
 
-	public FloatFieldLoadingStrategy(String fieldName) {
-		this.fieldName = fieldName;
-	}
+    public FloatFieldLoadingStrategy(String fieldName) {
+        this.fieldName = fieldName;
+    }
 
-	public void loadNewCacheValues(IndexReader reader) throws IOException {
-		currentCache = FieldCache.DEFAULT.getFloats( reader, fieldName );
-	}
+    public void loadNewCacheValues(IndexReader reader) throws IOException {
+        currentCache = FieldCache.DEFAULT.getFloats( reader, fieldName );
+    }
 
-	public Float collect(int relativeDocId) {
-		return currentCache[relativeDocId];
-	}
+    public Float collect(int relativeDocId) {
+        return currentCache[relativeDocId];
+    }
 }

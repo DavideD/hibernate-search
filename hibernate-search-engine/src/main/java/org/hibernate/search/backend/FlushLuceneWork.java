@@ -36,37 +36,37 @@ import org.hibernate.search.backend.impl.WorkVisitor;
  */
 public class FlushLuceneWork extends LuceneWork implements Serializable {
 
-	public static final FlushLuceneWork INSTANCE = new FlushLuceneWork();
+    public static final FlushLuceneWork INSTANCE = new FlushLuceneWork();
 
-	/**
-	 * Flushes all index operations for a specific entity.
-	 *
-	 * @param entity the entity type for which to flush the index
-	 */
-	public FlushLuceneWork(Class<?> entity) {
-		super( null, null, entity );
-	}
+    /**
+     * Flushes all index operations for a specific entity.
+     *
+     * @param entity the entity type for which to flush the index
+     */
+    public FlushLuceneWork(Class<?> entity) {
+        super( null, null, entity );
+    }
 
-	/**
-	 * Flushes all index operations
-	 */
-	private FlushLuceneWork() {
-		super( null, null, null );
-	}
+    /**
+     * Flushes all index operations
+     */
+    private FlushLuceneWork() {
+        super( null, null, null );
+    }
 
-	@Override
-	public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
-		return visitor.getDelegate( this );
-	}
+    @Override
+    public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
+        return visitor.getDelegate( this );
+    }
 
-	@Override
-	public String toString() {
-		Class entityClass = this.getEntityClass();
-		if ( entityClass == null ) {
-			return "FlushLuceneWork: global";
-		}
-		else {
-			return "FlushLuceneWork: " + this.getEntityClass().getName();
-		}
-	}
+    @Override
+    public String toString() {
+        Class entityClass = this.getEntityClass();
+        if ( entityClass == null ) {
+            return "FlushLuceneWork: global";
+        }
+        else {
+            return "FlushLuceneWork: " + this.getEntityClass().getName();
+        }
+    }
 }

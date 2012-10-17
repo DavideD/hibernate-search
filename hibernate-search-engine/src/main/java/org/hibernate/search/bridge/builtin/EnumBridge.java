@@ -35,22 +35,22 @@ import org.hibernate.search.bridge.TwoWayStringBridge;
  */
 public class EnumBridge implements TwoWayStringBridge, AppliedOnTypeAwareBridge {
 
-	private Class<? extends Enum> clazz = null;
+    private Class<? extends Enum> clazz = null;
 
-	public Enum<? extends Enum> stringToObject(String stringValue) {
-		if ( StringHelper.isEmpty( stringValue ) ) return null;
-		return Enum.valueOf( clazz, stringValue );
-	}
+    public Enum<? extends Enum> stringToObject(String stringValue) {
+        if ( StringHelper.isEmpty( stringValue ) ) return null;
+        return Enum.valueOf( clazz, stringValue );
+    }
 
-	public String objectToString(Object object) {
-		Enum e = (Enum) object;
-		return e != null ? e.name() : null;
-	}
+    public String objectToString(Object object) {
+        Enum e = (Enum) object;
+        return e != null ? e.name() : null;
+    }
 
-	public void setAppliedOnType(Class<?> returnType) {
-		@SuppressWarnings("unchecked") //only called for an enum
-		Class<? extends Enum> enumReturnType = (Class<? extends Enum>) returnType;
-		this.clazz = enumReturnType;
-	}
+    public void setAppliedOnType(Class<?> returnType) {
+        @SuppressWarnings("unchecked") //only called for an enum
+        Class<? extends Enum> enumReturnType = (Class<? extends Enum>) returnType;
+        this.clazz = enumReturnType;
+    }
 }
 

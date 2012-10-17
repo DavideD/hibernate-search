@@ -27,20 +27,20 @@ import org.hibernate.search.indexes.serialization.spi.SerializableTermVector;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableReaderField extends SerializableField {
-	private byte[] value;
-	private SerializableTermVector termVector;
+    private byte[] value;
+    private SerializableTermVector termVector;
 
-	public SerializableReaderField(LuceneFieldContext context) {
-		super( context );
-		this.value = context.getReaderValue();
-		this.termVector = context.getTermVector();
-	}
+    public SerializableReaderField(LuceneFieldContext context) {
+        super( context );
+        this.value = context.getReaderValue();
+        this.termVector = context.getTermVector();
+    }
 
-	public byte[] getValue() {
-		return value;
-	}
+    public byte[] getValue() {
+        return value;
+    }
 
-	public SerializableTermVector getTermVector() {
-		return termVector;
-	}
+    public SerializableTermVector getTermVector() {
+        return termVector;
+    }
 }

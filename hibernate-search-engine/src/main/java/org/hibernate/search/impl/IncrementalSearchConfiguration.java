@@ -44,71 +44,71 @@ import org.hibernate.search.spi.internals.SearchFactoryState;
  * @author Emmanuel Bernard
  */
 public class IncrementalSearchConfiguration implements SearchConfiguration {
-	private final List<Class<?>> classes;
-	private final Map<String, Class<?>> classesByName = new HashMap<String, Class<?>>();
-	private final SearchFactoryState state;
-	private final Properties properties;
-	private final ReflectionManager reflectionManager = new JavaReflectionManager();
+    private final List<Class<?>> classes;
+    private final Map<String, Class<?>> classesByName = new HashMap<String, Class<?>>();
+    private final SearchFactoryState state;
+    private final Properties properties;
+    private final ReflectionManager reflectionManager = new JavaReflectionManager();
 
-	public IncrementalSearchConfiguration(List<Class<?>> classes, Properties properties, SearchFactoryState factoryState) {
-		this.properties = properties;
-		this.classes = classes;
-		this.state = factoryState;
-		for ( Class<?> entity : classes ) {
-			classesByName.put( entity.getName(), entity );
-		}
-	}
+    public IncrementalSearchConfiguration(List<Class<?>> classes, Properties properties, SearchFactoryState factoryState) {
+        this.properties = properties;
+        this.classes = classes;
+        this.state = factoryState;
+        for ( Class<?> entity : classes ) {
+            classesByName.put( entity.getName(), entity );
+        }
+    }
 
-	public Iterator<Class<?>> getClassMappings() {
-		return classes.iterator();
-	}
+    public Iterator<Class<?>> getClassMappings() {
+        return classes.iterator();
+    }
 
-	public Class<?> getClassMapping(String name) {
-		return classesByName.get( name );
-	}
+    public Class<?> getClassMapping(String name) {
+        return classesByName.get( name );
+    }
 
-	public String getProperty(String propertyName) {
-		return properties.getProperty(propertyName );
-	}
+    public String getProperty(String propertyName) {
+        return properties.getProperty(propertyName );
+    }
 
-	public Properties getProperties() {
-		return properties;
-	}
+    public Properties getProperties() {
+        return properties;
+    }
 
-	public ReflectionManager getReflectionManager() {
-		return reflectionManager;
-	}
+    public ReflectionManager getReflectionManager() {
+        return reflectionManager;
+    }
 
-	public SearchMapping getProgrammaticMapping() {
-		return state.getProgrammaticMapping();
-	}
+    public SearchMapping getProgrammaticMapping() {
+        return state.getProgrammaticMapping();
+    }
 
-	public Map<Class<? extends ServiceProvider<?>>, Object> getProvidedServices() {
-		return Collections.emptyMap();
-	}
+    public Map<Class<? extends ServiceProvider<?>>, Object> getProvidedServices() {
+        return Collections.emptyMap();
+    }
 
-	@Override
-	public boolean isTransactionManagerExpected() {
-		return state.isTransactionManagerExpected();
-	}
+    @Override
+    public boolean isTransactionManagerExpected() {
+        return state.isTransactionManagerExpected();
+    }
 
-	@Override
-	public InstanceInitializer getInstanceInitializer() {
-		return state.getInstanceInitializer();
-	}
+    @Override
+    public InstanceInitializer getInstanceInitializer() {
+        return state.getInstanceInitializer();
+    }
 
-	@Override
-	public boolean isIndexMetadataComplete() {
-		return state.isIndexMetadataComplete();
-	}
+    @Override
+    public boolean isIndexMetadataComplete() {
+        return state.isIndexMetadataComplete();
+    }
 
-	@Override
-	public boolean isIdProvidedImplicit() {
-		return state.isIdProvidedImplicit();
-	}
+    @Override
+    public boolean isIdProvidedImplicit() {
+        return state.isIdProvidedImplicit();
+    }
 
-	@Override
-	public IndexManagerFactory getIndexManagerFactory() {
-		return state.getIndexManagerFactory();
-	}
+    @Override
+    public IndexManagerFactory getIndexManagerFactory() {
+        return state.getIndexManagerFactory();
+    }
 }

@@ -29,14 +29,14 @@ package org.hibernate.search.exception;
  */
 public interface ErrorHandler {
 
-	void handle(ErrorContext context);
+    void handle(ErrorContext context);
 
-	/**
-	 * Suited to handle a single Exception, where no ErrorContext is needed.
-	 * @since 4.0
-	 * @param errorMsg any description which could be useful to identify what was happening
-	 * @param exception the error to be handled
-	 */
-	void handleException(String errorMsg, Throwable exception);
+    /**
+     * Suited to handle a single Exception, where no ErrorContext is needed.
+     * @since 4.0
+     * @param errorMsg any description which could be useful to identify what was happening
+     * @param exception the error to be handled
+     */
+    void handleException(String errorMsg, Throwable exception);
 
 }

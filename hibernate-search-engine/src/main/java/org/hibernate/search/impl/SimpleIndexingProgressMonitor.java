@@ -38,65 +38,65 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class SimpleIndexingProgressMonitor implements MassIndexerProgressMonitor {
 
-	private static final Log log = LoggerFactory.make();
-	private final AtomicLong documentsDoneCounter = new AtomicLong();
-	private final AtomicLong totalCounter = new AtomicLong();
-	private volatile long startTime;
-	private final int logAfterNumberOfDocuments;
+    private static final Log log = LoggerFactory.make();
+    private final AtomicLong documentsDoneCounter = new AtomicLong();
+    private final AtomicLong totalCounter = new AtomicLong();
+    private volatile long startTime;
+    private final int logAfterNumberOfDocuments;
 
-	/**
-	 * Logs progress of indexing job every 50 documents written.
-	 */
-	public SimpleIndexingProgressMonitor() {
-		this( 50 );
-	}
+    /**
+     * Logs progress of indexing job every 50 documents written.
+     */
+    public SimpleIndexingProgressMonitor() {
+        this( 50 );
+    }
 
-	/**
-	 * Logs progress of indexing job every <code>logAfterNumberOfDocuments</code>
-	 * documents written.
-	 *
-	 * @param logAfterNumberOfDocuments log each time the specified number of documents has been added
-	 */
-	public SimpleIndexingProgressMonitor(int logAfterNumberOfDocuments) {
-		this.logAfterNumberOfDocuments = logAfterNumberOfDocuments;
-	}
+    /**
+     * Logs progress of indexing job every <code>logAfterNumberOfDocuments</code>
+     * documents written.
+     *
+     * @param logAfterNumberOfDocuments log each time the specified number of documents has been added
+     */
+    public SimpleIndexingProgressMonitor(int logAfterNumberOfDocuments) {
+        this.logAfterNumberOfDocuments = logAfterNumberOfDocuments;
+    }
 
-	public void entitiesLoaded(int size) {
-		//not used
-	}
+    public void entitiesLoaded(int size) {
+        //not used
+    }
 
-	public void documentsAdded(long increment) {
-		long current = documentsDoneCounter.addAndGet( increment );
-		if ( current == increment ) {
-			startTime = System.nanoTime();
-		}
-		if ( current % getStatusMessagePeriod() == 0 ) {
-			printStatusMessage( startTime, totalCounter.get(), current );
-		}
-	}
+    public void documentsAdded(long increment) {
+        long current = documentsDoneCounter.addAndGet( increment );
+        if ( current == increment ) {
+            startTime = System.nanoTime();
+        }
+        if ( current % getStatusMessagePeriod() == 0 ) {
+            printStatusMessage( startTime, totalCounter.get(), current );
+        }
+    }
 
-	public void documentsBuilt(int number) {
-		//not used
-	}
+    public void documentsBuilt(int number) {
+        //not used
+    }
 
-	public void addToTotalCount(long count) {
-		totalCounter.addAndGet( count );
-		log.indexingEntities( count );
-	}
+    public void addToTotalCount(long count) {
+        totalCounter.addAndGet( count );
+        log.indexingEntities( count );
+    }
 
-	public void indexingCompleted() {
-		log.indexingEntitiesCompleted( totalCounter.get() );
-	}
+    public void indexingCompleted() {
+        log.indexingEntitiesCompleted( totalCounter.get() );
+    }
 
-	protected int getStatusMessagePeriod() {
-		return logAfterNumberOfDocuments;
-	}
+    protected int getStatusMessagePeriod() {
+        return logAfterNumberOfDocuments;
+    }
 
-	protected void printStatusMessage(long startTime, long totalTodoCount, long doneCount) {
-		long elapsedMs = TimeUnit.NANOSECONDS.toMillis( System.nanoTime() - startTime );
-		log.indexingDocumentsCompleted( doneCount, elapsedMs );
-		float estimateSpeed = doneCount * 1000f / elapsedMs;
-		float estimatePercentileComplete = doneCount * 100f / totalTodoCount;
-		log.indexingSpeed( estimateSpeed, estimatePercentileComplete );
-	}
+    protected void printStatusMessage(long startTime, long totalTodoCount, long doneCount) {
+        long elapsedMs = TimeUnit.NANOSECONDS.toMillis( System.nanoTime() - startTime );
+        log.indexingDocumentsCompleted( doneCount, elapsedMs );
+        float estimateSpeed = doneCount * 1000f / elapsedMs;
+        float estimatePercentileComplete = doneCount * 100f / totalTodoCount;
+        log.indexingSpeed( estimateSpeed, estimatePercentileComplete );
+    }
 }

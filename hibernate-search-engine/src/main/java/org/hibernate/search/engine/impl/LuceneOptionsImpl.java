@@ -47,108 +47,108 @@ import static org.hibernate.search.annotations.NumericField.PRECISION_STEP_DEFAU
  */
 public class LuceneOptionsImpl implements LuceneOptions {
 
-	private final boolean storeCompressed;
-	private final boolean storeUncompressed;
-	private final Index indexMode;
-	private final TermVector termVector;
-	private final float boost;
-	private final Store storeType;
-	private final int precisionStep;
-	private final String indexNullAs;
+    private final boolean storeCompressed;
+    private final boolean storeUncompressed;
+    private final Index indexMode;
+    private final TermVector termVector;
+    private final float boost;
+    private final Store storeType;
+    private final int precisionStep;
+    private final String indexNullAs;
 
-	public LuceneOptionsImpl(Store store, Index indexMode, TermVector termVector, float boost) {
-		this( store, indexMode, termVector, boost, null, PRECISION_STEP_DEFAULT );
-	}
+    public LuceneOptionsImpl(Store store, Index indexMode, TermVector termVector, float boost) {
+        this( store, indexMode, termVector, boost, null, PRECISION_STEP_DEFAULT );
+    }
 
-	public LuceneOptionsImpl(Store store, Index indexMode, TermVector termVector, float boost, String indexNullAs, int precisionStep) {
-		this.indexMode = indexMode;
-		this.termVector = termVector;
-		this.boost = boost;
-		this.storeType = store;
-		this.storeCompressed = store.equals( Store.COMPRESS );
-		this.storeUncompressed = store.equals( Store.YES );
-		this.indexNullAs = indexNullAs;
-		this.precisionStep = precisionStep;
-	}
+    public LuceneOptionsImpl(Store store, Index indexMode, TermVector termVector, float boost, String indexNullAs, int precisionStep) {
+        this.indexMode = indexMode;
+        this.termVector = termVector;
+        this.boost = boost;
+        this.storeType = store;
+        this.storeCompressed = store.equals( Store.COMPRESS );
+        this.storeUncompressed = store.equals( Store.YES );
+        this.indexNullAs = indexNullAs;
+        this.precisionStep = precisionStep;
+    }
 
-	public void addFieldToDocument(String name, String indexedString, Document document) {
-		//Do not add fields on empty strings, seems a sensible default in most situations
-		if ( StringHelper.isNotEmpty( indexedString ) ) {
-			if ( !( indexMode.equals( Index.NO ) && storeCompressed ) ) {
-				standardFieldAdd( name, indexedString, document );
-			}
-			if ( storeCompressed ) {
-				compressedFieldAdd( name, indexedString, document );
-			}
-		}
-	}
+    public void addFieldToDocument(String name, String indexedString, Document document) {
+        //Do not add fields on empty strings, seems a sensible default in most situations
+        if ( StringHelper.isNotEmpty( indexedString ) ) {
+            if ( !( indexMode.equals( Index.NO ) && storeCompressed ) ) {
+                standardFieldAdd( name, indexedString, document );
+            }
+            if ( storeCompressed ) {
+                compressedFieldAdd( name, indexedString, document );
+            }
+        }
+    }
 
-	public void addNumericFieldToDocument(String fieldName, Object value, Document document) {
-		if ( storeType == Store.COMPRESS ) {
-			throw new SearchException( "Error indexing field " + fieldName + ", @NumericField cannot be compressed" );
-		}
-		if ( value != null ) {
-			NumericField numericField = new NumericField(
-					fieldName, precisionStep, storeType != Store.NO ? Field.Store.YES : Field.Store.NO, true
-			);
-			NumericFieldUtils.setNumericValue( value, numericField );
-			numericField.setBoost( boost );
+    public void addNumericFieldToDocument(String fieldName, Object value, Document document) {
+        if ( storeType == Store.COMPRESS ) {
+            throw new SearchException( "Error indexing field " + fieldName + ", @NumericField cannot be compressed" );
+        }
+        if ( value != null ) {
+            NumericField numericField = new NumericField(
+                    fieldName, precisionStep, storeType != Store.NO ? Field.Store.YES : Field.Store.NO, true
+            );
+            NumericFieldUtils.setNumericValue( value, numericField );
+            numericField.setBoost( boost );
 
-			if ( numericField.getNumericValue() != null ) {
-				document.add( numericField );
-			}
-		}
-	}
+            if ( numericField.getNumericValue() != null ) {
+                document.add( numericField );
+            }
+        }
+    }
 
-	private void standardFieldAdd(String name, String indexedString, Document document) {
-		Field field = new Field(
-				name, true, indexedString, storeUncompressed ? Field.Store.YES : Field.Store.NO, indexMode, termVector
-		);
-		field.setBoost( boost );
-		document.add( field );
-	}
+    private void standardFieldAdd(String name, String indexedString, Document document) {
+        Field field = new Field(
+                name, true, indexedString, storeUncompressed ? Field.Store.YES : Field.Store.NO, indexMode, termVector
+        );
+        field.setBoost( boost );
+        document.add( field );
+    }
 
-	private void compressedFieldAdd(String name, String indexedString, Document document) {
-		byte[] compressedString = CompressionTools.compressString( indexedString );
-		// indexed is implicitly set to false when using byte[]
-		Field field = new Field( name, compressedString );
-		document.add( field );
-	}
+    private void compressedFieldAdd(String name, String indexedString, Document document) {
+        byte[] compressedString = CompressionTools.compressString( indexedString );
+        // indexed is implicitly set to false when using byte[]
+        Field field = new Field( name, compressedString );
+        document.add( field );
+    }
 
-	public float getBoost() {
-		return boost;
-	}
+    public float getBoost() {
+        return boost;
+    }
 
-	public String indexNullAs() {
-		return indexNullAs;
-	}
+    public String indexNullAs() {
+        return indexNullAs;
+    }
 
-	public boolean isCompressed() {
-		return storeCompressed;
-	}
+    public boolean isCompressed() {
+        return storeCompressed;
+    }
 
-	public Index getIndex() {
-		return this.indexMode;
-	}
+    public Index getIndex() {
+        return this.indexMode;
+    }
 
-	public org.apache.lucene.document.Field.Store getStore() {
-		if ( storeUncompressed || storeCompressed ) {
-			return org.apache.lucene.document.Field.Store.YES;
-		}
-		else {
-			return org.apache.lucene.document.Field.Store.NO;
-		}
-	}
+    public org.apache.lucene.document.Field.Store getStore() {
+        if ( storeUncompressed || storeCompressed ) {
+            return org.apache.lucene.document.Field.Store.YES;
+        }
+        else {
+            return org.apache.lucene.document.Field.Store.NO;
+        }
+    }
 
-	public TermVector getTermVector() {
-		return this.termVector;
-	}
+    public TermVector getTermVector() {
+        return this.termVector;
+    }
 
-	/**
-	 * Might be useful for a bridge implementation, but not currently part
-	 * of LuceneOptions API as we are considering to remove the getters.
-	 */
-	public Store getStoreStrategy() {
-		return storeType;
-	}
+    /**
+     * Might be useful for a bridge implementation, but not currently part
+     * of LuceneOptions API as we are considering to remove the getters.
+     */
+    public Store getStoreStrategy() {
+        return storeType;
+    }
 }

@@ -26,6 +26,6 @@ package org.hibernate.search.query.dsl;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public enum Unit {
-	/** Kilometers */
-	KM
+    /** Kilometers */
+    KM
 }

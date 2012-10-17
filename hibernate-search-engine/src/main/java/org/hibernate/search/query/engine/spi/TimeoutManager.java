@@ -26,31 +26,31 @@ import java.util.concurrent.TimeUnit;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface TimeoutManager {
-	void start();
+    void start();
 
-	Long getTimeoutLeftInMilliseconds();
+    Long getTimeoutLeftInMilliseconds();
 
-	Long getTimeoutLeftInSeconds();
+    Long getTimeoutLeftInSeconds();
 
-	boolean isTimedOut();
+    boolean isTimedOut();
 
-	void stop();
+    void stop();
 
-	void setTimeout(long timeout, TimeUnit timeUnit);
+    void setTimeout(long timeout, TimeUnit timeUnit);
 
-	void raiseExceptionOnTimeout();
+    void raiseExceptionOnTimeout();
 
-	void limitFetchingOnTimeout();
+    void limitFetchingOnTimeout();
 
-	void reactOnQueryTimeoutExceptionWhileExtracting(RuntimeException e);
+    void reactOnQueryTimeoutExceptionWhileExtracting(RuntimeException e);
 
-	boolean hasPartialResults();
+    boolean hasPartialResults();
 
-	Type getType();
+    Type getType();
 
-	public static enum Type {
-		NONE,
-		EXCEPTION,
-		LIMIT
-	}
+    public static enum Type {
+        NONE,
+        EXCEPTION,
+        LIMIT
+    }
 }

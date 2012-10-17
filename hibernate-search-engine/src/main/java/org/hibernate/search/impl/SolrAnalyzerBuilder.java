@@ -55,69 +55,69 @@ import static org.hibernate.search.util.impl.ClassLoaderHelper.instanceFromClass
  * @author Hardy Ferentschik
  */
 final class SolrAnalyzerBuilder {
-	private static final String SOLR_LUCENE_VERSION_PARAM = "luceneMatchVersion";
+    private static final String SOLR_LUCENE_VERSION_PARAM = "luceneMatchVersion";
 
-	private SolrAnalyzerBuilder() {
-	}
+    private SolrAnalyzerBuilder() {
+    }
 
-	/**
-	 * Builds a Lucene <code>Analyzer</code> from the specified <code>AnalyzerDef</code> annotation.
-	 *
-	 * @param analyzerDef The <code>AnalyzerDef</code> annotation as found in the annotated domain class.
-	 * @param luceneMatchVersion The lucene version (required since Lucene 3.x)
-	 * @return a Lucene <code>Analyzer</code>
-	 */
-	public static Analyzer buildAnalyzer(AnalyzerDef analyzerDef, Version luceneMatchVersion) {
-		ResourceLoader defaultResourceLoader = new HibernateSearchResourceLoader();
-		TokenizerDef token = analyzerDef.tokenizer();
-		TokenizerFactory tokenFactory = instanceFromClass( TokenizerFactory.class, token.factory(), "Tokenizer factory" );
-		final Map<String, String> tokenMapsOfParameters = getMapOfParameters( token.params(), luceneMatchVersion );
-		tokenFactory.init( tokenMapsOfParameters );
-		injectResourceLoader( tokenFactory, defaultResourceLoader, tokenMapsOfParameters );
+    /**
+     * Builds a Lucene <code>Analyzer</code> from the specified <code>AnalyzerDef</code> annotation.
+     *
+     * @param analyzerDef The <code>AnalyzerDef</code> annotation as found in the annotated domain class.
+     * @param luceneMatchVersion The lucene version (required since Lucene 3.x)
+     * @return a Lucene <code>Analyzer</code>
+     */
+    public static Analyzer buildAnalyzer(AnalyzerDef analyzerDef, Version luceneMatchVersion) {
+        ResourceLoader defaultResourceLoader = new HibernateSearchResourceLoader();
+        TokenizerDef token = analyzerDef.tokenizer();
+        TokenizerFactory tokenFactory = instanceFromClass( TokenizerFactory.class, token.factory(), "Tokenizer factory" );
+        final Map<String, String> tokenMapsOfParameters = getMapOfParameters( token.params(), luceneMatchVersion );
+        tokenFactory.init( tokenMapsOfParameters );
+        injectResourceLoader( tokenFactory, defaultResourceLoader, tokenMapsOfParameters );
 
-		final int length = analyzerDef.filters().length;
-		final int charLength = analyzerDef.charFilters().length;
-		TokenFilterFactory[] filters = new TokenFilterFactory[length];
-		CharFilterFactory[] charFilters = new CharFilterFactory[charLength];
-		for ( int index = 0; index < length; index++ ) {
-			TokenFilterDef filterDef = analyzerDef.filters()[index];
-			filters[index] = instanceFromClass( TokenFilterFactory.class, filterDef.factory(), "Token filter factory" );
-			final Map<String, String> mapOfParameters = getMapOfParameters( filterDef.params(), luceneMatchVersion );
-			filters[index].init( mapOfParameters );
-			injectResourceLoader( filters[index], defaultResourceLoader, mapOfParameters );
-		}
-		for ( int index = 0; index < charFilters.length; index++ ) {
-			CharFilterDef charFilterDef = analyzerDef.charFilters()[index];
-			charFilters[index] = instanceFromClass( CharFilterFactory.class, charFilterDef.factory(), "Character filter factory" );
-			final Map<String, String> mapOfParameters = getMapOfParameters(
-					charFilterDef.params(), luceneMatchVersion
-			);
-			charFilters[index].init( mapOfParameters );
-			injectResourceLoader( charFilters[index], defaultResourceLoader, mapOfParameters );
-		}
-		return new TokenizerChain( charFilters, tokenFactory, filters );
-	}
+        final int length = analyzerDef.filters().length;
+        final int charLength = analyzerDef.charFilters().length;
+        TokenFilterFactory[] filters = new TokenFilterFactory[length];
+        CharFilterFactory[] charFilters = new CharFilterFactory[charLength];
+        for ( int index = 0; index < length; index++ ) {
+            TokenFilterDef filterDef = analyzerDef.filters()[index];
+            filters[index] = instanceFromClass( TokenFilterFactory.class, filterDef.factory(), "Token filter factory" );
+            final Map<String, String> mapOfParameters = getMapOfParameters( filterDef.params(), luceneMatchVersion );
+            filters[index].init( mapOfParameters );
+            injectResourceLoader( filters[index], defaultResourceLoader, mapOfParameters );
+        }
+        for ( int index = 0; index < charFilters.length; index++ ) {
+            CharFilterDef charFilterDef = analyzerDef.charFilters()[index];
+            charFilters[index] = instanceFromClass( CharFilterFactory.class, charFilterDef.factory(), "Character filter factory" );
+            final Map<String, String> mapOfParameters = getMapOfParameters(
+                    charFilterDef.params(), luceneMatchVersion
+            );
+            charFilters[index].init( mapOfParameters );
+            injectResourceLoader( charFilters[index], defaultResourceLoader, mapOfParameters );
+        }
+        return new TokenizerChain( charFilters, tokenFactory, filters );
+    }
 
-	private static void injectResourceLoader(Object processor, ResourceLoader defaultResourceLoader, Map<String, String> mapOfParameters) {
-		if ( processor instanceof ResourceLoaderAware ) {
-			String charset = mapOfParameters.get( Environment.RESOURCE_CHARSET );
-			final ResourceLoader localResourceLoader;
-			if ( charset != null ) {
-				localResourceLoader = new HibernateSearchResourceLoader( charset );
-			}
-			else {
-				localResourceLoader = defaultResourceLoader;
-			}
-			( ( ResourceLoaderAware ) processor ).inform( localResourceLoader );
-		}
-	}
+    private static void injectResourceLoader(Object processor, ResourceLoader defaultResourceLoader, Map<String, String> mapOfParameters) {
+        if ( processor instanceof ResourceLoaderAware ) {
+            String charset = mapOfParameters.get( Environment.RESOURCE_CHARSET );
+            final ResourceLoader localResourceLoader;
+            if ( charset != null ) {
+                localResourceLoader = new HibernateSearchResourceLoader( charset );
+            }
+            else {
+                localResourceLoader = defaultResourceLoader;
+            }
+            ( ( ResourceLoaderAware ) processor ).inform( localResourceLoader );
+        }
+    }
 
-	private static Map<String, String> getMapOfParameters(Parameter[] params, Version luceneMatchVersion) {
-		Map<String, String> mapOfParams = new HashMap<String, String>( params.length );
-		for ( Parameter param : params ) {
-			mapOfParams.put( param.name(), param.value() );
-		}
-		mapOfParams.put( SOLR_LUCENE_VERSION_PARAM, luceneMatchVersion.toString() );
-		return Collections.unmodifiableMap( mapOfParams );
-	}
+    private static Map<String, String> getMapOfParameters(Parameter[] params, Version luceneMatchVersion) {
+        Map<String, String> mapOfParams = new HashMap<String, String>( params.length );
+        for ( Parameter param : params ) {
+            mapOfParams.put( param.name(), param.value() );
+        }
+        mapOfParams.put( SOLR_LUCENE_VERSION_PARAM, luceneMatchVersion.toString() );
+        return Collections.unmodifiableMap( mapOfParams );
+    }
 }

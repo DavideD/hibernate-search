@@ -40,13 +40,13 @@ import java.lang.annotation.Target;
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD})
 @Documented
 public @interface CharFilterDef {
-	/**
-	 * @return the <code>TokenFilterFactory</code> class which shall be instantiated.
-	 */
-	public abstract Class<? extends CharFilterFactory> factory();
+    /**
+     * @return the <code>TokenFilterFactory</code> class which shall be instantiated.
+     */
+    public abstract Class<? extends CharFilterFactory> factory();
 
-	/**
-	 * @return Optional parameters passed to the <code>CharFilterFactory</code>.
-	 */
-	public abstract Parameter[] params() default { };
+    /**
+     * @return Optional parameters passed to the <code>CharFilterFactory</code>.
+     */
+    public abstract Parameter[] params() default { };
 }

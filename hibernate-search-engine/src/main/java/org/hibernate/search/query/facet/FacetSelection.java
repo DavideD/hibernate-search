@@ -32,24 +32,24 @@ import java.util.List;
  * @author Hardy Ferentschik
  */
 public interface FacetSelection {
-	/**
-	 * @param facets An array of facets which have to be applied as disjunction onto the current query
-	 */
-	void selectFacets(Facet... facets);
+    /**
+     * @param facets An array of facets which have to be applied as disjunction onto the current query
+     */
+    void selectFacets(Facet... facets);
 
-	/**
-	 * @return returns an unmodifiable list of the currently selected facets
-	 */
-	List<Facet> getSelectedFacets();
+    /**
+     * @return returns an unmodifiable list of the currently selected facets
+     */
+    List<Facet> getSelectedFacets();
 
-	/**
-	 * @param facets An array of facets to e removed from the current facet. Facets which were not part of this
-	 * selection will be ignored.
-	 */
-	void deselectFacets(Facet... facets);
+    /**
+     * @param facets An array of facets to e removed from the current facet. Facets which were not part of this
+     * selection will be ignored.
+     */
+    void deselectFacets(Facet... facets);
 
-	/**
-	 * Clear all facets in this selection
-	 */
-	void clearSelectedFacets();
+    /**
+     * Clear all facets in this selection
+     */
+    void clearSelectedFacets();
 }

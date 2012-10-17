@@ -26,14 +26,14 @@ import org.hibernate.search.indexes.serialization.spi.LuceneNumericFieldContext;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableDoubleField extends SerializableNumericField {
-	private double value;
+    private double value;
 
-	public SerializableDoubleField(double value, LuceneNumericFieldContext context) {
-		super(context);
-		this.value = value;
-	}
+    public SerializableDoubleField(double value, LuceneNumericFieldContext context) {
+        super(context);
+        this.value = value;
+    }
 
-	public double getValue() {
-		return value;
-	}
+    public double getValue() {
+        return value;
+    }
 }

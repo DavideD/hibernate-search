@@ -27,14 +27,14 @@ import org.hibernate.search.test.util.ManualConfiguration;
  */
 public class AllFilesClosedNRTTest extends AllFilesClosedTest {
 
-	@Override
-	protected void overrideProperties(ManualConfiguration cfg) {
-		cfg.addProperty( "hibernate.search.default.indexmanager", "near-real-time" );
-	}
+    @Override
+    protected void overrideProperties(ManualConfiguration cfg) {
+        cfg.addProperty( "hibernate.search.default.indexmanager", "near-real-time" );
+    }
 
-	@Override
-	protected boolean nrtNotEnabled() {
-		return false;
-	}
+    @Override
+    protected boolean nrtNotEnabled() {
+        return false;
+    }
 
 }

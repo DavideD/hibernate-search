@@ -31,10 +31,10 @@ package org.hibernate.search.bridge;
  */
 public interface AppliedOnTypeAwareBridge {
 
-	/**
-	 * Set the return type of the bridge (the type of the field linked to the bridge).
-	 *
-	 * @param returnType return type
-	 */
-	void setAppliedOnType(Class<?> returnType);
+    /**
+     * Set the return type of the bridge (the type of the field linked to the bridge).
+     *
+     * @param returnType return type
+     */
+    void setAppliedOnType(Class<?> returnType);
 }

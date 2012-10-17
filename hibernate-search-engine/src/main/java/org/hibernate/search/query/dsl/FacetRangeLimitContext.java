@@ -28,7 +28,7 @@ package org.hibernate.search.query.dsl;
  * @author Hardy Ferentschik
  */
 public interface FacetRangeLimitContext<T> {
-	FacetRangeLimitContext<T> excludeLimit();
+    FacetRangeLimitContext<T> excludeLimit();
 
-	FacetRangeEndContext<T> to(T upperLimit);
+    FacetRangeEndContext<T> to(T upperLimit);
 }

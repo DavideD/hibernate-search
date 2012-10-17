@@ -41,5 +41,5 @@ import java.lang.annotation.Target;
 //TODO allow pattern like yyyyMMdd?
 //TODO allow base timezone?
 public @interface DateBridge {
-	Resolution resolution();
+    Resolution resolution();
 }

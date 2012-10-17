@@ -47,43 +47,43 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class BlackHoleBackendQueueProcessor implements BackendQueueProcessor {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final ReentrantLock backendLock = new ReentrantLock();
+    private final ReentrantLock backendLock = new ReentrantLock();
 
-	@Override
-	public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
-		// no-op
-		log.initializedBlackholeBackend();
-	}
+    @Override
+    public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
+        // no-op
+        log.initializedBlackholeBackend();
+    }
 
-	@Override
-	public void close() {
-		// no-op
-		log.closedBlackholeBackend();
-	}
+    @Override
+    public void close() {
+        // no-op
+        log.closedBlackholeBackend();
+    }
 
-	@Override
-	public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
-		// no-op
-		log.debug( "Discarding a list of LuceneWork" );
-	}
+    @Override
+    public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
+        // no-op
+        log.debug( "Discarding a list of LuceneWork" );
+    }
 
-	@Override
-	public void applyStreamWork(LuceneWork singleOperation, IndexingMonitor monitor) {
-		// no-op
-		log.debug( "Discarding a single LuceneWork" );
-	}
+    @Override
+    public void applyStreamWork(LuceneWork singleOperation, IndexingMonitor monitor) {
+        // no-op
+        log.debug( "Discarding a single LuceneWork" );
+    }
 
-	@Override
-	public Lock getExclusiveWriteLock() {
-		return backendLock;
-	}
+    @Override
+    public Lock getExclusiveWriteLock() {
+        return backendLock;
+    }
 
-	@Override
-	public void indexMappingChanged() {
-		// no-op
-		log.debug( "BlackHoleBackend reconfigured" );
-	}
+    @Override
+    public void indexMappingChanged() {
+        // no-op
+        log.debug( "BlackHoleBackend reconfigured" );
+    }
 
 }

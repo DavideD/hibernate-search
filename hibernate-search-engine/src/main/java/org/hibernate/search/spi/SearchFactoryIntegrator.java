@@ -45,43 +45,43 @@ import org.hibernate.search.query.engine.spi.TimeoutExceptionFactory;
  * @author Emmanuel Bernard
  */
 public interface SearchFactoryIntegrator extends SearchFactory {
-	
-	EntityIndexBinder getIndexBindingForEntity(Class<?> entityType);
+    
+    EntityIndexBinder getIndexBindingForEntity(Class<?> entityType);
 
-	/**
-	 * Add the following classes to the SearchFactory. If these classes are new to the SearchFactory this
-	 * will trigger a reconfiguration.
-	 */
-	void addClasses(Class<?>... classes);
+    /**
+     * Add the following classes to the SearchFactory. If these classes are new to the SearchFactory this
+     * will trigger a reconfiguration.
+     */
+    void addClasses(Class<?>... classes);
 
-	//TODO consider accepting SearchConfiguration or SearchMapping
+    //TODO consider accepting SearchConfiguration or SearchMapping
 
-	Worker getWorker();
+    Worker getWorker();
 
-	void close();
+    void close();
 
-	/**
-	 * Return an Hibernate Search query object.
-	 * This object uses fluent APIs to define the query executed.
-	 * Offers a few execution approaches:
-	 *  - return the list of results eagerly
-	 *  - return the list of results lazily
-	 *  - get the number of results
-	 */
-	HSQuery createHSQuery();
+    /**
+     * Return an Hibernate Search query object.
+     * This object uses fluent APIs to define the query executed.
+     * Offers a few execution approaches:
+     *  - return the list of results eagerly
+     *  - return the list of results lazily
+     *  - get the number of results
+     */
+    HSQuery createHSQuery();
 
-	/**
-	 * @return true if the SearchFactory was stopped
-	 */
-	boolean isStopped();
+    /**
+     * @return true if the SearchFactory was stopped
+     */
+    boolean isStopped();
 
-	/**
-	 * Used to catch exceptions in all synchronous operations; but default they are logged, the user
-	 * can configure alternative error management means.
-	 * @return the configured ErrorHandler, global to the SearchFactory
-	 */
-	ErrorHandler getErrorHandler();
+    /**
+     * Used to catch exceptions in all synchronous operations; but default they are logged, the user
+     * can configure alternative error management means.
+     * @return the configured ErrorHandler, global to the SearchFactory
+     */
+    ErrorHandler getErrorHandler();
 
-	TimeoutExceptionFactory getDefaultTimeoutExceptionFactory();
+    TimeoutExceptionFactory getDefaultTimeoutExceptionFactory();
 
 }

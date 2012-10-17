@@ -31,16 +31,16 @@ import org.jboss.logging.Logger;
  * @author Hardy Ferentschik
  */
 public class LoggerFactory {
-	public static Log make() {
-		Throwable t = new Throwable();
-		StackTraceElement directCaller = t.getStackTrace()[1];
-		return Logger.getMessageLogger( Log.class, directCaller.getClassName() );
-	}
+    public static Log make() {
+        Throwable t = new Throwable();
+        StackTraceElement directCaller = t.getStackTrace()[1];
+        return Logger.getMessageLogger( Log.class, directCaller.getClassName() );
+    }
 
-	public static <T> T make(Class<T> logClass) {
-		Throwable t = new Throwable();
-		StackTraceElement directCaller = t.getStackTrace()[1];
-		return Logger.getMessageLogger( logClass, directCaller.getClassName() );
-	}
+    public static <T> T make(Class<T> logClass) {
+        Throwable t = new Throwable();
+        StackTraceElement directCaller = t.getStackTrace()[1];
+        return Logger.getMessageLogger( logClass, directCaller.getClassName() );
+    }
 }
 

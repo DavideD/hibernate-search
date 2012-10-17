@@ -48,45 +48,45 @@ import java.util.Properties;
  * @author Emmanuel Bernard
  */
 public interface SearchFactoryState {
-	Map<Class<?>, DocumentBuilderContainedEntity<?>> getDocumentBuildersContainedEntities();
+    Map<Class<?>, DocumentBuilderContainedEntity<?>> getDocumentBuildersContainedEntities();
 
-	Map<Class<?>, EntityIndexBinder> getIndexBindingForEntity();
+    Map<Class<?>, EntityIndexBinder> getIndexBindingForEntity();
 
-	String getIndexingStrategy();
+    String getIndexingStrategy();
 
-	Worker getWorker();
+    Worker getWorker();
 
-	Map<String, FilterDef> getFilterDefinitions();
+    Map<String, FilterDef> getFilterDefinitions();
 
-	FilterCachingStrategy getFilterCachingStrategy();
+    FilterCachingStrategy getFilterCachingStrategy();
 
-	Map<String, Analyzer> getAnalyzers();
+    Map<String, Analyzer> getAnalyzers();
 
-	int getCacheBitResultsSize();
+    int getCacheBitResultsSize();
 
-	Properties getConfigurationProperties();
+    Properties getConfigurationProperties();
 
-	PolymorphicIndexHierarchy getIndexHierarchy();
+    PolymorphicIndexHierarchy getIndexHierarchy();
 
-	ServiceManager getServiceManager();
+    ServiceManager getServiceManager();
 
-	boolean isTransactionManagerExpected();
+    boolean isTransactionManagerExpected();
 
-	IndexManagerHolder getAllIndexesManager();
+    IndexManagerHolder getAllIndexesManager();
 
-	ErrorHandler getErrorHandler();
+    ErrorHandler getErrorHandler();
 
-	InstanceInitializer getInstanceInitializer();
+    InstanceInitializer getInstanceInitializer();
 
-	TimeoutExceptionFactory getDefaultTimeoutExceptionFactory();
+    TimeoutExceptionFactory getDefaultTimeoutExceptionFactory();
 
-	TimingSource getTimingSource();
+    TimingSource getTimingSource();
 
-	SearchMapping getProgrammaticMapping();
+    SearchMapping getProgrammaticMapping();
 
-	boolean isIndexMetadataComplete();
+    boolean isIndexMetadataComplete();
 
-	boolean isIdProvidedImplicit();
+    boolean isIdProvidedImplicit();
 
-	IndexManagerFactory getIndexManagerFactory();
+    IndexManagerFactory getIndexManagerFactory();
 }

@@ -29,7 +29,7 @@ package org.hibernate.search.engine.spi;
  * @author Emmanuel Bernard
  */
 public enum EntityState {
-	INDEXED,
-	CONTAINED_IN_ONLY,
-	NON_INDEXABLE
+    INDEXED,
+    CONTAINED_IN_ONLY,
+    NON_INDEXABLE
 }

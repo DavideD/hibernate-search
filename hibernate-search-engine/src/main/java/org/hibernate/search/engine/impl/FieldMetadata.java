@@ -51,114 +51,114 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Hardy Ferentschik
  */
 public class FieldMetadata {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final XProperty fieldGetter;
-	private final String fieldName;
-	private final Store store;
-	private final Field.Index index;
-	private final Float boost;
-	private final BoostStrategy dynamicBoostStrategy;
-	private final Field.TermVector termVector;
-	private final Integer precisionStep;
-	private final String nullToken;
-	private final FieldBridge fieldBridge;
-	private final Analyzer analyzer;
+    private final XProperty fieldGetter;
+    private final String fieldName;
+    private final Store store;
+    private final Field.Index index;
+    private final Float boost;
+    private final BoostStrategy dynamicBoostStrategy;
+    private final Field.TermVector termVector;
+    private final Integer precisionStep;
+    private final String nullToken;
+    private final FieldBridge fieldBridge;
+    private final Analyzer analyzer;
 
-	public FieldMetadata(String prefix,
-						 XProperty member,
-						 org.hibernate.search.annotations.Field fieldAnn,
-						 NumericField numericFieldAnn,
-						 Spatial spatialAnn,
-						 ConfigContext context,
-						 ReflectionManager reflectionManager) {
-		ReflectionHelper.setAccessible( member );
-		fieldGetter = member;
-		String indexNullAs;
-		Analyzer tmpAnalyzer;
-		if ( fieldAnn != null ) {
-			index = AnnotationProcessingHelper.getIndex( fieldAnn.index(), fieldAnn.analyze(), fieldAnn.norms() );
-			store = fieldAnn.store();
-			fieldName = prefix + ReflectionHelper.getAttributeName( member, fieldAnn.name() );
-			boost = AnnotationProcessingHelper.getBoost( member, fieldAnn );
-			termVector = AnnotationProcessingHelper.getTermVector( fieldAnn.termVector() );
-			// null token
-			indexNullAs = fieldAnn.indexNullAs();
-			if ( indexNullAs.equals( org.hibernate.search.annotations.Field.DO_NOT_INDEX_NULL ) ) {
-				indexNullAs = null;
-			}
-			else if ( indexNullAs.equals( org.hibernate.search.annotations.Field.DEFAULT_NULL_TOKEN ) ) {
-				indexNullAs = context.getDefaultNullToken();
-			}
-			nullToken = indexNullAs;
-			tmpAnalyzer = AnnotationProcessingHelper.getAnalyzer( fieldAnn.analyzer(), context );
-		}
-		else {
-			index = AnnotationProcessingHelper.getIndex( Index.YES, Analyze.NO, Norms.NO );
-			store = spatialAnn.store();
-			fieldName = prefix + ReflectionHelper.getAttributeName( member, spatialAnn.name() );
-			boost = AnnotationProcessingHelper.getBoost( member, spatialAnn );
-			termVector = Field.TermVector.NO;
-			//FIXME what should we do about null tokens in Spatial?
-			indexNullAs = null;
-			nullToken = indexNullAs;
-			tmpAnalyzer = null;
-		}
-		dynamicBoostStrategy = AnnotationProcessingHelper.getDynamicBoost( member );
-		precisionStep = AnnotationProcessingHelper.getPrecisionStep( numericFieldAnn );
-		FieldBridge bridge = BridgeFactory.guessType( fieldAnn, numericFieldAnn, member, reflectionManager );
-		if ( indexNullAs != null && bridge instanceof TwoWayFieldBridge ) {
-			bridge = new NullEncodingTwoWayFieldBridge( (TwoWayFieldBridge) bridge, indexNullAs );
-		}
-		fieldBridge = bridge;
+    public FieldMetadata(String prefix,
+                         XProperty member,
+                         org.hibernate.search.annotations.Field fieldAnn,
+                         NumericField numericFieldAnn,
+                         Spatial spatialAnn,
+                         ConfigContext context,
+                         ReflectionManager reflectionManager) {
+        ReflectionHelper.setAccessible( member );
+        fieldGetter = member;
+        String indexNullAs;
+        Analyzer tmpAnalyzer;
+        if ( fieldAnn != null ) {
+            index = AnnotationProcessingHelper.getIndex( fieldAnn.index(), fieldAnn.analyze(), fieldAnn.norms() );
+            store = fieldAnn.store();
+            fieldName = prefix + ReflectionHelper.getAttributeName( member, fieldAnn.name() );
+            boost = AnnotationProcessingHelper.getBoost( member, fieldAnn );
+            termVector = AnnotationProcessingHelper.getTermVector( fieldAnn.termVector() );
+            // null token
+            indexNullAs = fieldAnn.indexNullAs();
+            if ( indexNullAs.equals( org.hibernate.search.annotations.Field.DO_NOT_INDEX_NULL ) ) {
+                indexNullAs = null;
+            }
+            else if ( indexNullAs.equals( org.hibernate.search.annotations.Field.DEFAULT_NULL_TOKEN ) ) {
+                indexNullAs = context.getDefaultNullToken();
+            }
+            nullToken = indexNullAs;
+            tmpAnalyzer = AnnotationProcessingHelper.getAnalyzer( fieldAnn.analyzer(), context );
+        }
+        else {
+            index = AnnotationProcessingHelper.getIndex( Index.YES, Analyze.NO, Norms.NO );
+            store = spatialAnn.store();
+            fieldName = prefix + ReflectionHelper.getAttributeName( member, spatialAnn.name() );
+            boost = AnnotationProcessingHelper.getBoost( member, spatialAnn );
+            termVector = Field.TermVector.NO;
+            //FIXME what should we do about null tokens in Spatial?
+            indexNullAs = null;
+            nullToken = indexNullAs;
+            tmpAnalyzer = null;
+        }
+        dynamicBoostStrategy = AnnotationProcessingHelper.getDynamicBoost( member );
+        precisionStep = AnnotationProcessingHelper.getPrecisionStep( numericFieldAnn );
+        FieldBridge bridge = BridgeFactory.guessType( fieldAnn, numericFieldAnn, member, reflectionManager );
+        if ( indexNullAs != null && bridge instanceof TwoWayFieldBridge ) {
+            bridge = new NullEncodingTwoWayFieldBridge( (TwoWayFieldBridge) bridge, indexNullAs );
+        }
+        fieldBridge = bridge;
 
-		// Field > property > entity analyzer
-		if ( tmpAnalyzer == null ) {
-			tmpAnalyzer = AnnotationProcessingHelper.getAnalyzer(
-					member.getAnnotation( org.hibernate.search.annotations.Analyzer.class ),
-					context
-			);
-		}
-		analyzer = tmpAnalyzer;
-	}
+        // Field > property > entity analyzer
+        if ( tmpAnalyzer == null ) {
+            tmpAnalyzer = AnnotationProcessingHelper.getAnalyzer(
+                    member.getAnnotation( org.hibernate.search.annotations.Analyzer.class ),
+                    context
+            );
+        }
+        analyzer = tmpAnalyzer;
+    }
 
-	public String getFieldName() {
-		return fieldName;
-	}
+    public String getFieldName() {
+        return fieldName;
+    }
 
-	public Field.Index getIndex() {
-		return index;
-	}
+    public Field.Index getIndex() {
+        return index;
+    }
 
-	public Analyzer getAnalyzer() {
-		return analyzer;
-	}
+    public Analyzer getAnalyzer() {
+        return analyzer;
+    }
 
-	public void appendToPropertiesMetadata(AbstractDocumentBuilder.PropertiesMetadata propertiesMetadata) {
-		sanityCheckFieldConfiguration( propertiesMetadata );
+    public void appendToPropertiesMetadata(AbstractDocumentBuilder.PropertiesMetadata propertiesMetadata) {
+        sanityCheckFieldConfiguration( propertiesMetadata );
 
-		propertiesMetadata.fieldGetters.add( fieldGetter );
-		propertiesMetadata.fieldGetterNames.add( fieldGetter.getName() );
-		propertiesMetadata.fieldNames.add( fieldName );
-		propertiesMetadata.fieldNameToPositionMap.put( fieldGetter.getName(), propertiesMetadata.fieldNames.size() );
-		propertiesMetadata.fieldStore.add( store );
-		propertiesMetadata.fieldIndex.add( index );
-		propertiesMetadata.fieldBoosts.add( boost );
-		propertiesMetadata.dynamicFieldBoosts.add( dynamicBoostStrategy );
-		propertiesMetadata.fieldTermVectors.add( termVector );
-		propertiesMetadata.precisionSteps.add( precisionStep );
-		propertiesMetadata.fieldNullTokens.add( nullToken );
-		propertiesMetadata.fieldBridges.add( fieldBridge );
-	}
+        propertiesMetadata.fieldGetters.add( fieldGetter );
+        propertiesMetadata.fieldGetterNames.add( fieldGetter.getName() );
+        propertiesMetadata.fieldNames.add( fieldName );
+        propertiesMetadata.fieldNameToPositionMap.put( fieldGetter.getName(), propertiesMetadata.fieldNames.size() );
+        propertiesMetadata.fieldStore.add( store );
+        propertiesMetadata.fieldIndex.add( index );
+        propertiesMetadata.fieldBoosts.add( boost );
+        propertiesMetadata.dynamicFieldBoosts.add( dynamicBoostStrategy );
+        propertiesMetadata.fieldTermVectors.add( termVector );
+        propertiesMetadata.precisionSteps.add( precisionStep );
+        propertiesMetadata.fieldNullTokens.add( nullToken );
+        propertiesMetadata.fieldBridges.add( fieldBridge );
+    }
 
-	private void sanityCheckFieldConfiguration(AbstractDocumentBuilder.PropertiesMetadata propertiesMetadata) {
-		int indexOfFieldWithSameName = propertiesMetadata.fieldNames.lastIndexOf( fieldName );
-		if ( indexOfFieldWithSameName != -1 ) {
-			if ( !propertiesMetadata.fieldIndex.get( indexOfFieldWithSameName ).equals( index ) ) {
-				log.inconsistentFieldConfiguration( fieldName );
-			}
-		}
-	}
+    private void sanityCheckFieldConfiguration(AbstractDocumentBuilder.PropertiesMetadata propertiesMetadata) {
+        int indexOfFieldWithSameName = propertiesMetadata.fieldNames.lastIndexOf( fieldName );
+        if ( indexOfFieldWithSameName != -1 ) {
+            if ( !propertiesMetadata.fieldIndex.get( indexOfFieldWithSameName ).equals( index ) ) {
+                log.inconsistentFieldConfiguration( fieldName );
+            }
+        }
+    }
 }
 
 

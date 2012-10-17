@@ -31,54 +31,54 @@ import java.io.Serializable;
  * @author Emmanuel Bernard
  */
 public class Work<T> {
-	private final T entity;
-	private final Class<T> entityClass;
-	private final Serializable id;
-	private final WorkType type;
-	private final boolean identifierWasRolledBack;
-	
-	public Work(T entity, Serializable id, WorkType type) {
-		this( entity, null, id, type, false );
-	}
+    private final T entity;
+    private final Class<T> entityClass;
+    private final Serializable id;
+    private final WorkType type;
+    private final boolean identifierWasRolledBack;
+    
+    public Work(T entity, Serializable id, WorkType type) {
+        this( entity, null, id, type, false );
+    }
 
-	public Work(T entity, Serializable id, WorkType type, boolean identifierRollbackEnabled) {
-		this( entity, null, id, type, identifierRollbackEnabled );
-	}
+    public Work(T entity, Serializable id, WorkType type, boolean identifierRollbackEnabled) {
+        this( entity, null, id, type, identifierRollbackEnabled );
+    }
 
-	public Work(Class<T> entityType, Serializable id, WorkType type) {
-		this( null, entityType, id, type, false );
-	}
+    public Work(Class<T> entityType, Serializable id, WorkType type) {
+        this( null, entityType, id, type, false );
+    }
 
-	public Work(T entity, WorkType type) {
-		this( entity, null, null, type, false );
-	}
+    public Work(T entity, WorkType type) {
+        this( entity, null, null, type, false );
+    }
 
-	private Work(T entity, Class<T> entityClass, Serializable id,
-				 WorkType type, boolean identifierWasRolledBack) {
-		this.entity = entity;
-		this.entityClass = entityClass;
-		this.id = id;
-		this.type = type;
-		this.identifierWasRolledBack = identifierWasRolledBack;
-	}
+    private Work(T entity, Class<T> entityClass, Serializable id,
+                 WorkType type, boolean identifierWasRolledBack) {
+        this.entity = entity;
+        this.entityClass = entityClass;
+        this.id = id;
+        this.type = type;
+        this.identifierWasRolledBack = identifierWasRolledBack;
+    }
 
-	public Class<T> getEntityClass() {
-		return entityClass;
-	}
+    public Class<T> getEntityClass() {
+        return entityClass;
+    }
 
-	public T getEntity() {
-		return entity;
-	}
+    public T getEntity() {
+        return entity;
+    }
 
-	public Serializable getId() {
-		return id;
-	}
+    public Serializable getId() {
+        return id;
+    }
 
-	public WorkType getType() {
-		return type;
-	}
+    public WorkType getType() {
+        return type;
+    }
 
-	public boolean isIdentifierWasRolledBack() {
-		return identifierWasRolledBack;
-	}
+    public boolean isIdentifierWasRolledBack() {
+        return identifierWasRolledBack;
+    }
 }

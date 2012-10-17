@@ -29,45 +29,45 @@ import java.util.Map;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public enum FieldCacheLoadingType {
-	STRING {
-		public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
-			return new StringFieldLoadingStrategy( fieldName );
-		}
-	},
-	INT {
-		public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
-			return new IntFieldLoadingStrategy( fieldName );
-		}
-	},
-	LONG {
-		public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
-			return new LongFieldLoadingStrategy( fieldName );
-		}
-	},
-	DOUBLE {
-		public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
-			return new DoubleFieldLoadingStrategy( fieldName );
-		}
-	},
-	FLOAT {
-		public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
-			return new FloatFieldLoadingStrategy( fieldName );
-		}
-	};
+    STRING {
+        public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
+            return new StringFieldLoadingStrategy( fieldName );
+        }
+    },
+    INT {
+        public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
+            return new IntFieldLoadingStrategy( fieldName );
+        }
+    },
+    LONG {
+        public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
+            return new LongFieldLoadingStrategy( fieldName );
+        }
+    },
+    DOUBLE {
+        public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
+            return new DoubleFieldLoadingStrategy( fieldName );
+        }
+    },
+    FLOAT {
+        public FieldLoadingStrategy createLoadingStrategy(String fieldName) {
+            return new FloatFieldLoadingStrategy( fieldName );
+        }
+    };
 
-	static Map<Class<?>, FieldCacheLoadingType> fieldCacheTypes = new HashMap<Class<?>, FieldCacheLoadingType>();
+    static Map<Class<?>, FieldCacheLoadingType> fieldCacheTypes = new HashMap<Class<?>, FieldCacheLoadingType>();
 
-	static {
-		fieldCacheTypes.put( String.class, STRING );
-		fieldCacheTypes.put( Integer.class, INT );
-		fieldCacheTypes.put( Long.class, LONG );
-		fieldCacheTypes.put( Double.class, DOUBLE );
-		fieldCacheTypes.put( Float.class, FLOAT );
-	}
+    static {
+        fieldCacheTypes.put( String.class, STRING );
+        fieldCacheTypes.put( Integer.class, INT );
+        fieldCacheTypes.put( Long.class, LONG );
+        fieldCacheTypes.put( Double.class, DOUBLE );
+        fieldCacheTypes.put( Float.class, FLOAT );
+    }
 
-	public abstract FieldLoadingStrategy createLoadingStrategy(String fieldName);
+    public abstract FieldLoadingStrategy createLoadingStrategy(String fieldName);
 
-	public static FieldLoadingStrategy getLoadingStrategy(String fieldName, Class<?> type) {
-		return fieldCacheTypes.get( type ).createLoadingStrategy( fieldName );
-	}
+    public static FieldLoadingStrategy getLoadingStrategy(String fieldName, Class<?> type) {
+        return fieldCacheTypes.get( type ).createLoadingStrategy( fieldName );
+    }
 }

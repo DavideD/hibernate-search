@@ -35,88 +35,88 @@ import org.hibernate.search.indexes.interceptor.EntityIndexingInterceptor;
 
 public class IndexedMapping {
 
-	private final SearchMapping mapping;
-	private final EntityDescriptor entity;
-	private final Map<String, Object> indexed;
+    private final SearchMapping mapping;
+    private final EntityDescriptor entity;
+    private final Map<String, Object> indexed;
 
-	public IndexedMapping(SearchMapping mapping, EntityDescriptor entity) {
-		this.mapping = mapping;
-		this.entity = entity;
-		indexed = new HashMap<String, Object>();
-		entity.setIndexed( indexed );
-	}
+    public IndexedMapping(SearchMapping mapping, EntityDescriptor entity) {
+        this.mapping = mapping;
+        this.entity = entity;
+        indexed = new HashMap<String, Object>();
+        entity.setIndexed( indexed );
+    }
 
-	public IndexedMapping indexName(String indexName) {
-		this.indexed.put( "index", indexName );
-		return this;
-	}
+    public IndexedMapping indexName(String indexName) {
+        this.indexed.put( "index", indexName );
+        return this;
+    }
 
-	public IndexedMapping interceptor(Class<? extends EntityIndexingInterceptor> interceptor) {
-		this.indexed.put( "interceptor", interceptor );
-		return this;
-	}
+    public IndexedMapping interceptor(Class<? extends EntityIndexingInterceptor> interceptor) {
+        this.indexed.put( "interceptor", interceptor );
+        return this;
+    }
 
-	public IndexedMapping cacheFromIndex(FieldCacheType... type) {
-		Map<String, Object> cacheInMemory = new HashMap<String, Object>( 1 );
-		cacheInMemory.put( "value", type );
-		entity.setCacheInMemory( cacheInMemory );
-		return this;
-	}
+    public IndexedMapping cacheFromIndex(FieldCacheType... type) {
+        Map<String, Object> cacheInMemory = new HashMap<String, Object>( 1 );
+        cacheInMemory.put( "value", type );
+        entity.setCacheInMemory( cacheInMemory );
+        return this;
+    }
 
-	public IndexedMapping similarity(Class<?> impl) {
-		Map<String, Object> similarity = new HashMap<String, Object>( 1 );
-		similarity.put( "impl", impl );
-		entity.setSimilariy( similarity );
-		return this;
-	}
+    public IndexedMapping similarity(Class<?> impl) {
+        Map<String, Object> similarity = new HashMap<String, Object>( 1 );
+        similarity.put( "impl", impl );
+        entity.setSimilariy( similarity );
+        return this;
+    }
 
-	public IndexedMapping boost(float boost) {
-		final Map<String, Object> boostAnn = new HashMap<String, Object>();
-		boostAnn.put( "value", boost );
-		entity.setBoost( boostAnn );
-		return this;
-	}
+    public IndexedMapping boost(float boost) {
+        final Map<String, Object> boostAnn = new HashMap<String, Object>();
+        boostAnn.put( "value", boost );
+        entity.setBoost( boostAnn );
+        return this;
+    }
 
-	public IndexedMapping dynamicBoost(Class<? extends BoostStrategy> impl) {
-		final Map<String, Object> dynamicBoost = new HashMap<String, Object>();
-		dynamicBoost.put( "impl", impl );
-		entity.setDynamicBoost( dynamicBoost );
-		return this;
-	}
+    public IndexedMapping dynamicBoost(Class<? extends BoostStrategy> impl) {
+        final Map<String, Object> dynamicBoost = new HashMap<String, Object>();
+        dynamicBoost.put( "impl", impl );
+        entity.setDynamicBoost( dynamicBoost );
+        return this;
+    }
 
-	public IndexedMapping analyzerDiscriminator(Class<? extends Discriminator> discriminator) {
-		final Map<String, Object> discriminatorAnn = new HashMap<String, Object>();
-		discriminatorAnn.put( "impl", discriminator );
-		entity.setAnalyzerDiscriminator( discriminatorAnn );
-		return this;
-	}
+    public IndexedMapping analyzerDiscriminator(Class<? extends Discriminator> discriminator) {
+        final Map<String, Object> discriminatorAnn = new HashMap<String, Object>();
+        discriminatorAnn.put( "impl", discriminator );
+        entity.setAnalyzerDiscriminator( discriminatorAnn );
+        return this;
+    }
 
-	public IndexedClassBridgeMapping classBridge(Class<?> impl) {
-		return new IndexedClassBridgeMapping( mapping, entity, impl, this );
-	}
+    public IndexedClassBridgeMapping classBridge(Class<?> impl) {
+        return new IndexedClassBridgeMapping( mapping, entity, impl, this );
+    }
 
-	public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
-		return new FullTextFilterDefMapping( mapping, name, impl );
-	}
+    public FullTextFilterDefMapping fullTextFilterDef(String name, Class<?> impl) {
+        return new FullTextFilterDefMapping( mapping, name, impl );
+    }
 
-	public PropertyMapping property(String name, ElementType type) {
-		return new PropertyMapping( name, type, entity, mapping );
-	}
+    public PropertyMapping property(String name, ElementType type) {
+        return new PropertyMapping( name, type, entity, mapping );
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping( entityType, mapping );
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping( entityType, mapping );
+    }
 
-	public ProvidedIdMapping providedId() {
-		return new ProvidedIdMapping( mapping, entity );
-	}
+    public ProvidedIdMapping providedId() {
+        return new ProvidedIdMapping( mapping, entity );
+    }
 
-	public EntitySpatialMapping spatial() {
-		return new EntitySpatialMapping( mapping, entity );
-	}
+    public EntitySpatialMapping spatial() {
+        return new EntitySpatialMapping( mapping, entity );
+    }
 
 }

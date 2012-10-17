@@ -11,14 +11,14 @@ import org.hibernate.search.bridge.TwoWayFieldBridge;
  */
 public abstract class NumericFieldBridge implements TwoWayFieldBridge {
 
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		if (value != null) {
-			luceneOptions.addNumericFieldToDocument(name, value, document);
-		}
-	}
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        if (value != null) {
+            luceneOptions.addNumericFieldToDocument(name, value, document);
+        }
+    }
 
-	public String objectToString(Object object) {
-		return object.toString();
-	}
+    public String objectToString(Object object) {
+        return object.toString();
+    }
 
 }

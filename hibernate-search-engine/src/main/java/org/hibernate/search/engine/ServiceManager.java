@@ -38,10 +38,10 @@ import org.hibernate.search.spi.ServiceProvider;
  */
 public interface ServiceManager {
 
-	public abstract <T> T requestService(Class<? extends ServiceProvider<T>> serviceProviderClass, BuildContext context);
+    public abstract <T> T requestService(Class<? extends ServiceProvider<T>> serviceProviderClass, BuildContext context);
 
-	public abstract void releaseService(Class<? extends ServiceProvider<?>> serviceProviderClass);
+    public abstract void releaseService(Class<? extends ServiceProvider<?>> serviceProviderClass);
 
-	public abstract void stopServices();
+    public abstract void stopServices();
 
 }

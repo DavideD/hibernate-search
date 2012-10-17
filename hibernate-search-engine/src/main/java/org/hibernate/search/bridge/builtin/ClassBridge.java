@@ -34,21 +34,21 @@ import org.hibernate.search.util.impl.ClassLoaderHelper;
  * @author Emmanuel Bernard
  */
 public class ClassBridge implements TwoWayStringBridge {
-	public Object stringToObject(String stringValue) {
-		if ( StringHelper.isEmpty( stringValue ) ) {
-			return null;
-		}
-		else {
-			try {
-				return ClassLoaderHelper.classForName( stringValue, ClassBridge.class.getClassLoader() );
-			}
-			catch ( ClassNotFoundException e ) {
-				throw new SearchException( "Unable to deserialize Class: " + stringValue, e );
-			}
-		}
-	}
+    public Object stringToObject(String stringValue) {
+        if ( StringHelper.isEmpty( stringValue ) ) {
+            return null;
+        }
+        else {
+            try {
+                return ClassLoaderHelper.classForName( stringValue, ClassBridge.class.getClassLoader() );
+            }
+            catch ( ClassNotFoundException e ) {
+                throw new SearchException( "Unable to deserialize Class: " + stringValue, e );
+            }
+        }
+    }
 
-	public String objectToString(Object object) {
-		return object == null ? null : ( (Class) object ).getName();
-	}
+    public String objectToString(Object object) {
+        return object == null ? null : ( (Class) object ).getName();
+    }
 }

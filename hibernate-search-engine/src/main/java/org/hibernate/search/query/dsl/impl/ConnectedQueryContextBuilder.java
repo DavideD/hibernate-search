@@ -36,33 +36,33 @@ import org.hibernate.search.util.impl.ScopedAnalyzer;
  * @author Emmanuel Bernard
  */
 public class ConnectedQueryContextBuilder implements QueryContextBuilder {
-	private final SearchFactoryImplementor factory;
+    private final SearchFactoryImplementor factory;
 
-	public ConnectedQueryContextBuilder(SearchFactoryImplementor factory) {
-		this.factory = factory;
-	}
+    public ConnectedQueryContextBuilder(SearchFactoryImplementor factory) {
+        this.factory = factory;
+    }
 
-	public EntityContext forEntity(Class<?> entityType) {
-		return new HSearchEntityContext(entityType, factory );
-	}
+    public EntityContext forEntity(Class<?> entityType) {
+        return new HSearchEntityContext(entityType, factory );
+    }
 
-	public final class HSearchEntityContext implements EntityContext {
-		private final ScopedAnalyzer queryAnalyzer;
-		private final QueryBuildingContext context;
+    public final class HSearchEntityContext implements EntityContext {
+        private final ScopedAnalyzer queryAnalyzer;
+        private final QueryBuildingContext context;
 
-		public HSearchEntityContext(Class<?> entityType, SearchFactoryImplementor factory) {
-			queryAnalyzer = new ScopedAnalyzer();
-			queryAnalyzer.setGlobalAnalyzer( factory.getAnalyzer( entityType ) );
-			context = new QueryBuildingContext( factory, queryAnalyzer, entityType);
-		}
+        public HSearchEntityContext(Class<?> entityType, SearchFactoryImplementor factory) {
+            queryAnalyzer = new ScopedAnalyzer();
+            queryAnalyzer.setGlobalAnalyzer( factory.getAnalyzer( entityType ) );
+            context = new QueryBuildingContext( factory, queryAnalyzer, entityType);
+        }
 
-		public EntityContext overridesForField(String field, String analyzerName) {
-			queryAnalyzer.addScopedAnalyzer( field, factory.getAnalyzer( analyzerName ) );
-			return this;
-		}
+        public EntityContext overridesForField(String field, String analyzerName) {
+            queryAnalyzer.addScopedAnalyzer( field, factory.getAnalyzer( analyzerName ) );
+            return this;
+        }
 
-		public QueryBuilder get() {
-			return new ConnectedQueryBuilder(context);
-		}
-	}
+        public QueryBuilder get() {
+            return new ConnectedQueryBuilder(context);
+        }
+    }
 }

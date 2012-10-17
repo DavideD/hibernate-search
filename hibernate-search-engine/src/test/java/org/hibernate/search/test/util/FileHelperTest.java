@@ -41,103 +41,103 @@ import static org.junit.Assert.*;
  * @author Hardy Ferentschik
  */
 public class FileHelperTest {
-	private static final Log log = LoggerFactory.make(Log.class);
+    private static final Log log = LoggerFactory.make(Log.class);
 
-	private static File root;
+    private static File root;
 
-	@BeforeClass
-	public static void prepareRootDirectory() {
-		String buildDir = System.getProperty( "build.dir" );
-		if ( buildDir == null ) {
-			buildDir = ".";
-		}
-		root = new File( buildDir, "filehelper" );
-		log.infof( "Using %s as test directory.", root.getAbsolutePath() );
-	}
+    @BeforeClass
+    public static void prepareRootDirectory() {
+        String buildDir = System.getProperty( "build.dir" );
+        if ( buildDir == null ) {
+            buildDir = ".";
+        }
+        root = new File( buildDir, "filehelper" );
+        log.infof( "Using %s as test directory.", root.getAbsolutePath() );
+    }
 
-	/**
-	 * Source directory
-	 */
-	private String srcDir = "filehelpersrc";
+    /**
+     * Source directory
+     */
+    private String srcDir = "filehelpersrc";
 
-	/**
-	 * Destination directory
-	 */
-	private String destDir = "filehelperdest";
+    /**
+     * Destination directory
+     */
+    private String destDir = "filehelperdest";
 
 
-	private File createFile(File dir, String name) throws IOException {
-		File file = new File( dir, name );
-		file.createNewFile();
-		writeDummyDataToFile( file );
-		return file;
-	}
+    private File createFile(File dir, String name) throws IOException {
+        File file = new File( dir, name );
+        file.createNewFile();
+        writeDummyDataToFile( file );
+        return file;
+    }
 
-	private void writeDummyDataToFile(File file) throws IOException {
-		FileOutputStream os = new FileOutputStream( file, true );
-		os.write( 1 );
-		os.write( 2 );
-		os.write( 3 );
-		os.flush();
-		os.close();
-	}
+    private void writeDummyDataToFile(File file) throws IOException {
+        FileOutputStream os = new FileOutputStream( file, true );
+        os.write( 1 );
+        os.write( 2 );
+        os.write( 3 );
+        os.flush();
+        os.close();
+    }
 
-	@After
-	public void tearDown() throws Exception {
-		File dir = new File( root, srcDir );
-		FileHelper.delete( dir );
-		dir = new File( root, destDir );
-		FileHelper.delete( dir );
-		FileHelper.delete( root );
-	}
+    @After
+    public void tearDown() throws Exception {
+        File dir = new File( root, srcDir );
+        FileHelper.delete( dir );
+        dir = new File( root, destDir );
+        FileHelper.delete( dir );
+        FileHelper.delete( root );
+    }
 
-	@Test
-	public void testSynchronize() throws Exception {
-		// create a src directory structure
-		File src = new File( root, srcDir );
-		src.mkdirs();
-		String name = "a";
-		createFile( src, name );
-		name = "b";
-		createFile( src, name );
-		File subDir = new File( src, "subdir" );
-		subDir.mkdirs();
-		name = "c";
-		createFile( subDir, name );
+    @Test
+    public void testSynchronize() throws Exception {
+        // create a src directory structure
+        File src = new File( root, srcDir );
+        src.mkdirs();
+        String name = "a";
+        createFile( src, name );
+        name = "b";
+        createFile( src, name );
+        File subDir = new File( src, "subdir" );
+        subDir.mkdirs();
+        name = "c";
+        createFile( subDir, name );
 
-		// create destination and sync
-		File dest = new File( root, destDir );
-		assertFalse( "Directories should be out of sync", FileHelper.areInSync( src, dest ) );
-		FileHelper.synchronize( src, dest, true );
-		assertTrue( "Directories should be in sync", FileHelper.areInSync( src, dest ) );
-		File destTestFile1 = new File( dest, "b" );
-		assertTrue( destTestFile1.exists() );
-		File destTestFile2 = new File( new File( dest, "subdir" ), "c" );
-		assertTrue( destTestFile2.exists() );
+        // create destination and sync
+        File dest = new File( root, destDir );
+        assertFalse( "Directories should be out of sync", FileHelper.areInSync( src, dest ) );
+        FileHelper.synchronize( src, dest, true );
+        assertTrue( "Directories should be in sync", FileHelper.areInSync( src, dest ) );
+        File destTestFile1 = new File( dest, "b" );
+        assertTrue( destTestFile1.exists() );
+        File destTestFile2 = new File( new File( dest, "subdir" ), "c" );
+        assertTrue( destTestFile2.exists() );
 
-		// create a new file in destination which does not exists in src. should be deleted after next sync
-		File destTestFile3 = createFile( dest, "foo" );
+        // create a new file in destination which does not exists in src. should be deleted after next sync
+        File destTestFile3 = createFile( dest, "foo" );
 
-		// create a file in the src directory and write some data to it
-		File srcTestFile = new File( src, "c" );
-		writeDummyDataToFile( srcTestFile );
-		File destTestFile = new File( dest, "c" );
-		assertNotSame( srcTestFile.lastModified(), destTestFile.lastModified() );
-		assertFalse( "Directories should be out of sync", FileHelper.areInSync( src, dest ) );
+        // create a file in the src directory and write some data to it
+        File srcTestFile = new File( src, "c" );
+        writeDummyDataToFile( srcTestFile );
+        File destTestFile = new File( dest, "c" );
+        assertNotSame( srcTestFile.lastModified(), destTestFile.lastModified() );
+        assertFalse( "Directories should be out of sync", FileHelper.areInSync( src, dest ) );
 
-		FileHelper.synchronize( src, dest, true );
+        FileHelper.synchronize( src, dest, true );
 
-		assertTrue("Directories should be in sync", FileHelper.areInSync( src, dest ));
-		assertEquals( srcTestFile.lastModified(), destTestFile.lastModified() );
-		assertEquals( srcTestFile.length(), destTestFile.length() );
-		assertTrue( destTestFile1.exists() );
-		assertTrue( destTestFile2.exists() );
-		assertTrue( !destTestFile3.exists() );
+        assertTrue("Directories should be in sync", FileHelper.areInSync( src, dest ));
+        assertEquals( srcTestFile.lastModified(), destTestFile.lastModified() );
+        assertEquals( srcTestFile.length(), destTestFile.length() );
+        assertTrue( destTestFile1.exists() );
+        assertTrue( destTestFile2.exists() );
+        assertTrue( !destTestFile3.exists() );
 
-		// delete src test file
-		srcTestFile.delete();
-		FileHelper.synchronize( src, dest, true );
-		assertTrue( !destTestFile.exists() );
-		assertTrue("Directories should be in sync", FileHelper.areInSync( src, dest ));
-	}
+        // delete src test file
+        srcTestFile.delete();
+        FileHelper.synchronize( src, dest, true );
+        assertTrue( !destTestFile.exists() );
+        assertTrue("Directories should be in sync", FileHelper.areInSync( src, dest ));
+    }
 }

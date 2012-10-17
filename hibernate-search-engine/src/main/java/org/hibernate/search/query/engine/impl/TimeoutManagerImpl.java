@@ -34,179 +34,179 @@ import org.hibernate.search.query.engine.spi.TimeoutManager;
  * @author Emmanuel Bernard
  */
 public class TimeoutManagerImpl implements TimeoutManager {
-	// timeout in nanoseconds
-	private Long timeout;
-	private long start;
-	boolean timedOut = false;
-	private final Query luceneQuery;
-	private Type type;
-	private boolean partialResults;
-	private final TimeoutExceptionFactory timeoutExceptionFactory;
-	private final TimingSource timingSource;
+    // timeout in nanoseconds
+    private Long timeout;
+    private long start;
+    boolean timedOut = false;
+    private final Query luceneQuery;
+    private Type type;
+    private boolean partialResults;
+    private final TimeoutExceptionFactory timeoutExceptionFactory;
+    private final TimingSource timingSource;
 
-	public TimeoutManagerImpl(Query query, TimeoutExceptionFactory timeoutExceptionFactory, TimingSource timingSource) {
-		this.luceneQuery = query;
-		this.timeoutExceptionFactory = timeoutExceptionFactory;
-		this.timingSource = timingSource;
-	}
+    public TimeoutManagerImpl(Query query, TimeoutExceptionFactory timeoutExceptionFactory, TimingSource timingSource) {
+        this.luceneQuery = query;
+        this.timeoutExceptionFactory = timeoutExceptionFactory;
+        this.timingSource = timingSource;
+    }
 
-	/** we start counting from this method call (if needed) */
-	public void start() {
-		if ( timeout == null ) return;
-		this.start = System.nanoTime();
-		this.partialResults = false;
-	}
+    /** we start counting from this method call (if needed) */
+    public void start() {
+        if ( timeout == null ) return;
+        this.start = System.nanoTime();
+        this.partialResults = false;
+    }
 
-	public Long getTimeoutLeftInMilliseconds() {
-		return getTimeoutLeft( 1000000 );
-	}
+    public Long getTimeoutLeftInMilliseconds() {
+        return getTimeoutLeft( 1000000 );
+    }
 
-	public Long getTimeoutLeftInSeconds() {
-		return getTimeoutLeft(1000000000);
-	}
+    public Long getTimeoutLeftInSeconds() {
+        return getTimeoutLeft(1000000000);
+    }
 
-	private Long getTimeoutLeft(long factor) {
-		if (timeout == null) {
-			return null;
-		}
-		else {
-			final long currentTime = System.nanoTime();
-			if ( isTimedOut( currentTime ) ) {
-				//0 means no limit so we return the lowest possible value
-				return 0l;
-			}
-			long left = timeout - ( currentTime - start);
-			long result;
-			if ( left % factor == 0 ) {
-				result = left / factor;
-			}
-			else {
-				result = (left / factor) + 1;
-			}
-			if ( result <= 0 ) {
-				//0 means no limit so we return the lowest possible value
-				return 0l;
-			}
-			else {
-				return result;
-			}
-		}
-	}
+    private Long getTimeoutLeft(long factor) {
+        if (timeout == null) {
+            return null;
+        }
+        else {
+            final long currentTime = System.nanoTime();
+            if ( isTimedOut( currentTime ) ) {
+                //0 means no limit so we return the lowest possible value
+                return 0l;
+            }
+            long left = timeout - ( currentTime - start);
+            long result;
+            if ( left % factor == 0 ) {
+                result = left / factor;
+            }
+            else {
+                result = (left / factor) + 1;
+            }
+            if ( result <= 0 ) {
+                //0 means no limit so we return the lowest possible value
+                return 0l;
+            }
+            else {
+                return result;
+            }
+        }
+    }
 
-	public boolean isTimedOut() {
-		if ( timeout == null ) return false;
-		if ( timedOut ) {
-			return true;
-		}
-		return isTimedOut( System.nanoTime() );
-	}
+    public boolean isTimedOut() {
+        if ( timeout == null ) return false;
+        if ( timedOut ) {
+            return true;
+        }
+        return isTimedOut( System.nanoTime() );
+    }
 
-	private boolean isTimedOut(long currentTime) {
-		if ( timeout == null ) return false;
-		if ( timedOut ) {
-			return true;
-		}
-		else {
-			final long elapsedTime = currentTime - start;
-			timedOut = elapsedTime > timeout;
-			if ( this.type != Type.LIMIT && timedOut ) {
-				throw timeoutExceptionFactory.createTimeoutException(
-						"Full-text query took longer than expected (in microsecond): " + TimeUnit.NANOSECONDS.toMicros( elapsedTime ),
-						luceneQuery
-				);
-			}
-			return timedOut;
-		}
-	}
+    private boolean isTimedOut(long currentTime) {
+        if ( timeout == null ) return false;
+        if ( timedOut ) {
+            return true;
+        }
+        else {
+            final long elapsedTime = currentTime - start;
+            timedOut = elapsedTime > timeout;
+            if ( this.type != Type.LIMIT && timedOut ) {
+                throw timeoutExceptionFactory.createTimeoutException(
+                        "Full-text query took longer than expected (in microsecond): " + TimeUnit.NANOSECONDS.toMicros( elapsedTime ),
+                        luceneQuery
+                );
+            }
+            return timedOut;
+        }
+    }
 
-	public void stop() {
-		this.timeout = null;
-		this.type = Type.NONE;
-		//don't reset, we need it for the query API even when the manager is stopped.
-		//this.partialResults = false;
-	}
+    public void stop() {
+        this.timeout = null;
+        this.type = Type.NONE;
+        //don't reset, we need it for the query API even when the manager is stopped.
+        //this.partialResults = false;
+    }
 
-	public void setTimeout(long timeout, TimeUnit timeUnit) {
-		this.timeout = timeUnit.toNanos( timeout );
-		//timeout of 0 means no more timeout
-		if ( timeout == 0 ) {
-			stop();
-		}
-	}
+    public void setTimeout(long timeout, TimeUnit timeUnit) {
+        this.timeout = timeUnit.toNanos( timeout );
+        //timeout of 0 means no more timeout
+        if ( timeout == 0 ) {
+            stop();
+        }
+    }
 
-	public void forceTimedOut() {
-		this.timedOut = Boolean.TRUE;
-		if ( type == Type.LIMIT) {
-			//we stop where we are return what we have
-			this.partialResults = true;
-		}
-	}
+    public void forceTimedOut() {
+        this.timedOut = Boolean.TRUE;
+        if ( type == Type.LIMIT) {
+            //we stop where we are return what we have
+            this.partialResults = true;
+        }
+    }
 
-	public void raiseExceptionOnTimeout() {
-		if ( this.type == Type.LIMIT ) {
-			throw new SearchException("Cannot define both setTimeout and limitFetchingTime on a full-text query. Please report your need to the Hibernate team");
-		}
-		this.type = Type.EXCEPTION;
-	}
+    public void raiseExceptionOnTimeout() {
+        if ( this.type == Type.LIMIT ) {
+            throw new SearchException("Cannot define both setTimeout and limitFetchingTime on a full-text query. Please report your need to the Hibernate team");
+        }
+        this.type = Type.EXCEPTION;
+    }
 
-	public void limitFetchingOnTimeout() {
-		if ( this.type == Type.EXCEPTION ) {
-			throw new SearchException("Cannot define both setTimeout and limitFetchingTime on a full-text query. Please report your need to the Hibernate team");
-		}
-		this.type = Type.LIMIT;
-	}
+    public void limitFetchingOnTimeout() {
+        if ( this.type == Type.EXCEPTION ) {
+            throw new SearchException("Cannot define both setTimeout and limitFetchingTime on a full-text query. Please report your need to the Hibernate team");
+        }
+        this.type = Type.LIMIT;
+    }
 
-	public void reactOnQueryTimeoutExceptionWhileExtracting(RuntimeException e) {
-		if ( type == Type.LIMIT) {
-			//we stop where we are return what we have
-			this.partialResults = true;
-		}
-		else {
-			if ( e == null) {
-				e = timeoutExceptionFactory.createTimeoutException(
-						"Timeout period exceeded",
-						luceneQuery );
-			}
-			throw e;
-		}
-	}
+    public void reactOnQueryTimeoutExceptionWhileExtracting(RuntimeException e) {
+        if ( type == Type.LIMIT) {
+            //we stop where we are return what we have
+            this.partialResults = true;
+        }
+        else {
+            if ( e == null) {
+                e = timeoutExceptionFactory.createTimeoutException(
+                        "Timeout period exceeded",
+                        luceneQuery );
+            }
+            throw e;
+        }
+    }
 
-	public boolean hasPartialResults() {
-		return partialResults;
-	}
+    public boolean hasPartialResults() {
+        return partialResults;
+    }
 
-	public Type getType() {
-		return type;
-	}
+    public Type getType() {
+        return type;
+    }
 
-	public Counter getLuceneTimeoutCounter() {
-		this.timingSource.ensureInitialized();
-		return new LuceneCounterAdapter( timingSource );
-	}
+    public Counter getLuceneTimeoutCounter() {
+        this.timingSource.ensureInitialized();
+        return new LuceneCounterAdapter( timingSource );
+    }
 
-	/**
-	 * Converts our generic TimingSource so that Lucene can use it as a Counter
-	 */
-	private static final class LuceneCounterAdapter extends org.apache.lucene.util.Counter {
+    /**
+     * Converts our generic TimingSource so that Lucene can use it as a Counter
+     */
+    private static final class LuceneCounterAdapter extends org.apache.lucene.util.Counter {
 
-		private final TimingSource timingSource;
+        private final TimingSource timingSource;
 
-		public LuceneCounterAdapter(TimingSource timingSource) {
-			this.timingSource = timingSource;
-		}
+        public LuceneCounterAdapter(TimingSource timingSource) {
+            this.timingSource = timingSource;
+        }
 
-		@Override
-		public final long addAndGet(final long delta) {
-			//parameter delta is ignored as we don't use the clock ticking strategy from Lucene's threads
-			//as I don't want to deal with statically referenced threads.
-			return timingSource.getMonotonicTimeEstimate();
-		}
+        @Override
+        public final long addAndGet(final long delta) {
+            //parameter delta is ignored as we don't use the clock ticking strategy from Lucene's threads
+            //as I don't want to deal with statically referenced threads.
+            return timingSource.getMonotonicTimeEstimate();
+        }
 
-		@Override
-		public final long get() {
-			return timingSource.getMonotonicTimeEstimate();
-		}
+        @Override
+        public final long get() {
+            return timingSource.getMonotonicTimeEstimate();
+        }
 
-	}
+    }
 
 }

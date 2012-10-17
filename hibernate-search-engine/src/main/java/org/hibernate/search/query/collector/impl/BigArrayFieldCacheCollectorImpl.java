@@ -36,32 +36,32 @@ import org.hibernate.search.query.fieldcache.impl.FieldLoadingStrategy;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 final class BigArrayFieldCacheCollectorImpl extends FieldCacheCollector {
-	private final Object[] valuePerDocumentId;
+    private final Object[] valuePerDocumentId;
 
-	private int currentDocBase;
-	private final FieldLoadingStrategy cacheLoadingStrategy;
+    private int currentDocBase;
+    private final FieldLoadingStrategy cacheLoadingStrategy;
 
-	public BigArrayFieldCacheCollectorImpl(Collector delegate, FieldLoadingStrategy cacheLoadingStrategy, Object[] valueContainer) {
-		super( delegate );
-		this.cacheLoadingStrategy = cacheLoadingStrategy;
-		this.valuePerDocumentId = valueContainer;
-	}
+    public BigArrayFieldCacheCollectorImpl(Collector delegate, FieldLoadingStrategy cacheLoadingStrategy, Object[] valueContainer) {
+        super( delegate );
+        this.cacheLoadingStrategy = cacheLoadingStrategy;
+        this.valuePerDocumentId = valueContainer;
+    }
 
-	@Override
-	public void collect(int doc) throws IOException {
-		//warning when changing this method: extremely performance sensitive!
-		this.delegate.collect( doc );
-		this.valuePerDocumentId[currentDocBase + doc] = cacheLoadingStrategy.collect( doc );
-	}
+    @Override
+    public void collect(int doc) throws IOException {
+        //warning when changing this method: extremely performance sensitive!
+        this.delegate.collect( doc );
+        this.valuePerDocumentId[currentDocBase + doc] = cacheLoadingStrategy.collect( doc );
+    }
 
-	@Override
-	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		this.currentDocBase = docBase;
-		this.cacheLoadingStrategy.loadNewCacheValues( reader );
-		this.delegate.setNextReader( reader, docBase );
-	}
+    @Override
+    public void setNextReader(IndexReader reader, int docBase) throws IOException {
+        this.currentDocBase = docBase;
+        this.cacheLoadingStrategy.loadNewCacheValues( reader );
+        this.delegate.setNextReader( reader, docBase );
+    }
 
-	public Object getValue(int docId) {
-		return valuePerDocumentId[docId];
-	}
+    public Object getValue(int docId) {
+        return valuePerDocumentId[docId];
+    }
 }

@@ -33,29 +33,29 @@ import org.apache.lucene.search.Scorer;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public abstract class FieldCacheCollector extends Collector {
-	protected final Collector delegate;
-	private final boolean acceptsDocsOutOfOrder;
+    protected final Collector delegate;
+    private final boolean acceptsDocsOutOfOrder;
 
-	public FieldCacheCollector(Collector delegate) {
-		this.delegate = delegate;
-		this.acceptsDocsOutOfOrder = delegate.acceptsDocsOutOfOrder();
-	}
+    public FieldCacheCollector(Collector delegate) {
+        this.delegate = delegate;
+        this.acceptsDocsOutOfOrder = delegate.acceptsDocsOutOfOrder();
+    }
 
-	@Override
-	public final void setScorer(Scorer scorer) throws IOException {
-		this.delegate.setScorer( scorer );
-	}
+    @Override
+    public final void setScorer(Scorer scorer) throws IOException {
+        this.delegate.setScorer( scorer );
+    }
 
-	@Override
-	public final boolean acceptsDocsOutOfOrder() {
-		return acceptsDocsOutOfOrder;
-	}
+    @Override
+    public final boolean acceptsDocsOutOfOrder() {
+        return acceptsDocsOutOfOrder;
+    }
 
-	@Override
-	public abstract void collect(int doc) throws IOException;
+    @Override
+    public abstract void collect(int doc) throws IOException;
 
-	@Override
-	public abstract void setNextReader(IndexReader reader, int docBase) throws IOException;
+    @Override
+    public abstract void setNextReader(IndexReader reader, int docBase) throws IOException;
 
-	public abstract Object getValue(int docId);
+    public abstract Object getValue(int docId);
 }

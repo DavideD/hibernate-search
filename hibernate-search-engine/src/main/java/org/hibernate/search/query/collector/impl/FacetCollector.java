@@ -58,237 +58,237 @@ import static org.hibernate.search.util.impl.CollectionHelper.newHashMap;
  * @author Hardy Ferentschik
  */
 public class FacetCollector extends Collector {
-	/**
-	 * The next collector in the delegation chain
-	 */
-	private final Collector nextInChainCollector;
+    /**
+     * The next collector in the delegation chain
+     */
+    private final Collector nextInChainCollector;
 
-	/**
-	 * Facet request this collector handles
-	 */
-	private final FacetingRequestImpl facetRequest;
+    /**
+     * Facet request this collector handles
+     */
+    private final FacetingRequestImpl facetRequest;
 
-	/**
-	 * Used to load field values from the Lucene field cache
-	 */
-	private final FieldLoadingStrategy fieldLoader;
+    /**
+     * Used to load field values from the Lucene field cache
+     */
+    private final FieldLoadingStrategy fieldLoader;
 
-	/**
-	 * A counter mapped to the field name for which it is counting
-	 */
-	private final FacetCounter facetCounts;
+    /**
+     * A counter mapped to the field name for which it is counting
+     */
+    private final FacetCounter facetCounts;
 
-	/**
-	 * Flag indicating whether the data structure has been initialised. Initialisation happens on the first call
-	 * to {@link #setNextReader(org.apache.lucene.index.IndexReader, int)}.
-	 */
-	private boolean initialised = false;
+    /**
+     * Flag indicating whether the data structure has been initialised. Initialisation happens on the first call
+     * to {@link #setNextReader(org.apache.lucene.index.IndexReader, int)}.
+     */
+    private boolean initialised = false;
 
-	public FacetCollector(Collector nextInChainCollector, FacetingRequestImpl facetRequest) {
-		this.nextInChainCollector = nextInChainCollector;
-		this.facetRequest = facetRequest;
-		this.facetCounts = createFacetCounter( facetRequest );
-		fieldLoader = FieldCacheLoadingType.getLoadingStrategy(
-				this.facetRequest.getFieldName(), this.facetRequest.getFieldCacheType()
-		);
-	}
+    public FacetCollector(Collector nextInChainCollector, FacetingRequestImpl facetRequest) {
+        this.nextInChainCollector = nextInChainCollector;
+        this.facetRequest = facetRequest;
+        this.facetCounts = createFacetCounter( facetRequest );
+        fieldLoader = FieldCacheLoadingType.getLoadingStrategy(
+                this.facetRequest.getFieldName(), this.facetRequest.getFieldCacheType()
+        );
+    }
 
-	@Override
-	public void setNextReader(IndexReader reader, int docBase) throws IOException {
-		if ( !initialised ) {
-			initialiseCollector( reader );
-		}
-		initialiseFieldCaches( reader );
-		nextInChainCollector.setNextReader( reader, docBase );
-	}
+    @Override
+    public void setNextReader(IndexReader reader, int docBase) throws IOException {
+        if ( !initialised ) {
+            initialiseCollector( reader );
+        }
+        initialiseFieldCaches( reader );
+        nextInChainCollector.setNextReader( reader, docBase );
+    }
 
-	@Override
-	public void collect(int doc) throws IOException {
-		Object value = fieldLoader.collect( doc );
-		if ( value != null ) {
-			facetCounts.countValue( value );
-		}
-		nextInChainCollector.collect( doc );
-	}
+    @Override
+    public void collect(int doc) throws IOException {
+        Object value = fieldLoader.collect( doc );
+        if ( value != null ) {
+            facetCounts.countValue( value );
+        }
+        nextInChainCollector.collect( doc );
+    }
 
-	@Override
-	public void setScorer(Scorer scorer) throws IOException {
-		nextInChainCollector.setScorer( scorer );
-	}
+    @Override
+    public void setScorer(Scorer scorer) throws IOException {
+        nextInChainCollector.setScorer( scorer );
+    }
 
-	@Override
-	public boolean acceptsDocsOutOfOrder() {
-		return nextInChainCollector.acceptsDocsOutOfOrder();
-	}
+    @Override
+    public boolean acceptsDocsOutOfOrder() {
+        return nextInChainCollector.acceptsDocsOutOfOrder();
+    }
 
-	public String getFacetName() {
-		return facetRequest.getFacetingName();
-	}
+    public String getFacetName() {
+        return facetRequest.getFacetingName();
+    }
 
-	public List<Facet> getFacetList() {
-		return createSortedFacetList( facetCounts, facetRequest );
-	}
+    public List<Facet> getFacetList() {
+        return createSortedFacetList( facetCounts, facetRequest );
+    }
 
-	private List<Facet> createSortedFacetList(FacetCounter counter, FacetingRequestImpl request) {
-		List<Facet> facetList;
-		// handle RANGE_DEFINITION_ODER differently from count based orders. we try to avoid the creation of
-		// Facet instances which we can only do for count based ordering
-		if ( FacetSortOrder.RANGE_DEFINITION_ODER.equals( request.getSort() ) ) {
-			facetList = createRangeFacetList( counter.getCounts().entrySet(), request, counter.getCounts().size() );
-			Collections.sort( facetList, new RangeDefinitionOrderFacetComparator( ) );
-			if ( facetRequest.getMaxNumberOfFacets() > 0 ) {
-				facetList = facetList.subList( 0, Math.min( facetRequest.getMaxNumberOfFacets(), facetList.size() ) );
-			}
-		}
-		else {
-			List<Map.Entry<String, Integer>> countEntryList = newArrayList();
-			for ( Entry<String, Integer> stringIntegerEntry : counter.getCounts().entrySet() ) {
-				countEntryList.add( stringIntegerEntry );
-			}
-			int facetCount = facetRequest.getMaxNumberOfFacets() > 0 ?
-					facetRequest.getMaxNumberOfFacets() : countEntryList.size();
-			Collections.sort( countEntryList, new FacetEntryComparator( request.getSort() ) );
-			facetList = createRangeFacetList( countEntryList, request, facetCount );
-		}
-		return facetList;
-	}
+    private List<Facet> createSortedFacetList(FacetCounter counter, FacetingRequestImpl request) {
+        List<Facet> facetList;
+        // handle RANGE_DEFINITION_ODER differently from count based orders. we try to avoid the creation of
+        // Facet instances which we can only do for count based ordering
+        if ( FacetSortOrder.RANGE_DEFINITION_ODER.equals( request.getSort() ) ) {
+            facetList = createRangeFacetList( counter.getCounts().entrySet(), request, counter.getCounts().size() );
+            Collections.sort( facetList, new RangeDefinitionOrderFacetComparator( ) );
+            if ( facetRequest.getMaxNumberOfFacets() > 0 ) {
+                facetList = facetList.subList( 0, Math.min( facetRequest.getMaxNumberOfFacets(), facetList.size() ) );
+            }
+        }
+        else {
+            List<Map.Entry<String, Integer>> countEntryList = newArrayList();
+            for ( Entry<String, Integer> stringIntegerEntry : counter.getCounts().entrySet() ) {
+                countEntryList.add( stringIntegerEntry );
+            }
+            int facetCount = facetRequest.getMaxNumberOfFacets() > 0 ?
+                    facetRequest.getMaxNumberOfFacets() : countEntryList.size();
+            Collections.sort( countEntryList, new FacetEntryComparator( request.getSort() ) );
+            facetList = createRangeFacetList( countEntryList, request, facetCount );
+        }
+        return facetList;
+    }
 
-	private List<Facet> createRangeFacetList(Collection<Entry<String, Integer>> countEntryList, FacetingRequestImpl request, int count) {
-		List<Facet> facetList = newArrayList();
-		int includedFacetCount = 0;
-		for ( Map.Entry<String, Integer> countEntry : countEntryList ) {
-			Facet facet = request.createFacet( countEntry.getKey(), countEntry.getValue() );
-			if ( !request.hasZeroCountsIncluded() && facet.getCount() == 0 ) {
-				continue;
-			}
-			facetList.add( facet );
-			includedFacetCount++;
-			if ( includedFacetCount == count ) {
-				break;
-			}
-		}
-		return facetList;
-	}
+    private List<Facet> createRangeFacetList(Collection<Entry<String, Integer>> countEntryList, FacetingRequestImpl request, int count) {
+        List<Facet> facetList = newArrayList();
+        int includedFacetCount = 0;
+        for ( Map.Entry<String, Integer> countEntry : countEntryList ) {
+            Facet facet = request.createFacet( countEntry.getKey(), countEntry.getValue() );
+            if ( !request.hasZeroCountsIncluded() && facet.getCount() == 0 ) {
+                continue;
+            }
+            facetList.add( facet );
+            includedFacetCount++;
+            if ( includedFacetCount == count ) {
+                break;
+            }
+        }
+        return facetList;
+    }
 
-	private void initialiseCollector(IndexReader reader) throws IOException {
-		// we only need to initialise the counts in case we have to include 0 counts as well
-		if ( facetRequest.hasZeroCountsIncluded() && facetRequest instanceof DiscreteFacetRequest ) {
-			initFacetCounts( reader );
-		}
-		initialised = true;
-	}
+    private void initialiseCollector(IndexReader reader) throws IOException {
+        // we only need to initialise the counts in case we have to include 0 counts as well
+        if ( facetRequest.hasZeroCountsIncluded() && facetRequest instanceof DiscreteFacetRequest ) {
+            initFacetCounts( reader );
+        }
+        initialised = true;
+    }
 
-	private void initialiseFieldCaches(IndexReader reader) throws IOException {
-		fieldLoader.loadNewCacheValues( reader );
-	}
+    private void initialiseFieldCaches(IndexReader reader) throws IOException {
+        fieldLoader.loadNewCacheValues( reader );
+    }
 
-	private <N extends Number> FacetCounter createFacetCounter(FacetingRequestImpl request) {
-		if ( request instanceof DiscreteFacetRequest ) {
-			return new SimpleFacetCounter();
-		}
-		else if ( request instanceof RangeFacetRequest ) {
-			@SuppressWarnings("unchecked")
-			RangeFacetRequest<N> rangeFacetRequest = (RangeFacetRequest<N>) request;
-			return new RangeFacetCounter<N>( rangeFacetRequest );
-		}
-		else {
-			throw new IllegalArgumentException( "Unsupported cache type" );
-		}
-	}
+    private <N extends Number> FacetCounter createFacetCounter(FacetingRequestImpl request) {
+        if ( request instanceof DiscreteFacetRequest ) {
+            return new SimpleFacetCounter();
+        }
+        else if ( request instanceof RangeFacetRequest ) {
+            @SuppressWarnings("unchecked")
+            RangeFacetRequest<N> rangeFacetRequest = (RangeFacetRequest<N>) request;
+            return new RangeFacetCounter<N>( rangeFacetRequest );
+        }
+        else {
+            throw new IllegalArgumentException( "Unsupported cache type" );
+        }
+    }
 
-	private void initFacetCounts(IndexReader reader) throws IOException {
-		String fieldName = facetRequest.getFieldName();
-		// term are enumerated by field name and within field names by term value
-		TermEnum terms = reader.terms( new Term( fieldName, "" ) );
-		try {
-			while ( fieldName.equals( terms.term().field() ) ) {
-				String fieldValue = terms.term().text();
-				facetCounts.initCount( fieldValue );
-				if ( !terms.next() ) {
-					break;
-				}
-			}
-		}
-		finally {
-			terms.close();
-		}
-	}
+    private void initFacetCounts(IndexReader reader) throws IOException {
+        String fieldName = facetRequest.getFieldName();
+        // term are enumerated by field name and within field names by term value
+        TermEnum terms = reader.terms( new Term( fieldName, "" ) );
+        try {
+            while ( fieldName.equals( terms.term().field() ) ) {
+                String fieldValue = terms.term().text();
+                facetCounts.initCount( fieldValue );
+                if ( !terms.next() ) {
+                    break;
+                }
+            }
+        }
+        finally {
+            terms.close();
+        }
+    }
 
-	static public class FacetEntryComparator implements Comparator<Entry<String, Integer>>, Serializable {
-		private final FacetSortOrder sortOder;
+    static public class FacetEntryComparator implements Comparator<Entry<String, Integer>>, Serializable {
+        private final FacetSortOrder sortOder;
 
-		public FacetEntryComparator(FacetSortOrder sortOrder) {
-			this.sortOder = sortOrder;
-		}
+        public FacetEntryComparator(FacetSortOrder sortOrder) {
+            this.sortOder = sortOrder;
+        }
 
-		public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
-			if ( FacetSortOrder.COUNT_ASC.equals( sortOder ) ) {
-				return entry1.getValue() - entry2.getValue();
-			}
-			else if ( FacetSortOrder.COUNT_DESC.equals( sortOder ) ) {
-				return entry2.getValue() - entry1.getValue();
-			}
-			else {
-				return entry1.getKey().compareTo( entry2.getKey() );
-			}
-		}
-	}
+        public int compare(Entry<String, Integer> entry1, Entry<String, Integer> entry2) {
+            if ( FacetSortOrder.COUNT_ASC.equals( sortOder ) ) {
+                return entry1.getValue() - entry2.getValue();
+            }
+            else if ( FacetSortOrder.COUNT_DESC.equals( sortOder ) ) {
+                return entry2.getValue() - entry1.getValue();
+            }
+            else {
+                return entry1.getKey().compareTo( entry2.getKey() );
+            }
+        }
+    }
 
-	static public class RangeDefinitionOrderFacetComparator implements Comparator<Facet>, Serializable {
+    static public class RangeDefinitionOrderFacetComparator implements Comparator<Facet>, Serializable {
 
-		public int compare(Facet facet1, Facet facet2) {
-			return ( (RangeFacetImpl) facet1 ).getRangeIndex() - ( (RangeFacetImpl) facet2 ).getRangeIndex();
-		}
-	}
+        public int compare(Facet facet1, Facet facet2) {
+            return ( (RangeFacetImpl) facet1 ).getRangeIndex() - ( (RangeFacetImpl) facet2 ).getRangeIndex();
+        }
+    }
 
-	static public abstract class FacetCounter {
-		private Map<String, Integer> counts = newHashMap();
+    static public abstract class FacetCounter {
+        private Map<String, Integer> counts = newHashMap();
 
-		Map<String, Integer> getCounts() {
-			return counts;
-		}
+        Map<String, Integer> getCounts() {
+            return counts;
+        }
 
-		void initCount(String value) {
-			if ( !counts.containsKey( value ) ) {
-				counts.put( value, 0 );
-			}
-		}
+        void initCount(String value) {
+            if ( !counts.containsKey( value ) ) {
+                counts.put( value, 0 );
+            }
+        }
 
-		void incrementCount(String value) {
-			if ( !counts.containsKey( value ) ) {
-				counts.put( value, 1 );
-			}
-			else {
-				counts.put( value, counts.get( value ) + 1 );
-			}
-		}
+        void incrementCount(String value) {
+            if ( !counts.containsKey( value ) ) {
+                counts.put( value, 1 );
+            }
+            else {
+                counts.put( value, counts.get( value ) + 1 );
+            }
+        }
 
-		abstract void countValue(Object value);
-	}
+        abstract void countValue(Object value);
+    }
 
-	static class SimpleFacetCounter extends FacetCounter {
-		void countValue(Object value) {
-			incrementCount( (String) value );
-		}
-	}
+    static class SimpleFacetCounter extends FacetCounter {
+        void countValue(Object value) {
+            incrementCount( (String) value );
+        }
+    }
 
-	static class RangeFacetCounter<T> extends FacetCounter {
-		private final List<FacetRange<T>> ranges;
+    static class RangeFacetCounter<T> extends FacetCounter {
+        private final List<FacetRange<T>> ranges;
 
-		RangeFacetCounter(RangeFacetRequest<T> request) {
-			this.ranges = request.getFacetRangeList();
-			for ( FacetRange<T> range : ranges ) {
-				initCount( range.getRangeString() );
-			}
-		}
+        RangeFacetCounter(RangeFacetRequest<T> request) {
+            this.ranges = request.getFacetRangeList();
+            for ( FacetRange<T> range : ranges ) {
+                initCount( range.getRangeString() );
+            }
+        }
 
-		@SuppressWarnings("unchecked")
-		void countValue(Object value) {
-			for ( FacetRange<T> range : ranges ) {
-				if ( range.isInRange( (T) value ) ) {
-					incrementCount( range.getRangeString() );
-				}
-			}
-		}
-	}
+        @SuppressWarnings("unchecked")
+        void countValue(Object value) {
+            for ( FacetRange<T> range : ranges ) {
+                if ( range.isInRange( (T) value ) ) {
+                    incrementCount( range.getRangeString() );
+                }
+            }
+        }
+    }
 }

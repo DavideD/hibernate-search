@@ -39,9 +39,9 @@ import java.lang.annotation.Documented;
 @Target( { ElementType.METHOD, ElementType.FIELD} )
 @Documented
 public @interface Fields {
-	/**
-	 * Fields
-	 */
-	Field[] value();
+    /**
+     * Fields
+     */
+    Field[] value();
 
 }

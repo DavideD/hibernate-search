@@ -26,28 +26,28 @@ package org.hibernate.search.indexes.interceptor;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public enum IndexingOverride {
-	/**
-	 * Let Hibernate Search engine apply the standard operation
-	 * without overriding it
-	 */
-	APPLY_DEFAULT,
+    /**
+     * Let Hibernate Search engine apply the standard operation
+     * without overriding it
+     */
+    APPLY_DEFAULT,
 
-	/**
-	 * Skip any indexing operation
-	 */
-	SKIP,
+    /**
+     * Skip any indexing operation
+     */
+    SKIP,
 
-	/**
-	 * Force an entity to be removed from the index
-	 * This operation can be safely requested regardless
-	 * of the actual presence of the entity in the index
-	 */
-	REMOVE,
+    /**
+     * Force an entity to be removed from the index
+     * This operation can be safely requested regardless
+     * of the actual presence of the entity in the index
+     */
+    REMOVE,
 
-	/**
-	 * Update the entity index.
-	 *
-	 * It is safe to update an entity that has not been added yet.
-	 */
-	UPDATE
+    /**
+     * Update the entity index.
+     *
+     * It is safe to update an entity that has not been added yet.
+     */
+    UPDATE
 }

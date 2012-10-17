@@ -32,20 +32,20 @@ import org.hibernate.search.query.dsl.FacetRangeAboveBelowContext;
  * @author Hardy Ferentschik
  */
 public class ConnectedFacetContinuationContext implements FacetContinuationContext {
-	private final FacetBuildingContext context;
+    private final FacetBuildingContext context;
 
-	public ConnectedFacetContinuationContext(FacetBuildingContext context) {
-		this.context = context;
-	}
+    public ConnectedFacetContinuationContext(FacetBuildingContext context) {
+        this.context = context;
+    }
 
-	public <T> FacetRangeAboveBelowContext<T> range() {
-		context.setRangeQuery( true );
-		return new ConnectedFacetRangeAboveBelowContext<T>(context);
-	}
+    public <T> FacetRangeAboveBelowContext<T> range() {
+        context.setRangeQuery( true );
+        return new ConnectedFacetRangeAboveBelowContext<T>(context);
+    }
 
-	public DiscreteFacetContext discrete() {
-		return new ConnectedDiscreteFacetContext(context);
-	}
+    public DiscreteFacetContext discrete() {
+        return new ConnectedDiscreteFacetContext(context);
+    }
 }
 
 

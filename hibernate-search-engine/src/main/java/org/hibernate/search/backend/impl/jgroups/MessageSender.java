@@ -36,35 +36,35 @@ import org.jgroups.View;
  */
 public interface MessageSender {
 
-	/**
-	 * Start sender.
-	 */
-	void start();
+    /**
+     * Start sender.
+     */
+    void start();
 
-	/**
-	 * Stop sender.
-	 */
-	void stop();
+    /**
+     * Stop sender.
+     */
+    void stop();
 
-	/**
-	 * Send message.
-	 *
-	 * @param message the JGroups message
-	 * @throws java.lang.Exception for any error
-	 */
-	void send(Message message) throws Exception;
+    /**
+     * Send message.
+     *
+     * @param message the JGroups message
+     * @throws java.lang.Exception for any error
+     */
+    void send(Message message) throws Exception;
 
-	/**
-	 * Get sender's address.
-	 *
-	 * @return the sender's address
-	 */
-	Address getAddress();
+    /**
+     * Get sender's address.
+     *
+     * @return the sender's address
+     */
+    Address getAddress();
 
-	/**
-	 * Get current view.
-	 *
-	 * @return the current cluster view
-	 */
-	View getView();
+    /**
+     * Get current view.
+     *
+     * @return the current cluster view
+     */
+    View getView();
 }

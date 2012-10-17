@@ -28,12 +28,12 @@ package org.hibernate.search.query.dsl;
  * @author Hardy Ferentschik
  */
 public interface FacetContext {
-	/**
-	 * @param name the name for this facet request
-	 *
-	 * @return a {@code FacetFieldContext} to continue building the facet request
-	 */
-	FacetFieldContext name(String name);
+    /**
+     * @param name the name for this facet request
+     *
+     * @return a {@code FacetFieldContext} to continue building the facet request
+     */
+    FacetFieldContext name(String name);
 }
 
 

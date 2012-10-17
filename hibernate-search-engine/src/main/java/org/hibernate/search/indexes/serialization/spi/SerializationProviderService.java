@@ -28,22 +28,22 @@ import org.hibernate.search.spi.ServiceProvider;
 
 public class SerializationProviderService implements ServiceProvider<SerializationProvider> {
 
-	private AvroSerializationProvider avroSerializationProvider;
+    private AvroSerializationProvider avroSerializationProvider;
 
-	@Override
-	public void start(Properties properties, BuildContext buildContext) {
-		//TODO Make the implementation configurable
-		avroSerializationProvider = new AvroSerializationProvider();
-	}
+    @Override
+    public void start(Properties properties, BuildContext buildContext) {
+        //TODO Make the implementation configurable
+        avroSerializationProvider = new AvroSerializationProvider();
+    }
 
-	@Override
-	public SerializationProvider getService() {
-		return avroSerializationProvider;
-	}
+    @Override
+    public SerializationProvider getService() {
+        return avroSerializationProvider;
+    }
 
-	@Override
-	public void stop() {
-		//nothing to do
-	}
+    @Override
+    public void stop() {
+        //nothing to do
+    }
 
 }

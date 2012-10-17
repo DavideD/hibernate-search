@@ -49,165 +49,165 @@ import org.junit.rules.ExpectedException;
  */
 public class ImplicitProvidedIdTest {
 
-	@Rule
-	public ExpectedException exceptions = ExpectedException.none();
+    @Rule
+    public ExpectedException exceptions = ExpectedException.none();
 
-	@Test
-	public void exceptionThrownWhenNotEnabled() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Book.class ).indexed()
-			//Entity missing both @DocumentId and @ProvidedId:
-			.property( "title", ElementType.FIELD ).field()
-			.property( "text", ElementType.FIELD ).field()
-			;
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", "ram" )
-			.setProgrammaticMapping( mapping )
-			.addClass( Book.class );
-		exceptions.expect( SearchException.class );
-		exceptions.expectMessage( "No document id in: " + Book.class.getName() );
-		storeBooksViaProvidedId( cfg, ProvidedId.defaultFieldName, false );
-	}
+    @Test
+    public void exceptionThrownWhenNotEnabled() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Book.class ).indexed()
+            //Entity missing both @DocumentId and @ProvidedId:
+            .property( "title", ElementType.FIELD ).field()
+            .property( "text", ElementType.FIELD ).field()
+            ;
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", "ram" )
+            .setProgrammaticMapping( mapping )
+            .addClass( Book.class );
+        exceptions.expect( SearchException.class );
+        exceptions.expectMessage( "No document id in: " + Book.class.getName() );
+        storeBooksViaProvidedId( cfg, ProvidedId.defaultFieldName, false );
+    }
 
-	@Test
-	public void usingConfigurationTypeOverride() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Book.class ).indexed()
-			//Entity missing both @DocumentId and @ProvidedId:
-			.property( "title", ElementType.FIELD ).field()
-			.property( "text", ElementType.FIELD ).field()
-			;
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", "ram" )
-			.setProgrammaticMapping( mapping )
-			.setIdProvidedImplicit( true )
-			.addClass( Book.class );
-		storeBooksViaProvidedId( cfg, ProvidedId.defaultFieldName, false );
-	}
+    @Test
+    public void usingConfigurationTypeOverride() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Book.class ).indexed()
+            //Entity missing both @DocumentId and @ProvidedId:
+            .property( "title", ElementType.FIELD ).field()
+            .property( "text", ElementType.FIELD ).field()
+            ;
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", "ram" )
+            .setProgrammaticMapping( mapping )
+            .setIdProvidedImplicit( true )
+            .addClass( Book.class );
+        storeBooksViaProvidedId( cfg, ProvidedId.defaultFieldName, false );
+    }
 
-	@Test
-	public void usingProvidedIdAsOptionsOverride() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Book.class ).indexed()
-				.providedId().name( "myID" )
-			//Entity missing both @DocumentId and @ProvidedId:
-			.property( "title", ElementType.FIELD ).field()
-			.property( "text", ElementType.FIELD ).field()
-			;
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", "ram" )
-			.setProgrammaticMapping( mapping )
-			.setIdProvidedImplicit( true )
-			.addClass( Book.class );
-		storeBooksViaProvidedId( cfg, "myID", false );
-	}
+    @Test
+    public void usingProvidedIdAsOptionsOverride() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Book.class ).indexed()
+                .providedId().name( "myID" )
+            //Entity missing both @DocumentId and @ProvidedId:
+            .property( "title", ElementType.FIELD ).field()
+            .property( "text", ElementType.FIELD ).field()
+            ;
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", "ram" )
+            .setProgrammaticMapping( mapping )
+            .setIdProvidedImplicit( true )
+            .addClass( Book.class );
+        storeBooksViaProvidedId( cfg, "myID", false );
+    }
 
-	@Test
-	public void usingExplicitProvidedId() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Book.class ).indexed()
-				.providedId().name( "myID" )
-			//Entity missing both @DocumentId and @ProvidedId:
-			.property( "title", ElementType.FIELD ).field()
-			.property( "text", ElementType.FIELD ).field()
-			;
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", "ram" )
-			.setProgrammaticMapping( mapping )
-			.setIdProvidedImplicit( false ) //DEFAULT
-			.addClass( Book.class );
-		storeBooksViaProvidedId( cfg, "myID", false );
-	}
+    @Test
+    public void usingExplicitProvidedId() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Book.class ).indexed()
+                .providedId().name( "myID" )
+            //Entity missing both @DocumentId and @ProvidedId:
+            .property( "title", ElementType.FIELD ).field()
+            .property( "text", ElementType.FIELD ).field()
+            ;
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", "ram" )
+            .setProgrammaticMapping( mapping )
+            .setIdProvidedImplicit( false ) //DEFAULT
+            .addClass( Book.class );
+        storeBooksViaProvidedId( cfg, "myID", false );
+    }
 
-	@Test
-	public void usingDefaultSettings() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Book.class ).indexed()
-				.providedId().name( "myID" )
-			//Entity missing both @DocumentId and @ProvidedId:
-			.property( "title", ElementType.FIELD ).field()
-			.property( "text", ElementType.FIELD ).field()
-			;
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", "ram" )
-			.setProgrammaticMapping( mapping )
-			//.setIdProvidedImplicit( false ) //Test it's the default
-			.addClass( Book.class );
-		storeBooksViaProvidedId( cfg, "myID", false );
-	}
+    @Test
+    public void usingDefaultSettings() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Book.class ).indexed()
+                .providedId().name( "myID" )
+            //Entity missing both @DocumentId and @ProvidedId:
+            .property( "title", ElementType.FIELD ).field()
+            .property( "text", ElementType.FIELD ).field()
+            ;
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", "ram" )
+            .setProgrammaticMapping( mapping )
+            //.setIdProvidedImplicit( false ) //Test it's the default
+            .addClass( Book.class );
+        storeBooksViaProvidedId( cfg, "myID", false );
+    }
 
-	@Test
-	public void documentIdNotOverriden() {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Book.class ).indexed()
-				.property( "title", ElementType.FIELD ).documentId()
-				.property( "text", ElementType.FIELD ).field()
-			;
-		ManualConfiguration cfg = new ManualConfiguration()
-			.addProperty( "hibernate.search.default.directory_provider", "ram" )
-			.setProgrammaticMapping( mapping )
-			//.setIdProvidedImplicit( false ) //Test it's the default
-			.addClass( Book.class );
-		storeBooksViaProvidedId( cfg, "title", true );
-	}
+    @Test
+    public void documentIdNotOverriden() {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Book.class ).indexed()
+                .property( "title", ElementType.FIELD ).documentId()
+                .property( "text", ElementType.FIELD ).field()
+            ;
+        ManualConfiguration cfg = new ManualConfiguration()
+            .addProperty( "hibernate.search.default.directory_provider", "ram" )
+            .setProgrammaticMapping( mapping )
+            //.setIdProvidedImplicit( false ) //Test it's the default
+            .addClass( Book.class );
+        storeBooksViaProvidedId( cfg, "title", true );
+    }
 
-	/**
-	 * @param cfg The SearchFactory configuration to be tested
-	 * @param fieldName The expected name of the ID field
-	 */
-	private void storeBooksViaProvidedId(ManualConfiguration cfg, String fieldName, boolean matchTitle) {
-		SearchFactoryImplementor sf = null;
-		try {
-			//Should fail right here when @ProvidedId is not enabled:
-			sf = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+    /**
+     * @param cfg The SearchFactory configuration to be tested
+     * @param fieldName The expected name of the ID field
+     */
+    private void storeBooksViaProvidedId(ManualConfiguration cfg, String fieldName, boolean matchTitle) {
+        SearchFactoryImplementor sf = null;
+        try {
+            //Should fail right here when @ProvidedId is not enabled:
+            sf = new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
 
-			Book book = new Book();
-			book.title = "Less is nice";
-			book.text = "When using Infinispan Query, users have to always remember to add @ProvidedId on their classes" +
-					" or a nasty exception will remind them. Can't we just assume it's always annotated?";
-			String isbn = "some entity-external id";
-			Work work = new Work( book, isbn, WorkType.ADD, false );
-			ManualTransactionContext tc = new ManualTransactionContext();
-			sf.getWorker().performWork( work, tc );
-			tc.end();
+            Book book = new Book();
+            book.title = "Less is nice";
+            book.text = "When using Infinispan Query, users have to always remember to add @ProvidedId on their classes" +
+                    " or a nasty exception will remind them. Can't we just assume it's always annotated?";
+            String isbn = "some entity-external id";
+            Work work = new Work( book, isbn, WorkType.ADD, false );
+            ManualTransactionContext tc = new ManualTransactionContext();
+            sf.getWorker().performWork( work, tc );
+            tc.end();
 
-			QueryBuilder queryBuilder = sf.buildQueryBuilder()
-					.forEntity( Book.class )
-					.get();
+            QueryBuilder queryBuilder = sf.buildQueryBuilder()
+                    .forEntity( Book.class )
+                    .get();
 
-			Query query = queryBuilder.keyword()
-				.onField( fieldName )
-				.ignoreAnalyzer()
-				.matching( matchTitle ? book.title : isbn )
-				.createQuery();
+            Query query = queryBuilder.keyword()
+                .onField( fieldName )
+                .ignoreAnalyzer()
+                .matching( matchTitle ? book.title : isbn )
+                .createQuery();
 
-			int queryResultSize = sf.createHSQuery()
-					.luceneQuery( query )
-					.targetedEntities( Arrays.asList( new Class<?>[]{ Book.class } ) )
-					.queryResultSize();
-			Assert.assertEquals( 1, queryResultSize );
-		}
-		finally {
-			if ( sf != null ) {
-				sf.close();
-			}
-		}
-	}
+            int queryResultSize = sf.createHSQuery()
+                    .luceneQuery( query )
+                    .targetedEntities( Arrays.asList( new Class<?>[]{ Book.class } ) )
+                    .queryResultSize();
+            Assert.assertEquals( 1, queryResultSize );
+        }
+        finally {
+            if ( sf != null ) {
+                sf.close();
+            }
+        }
+    }
 
-	/**
-	 * Test entity. We use programmatic configuration to test different annotation combinations.
-	 */
-	static class Book {
+    /**
+     * Test entity. We use programmatic configuration to test different annotation combinations.
+     */
+    static class Book {
 
-		String title;
+        String title;
 
-		String text;
-	}
+        String text;
+    }
 
 }

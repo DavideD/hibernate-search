@@ -35,22 +35,22 @@ import org.apache.lucene.document.Document;
  */
 public interface FieldBridge {
 
-	/**
-	 * Manipulate the document to index the given value.
-	 * <p/>
-	 * A common implementation is to add a Field with the given {@code name} to {@code document} following
-	 * the parameters {@code luceneOptions} if the {@code value} is not {@code null}.
-	 *
-	 * {code}
-	 * String fieldValue = convertToString(value);
-	 * luceneOptions.addFieldToDocument(name, fieldValue, document);
-	 * {code}
-	 *
-	 * @param name The field to add to the Lucene document
-	 * @param value The actual value to index
-	 * @param document The Lucene document into which we want to index the value.
-	 * @param luceneOptions Contains the parameters used for adding {@code value} to
-	 * the Lucene document.
-	 */
-	void set(String name, Object value, Document document, LuceneOptions luceneOptions);
+    /**
+     * Manipulate the document to index the given value.
+     * <p/>
+     * A common implementation is to add a Field with the given {@code name} to {@code document} following
+     * the parameters {@code luceneOptions} if the {@code value} is not {@code null}.
+     *
+     * {code}
+     * String fieldValue = convertToString(value);
+     * luceneOptions.addFieldToDocument(name, fieldValue, document);
+     * {code}
+     *
+     * @param name The field to add to the Lucene document
+     * @param value The actual value to index
+     * @param document The Lucene document into which we want to index the value.
+     * @param luceneOptions Contains the parameters used for adding {@code value} to
+     * the Lucene document.
+     */
+    void set(String name, Object value, Document document, LuceneOptions luceneOptions);
 }

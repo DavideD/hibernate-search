@@ -36,9 +36,9 @@ import java.lang.annotation.Target;
 @Target( { ElementType.FIELD })
 @Documented
 public @interface Longitude {
-	/**
-	 * @return the referred spatial annotation field name (defaults to the JavaBean property name)
-	 */
-	String spatialName() default "";
+    /**
+     * @return the referred spatial annotation field name (defaults to the JavaBean property name)
+     */
+    String spatialName() default "";
 }
 

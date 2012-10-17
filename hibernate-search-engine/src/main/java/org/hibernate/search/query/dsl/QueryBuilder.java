@@ -28,50 +28,50 @@ package org.hibernate.search.query.dsl;
  * @author Emmanuel Bernard
  */
 public interface QueryBuilder {
-	/**
-	 * Build a term query (see {@link org.apache.lucene.search.TermQuery}).
-	 *
-	 * @return a {@code TermContext} instance for building the term query
-	 */
-	TermContext keyword();
+    /**
+     * Build a term query (see {@link org.apache.lucene.search.TermQuery}).
+     *
+     * @return a {@code TermContext} instance for building the term query
+     */
+    TermContext keyword();
 
-	/**
-	 * Build a range query (see {@link org.apache.lucene.search.TermRangeQuery}.
-	 *
-	 * @return a {@code RangeContext} instance for building the range query
-	 */
-	RangeContext range();
+    /**
+     * Build a range query (see {@link org.apache.lucene.search.TermRangeQuery}.
+     *
+     * @return a {@code RangeContext} instance for building the range query
+     */
+    RangeContext range();
 
-	/**
-	 * Build a phrase query (see {@link org.apache.lucene.search.PhraseQuery}).
-	 *
-	 * @return a {@code PhraseContext} instance for building the range query
-	 */
-	PhraseContext phrase();
+    /**
+     * Build a phrase query (see {@link org.apache.lucene.search.PhraseQuery}).
+     *
+     * @return a {@code PhraseContext} instance for building the range query
+     */
+    PhraseContext phrase();
 
-	/**
-	 * Start for building a boolean query.
-	 *
-	 * @return a {@code BooleanJunction} instance for building the boolean query
-	 */
-	BooleanJunction<BooleanJunction> bool();
+    /**
+     * Start for building a boolean query.
+     *
+     * @return a {@code BooleanJunction} instance for building the boolean query
+     */
+    BooleanJunction<BooleanJunction> bool();
 
-	/**
-	 * Query matching all documents (typically mixed with a boolean query).
-	 *
-	 * @return an {@code AllContext}
-	 */
-	AllContext all();
+    /**
+     * Query matching all documents (typically mixed with a boolean query).
+     *
+     * @return an {@code AllContext}
+     */
+    AllContext all();
 
-	/**
-	 * Build a facet request
-	 *
-	 * @return the facet context as entry point for building the facet request
-	 */
-	FacetContext facet();
+    /**
+     * Build a facet request
+     *
+     * @return the facet context as entry point for building the facet request
+     */
+    FacetContext facet();
 
-	/**
-	 * Build a spatial query
-	 */
-	SpatialContext spatial();
+    /**
+     * Build a spatial query
+     */
+    SpatialContext spatial();
 }

@@ -42,57 +42,57 @@ import org.apache.lucene.document.Fieldable;
  */
 public final class ScopedAnalyzer extends Analyzer {
 
-	private Analyzer globalAnalyzer;
-	private Map<String, Analyzer> scopedAnalyzers = new HashMap<String, Analyzer>();
+    private Analyzer globalAnalyzer;
+    private Map<String, Analyzer> scopedAnalyzers = new HashMap<String, Analyzer>();
 
-	public ScopedAnalyzer() {
-	}
+    public ScopedAnalyzer() {
+    }
 
-	private ScopedAnalyzer( Analyzer globalAnalyzer, Map<String, Analyzer> scopedAnalyzers) {
-		this.globalAnalyzer = globalAnalyzer;
-		for ( Map.Entry<String, Analyzer> entry : scopedAnalyzers.entrySet() ) {
-			addScopedAnalyzer( entry.getKey(), entry.getValue() );
-		}
-	}
+    private ScopedAnalyzer( Analyzer globalAnalyzer, Map<String, Analyzer> scopedAnalyzers) {
+        this.globalAnalyzer = globalAnalyzer;
+        for ( Map.Entry<String, Analyzer> entry : scopedAnalyzers.entrySet() ) {
+            addScopedAnalyzer( entry.getKey(), entry.getValue() );
+        }
+    }
 
-	public void setGlobalAnalyzer(Analyzer globalAnalyzer) {
-		this.globalAnalyzer = globalAnalyzer;
-	}
+    public void setGlobalAnalyzer(Analyzer globalAnalyzer) {
+        this.globalAnalyzer = globalAnalyzer;
+    }
 
-	public void addScopedAnalyzer(String scope, Analyzer scopedAnalyzer) {
-		scopedAnalyzers.put( scope, scopedAnalyzer );
-	}
+    public void addScopedAnalyzer(String scope, Analyzer scopedAnalyzer) {
+        scopedAnalyzers.put( scope, scopedAnalyzer );
+    }
 
-	@Override
-	public TokenStream tokenStream(String fieldName, Reader reader) {
-		return getAnalyzer( fieldName ).tokenStream( fieldName, reader );
-	}
+    @Override
+    public TokenStream tokenStream(String fieldName, Reader reader) {
+        return getAnalyzer( fieldName ).tokenStream( fieldName, reader );
+    }
 
-	@Override
-	public TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException {
-		return getAnalyzer( fieldName ).reusableTokenStream( fieldName, reader );
-	}
+    @Override
+    public TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException {
+        return getAnalyzer( fieldName ).reusableTokenStream( fieldName, reader );
+    }
 
-	@Override
-	public int getPositionIncrementGap( String fieldName ) {
-		return getAnalyzer( fieldName ).getPositionIncrementGap( fieldName );
-	}
+    @Override
+    public int getPositionIncrementGap( String fieldName ) {
+        return getAnalyzer( fieldName ).getPositionIncrementGap( fieldName );
+    }
 
-	@Override
-	public int getOffsetGap(Fieldable field) {
-		return getAnalyzer( field.name() ).getOffsetGap( field );
-	}
+    @Override
+    public int getOffsetGap(Fieldable field) {
+        return getAnalyzer( field.name() ).getOffsetGap( field );
+    }
 
-	private Analyzer getAnalyzer( String fieldName ) {
-		Analyzer analyzer = scopedAnalyzers.get(fieldName);
-		if ( analyzer == null ) {
-			analyzer = globalAnalyzer;
-		}
-		return analyzer;
-	}
+    private Analyzer getAnalyzer( String fieldName ) {
+        Analyzer analyzer = scopedAnalyzers.get(fieldName);
+        if ( analyzer == null ) {
+            analyzer = globalAnalyzer;
+        }
+        return analyzer;
+    }
 
-	public ScopedAnalyzer clone() {
-		ScopedAnalyzer clone = new ScopedAnalyzer( globalAnalyzer, scopedAnalyzers );
-		return clone;
-	}
+    public ScopedAnalyzer clone() {
+        ScopedAnalyzer clone = new ScopedAnalyzer( globalAnalyzer, scopedAnalyzers );
+        return clone;
+    }
 }

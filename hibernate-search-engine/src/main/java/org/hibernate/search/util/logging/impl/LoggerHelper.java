@@ -31,17 +31,17 @@ import java.io.PrintStream;
  * @author Hardy Ferentschik
  */
 public class LoggerHelper {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	public static PrintStream getLoggingPrintStream() {
-		return new PrintStream( new CustomByteArrayOutputStream(), true );
-	}
+    public static PrintStream getLoggingPrintStream() {
+        return new PrintStream( new CustomByteArrayOutputStream(), true );
+    }
 
-	static class CustomByteArrayOutputStream extends ByteArrayOutputStream {
-		public void flush() throws IOException {
-			log.debug( this.toString() );
-			super.flush();
-		}
-	}
+    static class CustomByteArrayOutputStream extends ByteArrayOutputStream {
+        public void flush() throws IOException {
+            log.debug( this.toString() );
+            super.flush();
+        }
+    }
 }
 

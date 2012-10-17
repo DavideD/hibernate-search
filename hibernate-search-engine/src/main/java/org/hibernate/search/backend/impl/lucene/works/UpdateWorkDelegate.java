@@ -28,19 +28,19 @@ import org.hibernate.search.backend.LuceneWork;
  */
 public class UpdateWorkDelegate implements LuceneWorkDelegate {
 
-	private final DeleteWorkDelegate deleteDelegate;
-	private final AddWorkDelegate addDelegate;
+    private final DeleteWorkDelegate deleteDelegate;
+    private final AddWorkDelegate addDelegate;
 
-	UpdateWorkDelegate(DeleteWorkDelegate deleteDelegate, AddWorkDelegate addDelegate) {
-		this.deleteDelegate = deleteDelegate;
-		this.addDelegate = addDelegate;
-	}
+    UpdateWorkDelegate(DeleteWorkDelegate deleteDelegate, AddWorkDelegate addDelegate) {
+        this.deleteDelegate = deleteDelegate;
+        this.addDelegate = addDelegate;
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		// This is the slowest implementation, needing to remove and then add to the index;
-		// see also org.hibernate.search.backend.impl.lucene.works.UpdateExtWorkDelegate
-		this.deleteDelegate.performWork( work, writer, monitor );
-		this.addDelegate.performWork( work, writer, monitor );
-	}
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        // This is the slowest implementation, needing to remove and then add to the index;
+        // see also org.hibernate.search.backend.impl.lucene.works.UpdateExtWorkDelegate
+        this.deleteDelegate.performWork( work, writer, monitor );
+        this.addDelegate.performWork( work, writer, monitor );
+    }
 
 }

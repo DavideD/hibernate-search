@@ -39,5 +39,5 @@ import java.lang.annotation.Documented;
 @Target( { ElementType.TYPE, ElementType.FIELD, ElementType.METHOD} )
 @Documented
 public @interface AnalyzerDefs {
-	AnalyzerDef[] value();
+    AnalyzerDef[] value();
 }

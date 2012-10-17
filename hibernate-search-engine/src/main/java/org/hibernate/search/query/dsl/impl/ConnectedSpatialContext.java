@@ -29,41 +29,41 @@ import org.hibernate.search.query.dsl.SpatialMatchingContext;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class ConnectedSpatialContext implements SpatialContext {
-	private final QueryBuildingContext queryContext;
-	private final QueryCustomizer queryCustomizer;
-	private final SpatialQueryContext spatialContext;
-	private final ConnectedQueryBuilder queryBuilder;
+    private final QueryBuildingContext queryContext;
+    private final QueryCustomizer queryCustomizer;
+    private final SpatialQueryContext spatialContext;
+    private final ConnectedQueryBuilder queryBuilder;
 
-	public ConnectedSpatialContext(QueryBuildingContext context, ConnectedQueryBuilder queryBuilder) {
-		this.queryContext = context;
-		this.queryCustomizer = new QueryCustomizer();
-		//today we only do constant score for spatial queries
-		queryCustomizer.withConstantScore();
-		spatialContext = new SpatialQueryContext();
-		this.queryBuilder = queryBuilder;
-	}
+    public ConnectedSpatialContext(QueryBuildingContext context, ConnectedQueryBuilder queryBuilder) {
+        this.queryContext = context;
+        this.queryCustomizer = new QueryCustomizer();
+        //today we only do constant score for spatial queries
+        queryCustomizer.withConstantScore();
+        spatialContext = new SpatialQueryContext();
+        this.queryBuilder = queryBuilder;
+    }
 
-	@Override
-	public SpatialMatchingContext onCoordinates(String field) {
-		spatialContext.setCoordinatesField(field);
-		return new ConnectedSpatialMatchingContext( queryContext, queryCustomizer, spatialContext, queryBuilder );
-	}
+    @Override
+    public SpatialMatchingContext onCoordinates(String field) {
+        spatialContext.setCoordinatesField(field);
+        return new ConnectedSpatialMatchingContext( queryContext, queryCustomizer, spatialContext, queryBuilder );
+    }
 
-	@Override
-	public SpatialContext boostedTo(float boost) {
-		queryCustomizer.boostedTo( boost );
-		return this;
-	}
+    @Override
+    public SpatialContext boostedTo(float boost) {
+        queryCustomizer.boostedTo( boost );
+        return this;
+    }
 
-	@Override
-	public SpatialContext withConstantScore() {
-		queryCustomizer.withConstantScore();
-		return this;
-	}
+    @Override
+    public SpatialContext withConstantScore() {
+        queryCustomizer.withConstantScore();
+        return this;
+    }
 
-	@Override
-	public SpatialContext filteredBy(Filter filter) {
-		queryCustomizer.filteredBy(filter);
-		return this;
-	}
+    @Override
+    public SpatialContext filteredBy(Filter filter) {
+        queryCustomizer.filteredBy(filter);
+        return this;
+    }
 }

@@ -31,16 +31,16 @@ import org.hibernate.search.query.dsl.FacetFieldContext;
  * @author Hardy Ferentschik
  */
 public class ConnectedFacetFieldContext implements FacetFieldContext {
-	private final FacetBuildingContext context;
+    private final FacetBuildingContext context;
 
-	public ConnectedFacetFieldContext(FacetBuildingContext context) {
-		this.context = context;
-	}
+    public ConnectedFacetFieldContext(FacetBuildingContext context) {
+        this.context = context;
+    }
 
-	public FacetContinuationContext onField(String fieldName) {
-		context.setFieldName( fieldName );
-		return new ConnectedFacetContinuationContext(context);
-	}
+    public FacetContinuationContext onField(String fieldName) {
+        context.setFieldName( fieldName );
+        return new ConnectedFacetContinuationContext(context);
+    }
 }
 
 

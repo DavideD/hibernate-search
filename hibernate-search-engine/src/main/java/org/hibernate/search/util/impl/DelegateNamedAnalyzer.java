@@ -38,45 +38,45 @@ import org.apache.lucene.document.Fieldable;
  */
 public final class DelegateNamedAnalyzer extends Analyzer {
 
-	private String name;
-	private Analyzer delegate;
+    private String name;
+    private Analyzer delegate;
 
-	public DelegateNamedAnalyzer(String name) {
-		this.name = name;
-	}
+    public DelegateNamedAnalyzer(String name) {
+        this.name = name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setDelegate(Analyzer delegate) {
-		this.delegate = delegate;
-		this.name = null; //unique init
-	}
+    public void setDelegate(Analyzer delegate) {
+        this.delegate = delegate;
+        this.name = null; //unique init
+    }
 
-	@Override
-	public TokenStream tokenStream(String fieldName, Reader reader) {
-		return delegate.tokenStream( fieldName, reader );
-	}
+    @Override
+    public TokenStream tokenStream(String fieldName, Reader reader) {
+        return delegate.tokenStream( fieldName, reader );
+    }
 
-	@Override
-	public TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException {
-		return delegate.reusableTokenStream( fieldName, reader );
-	}
+    @Override
+    public TokenStream reusableTokenStream(String fieldName, Reader reader) throws IOException {
+        return delegate.reusableTokenStream( fieldName, reader );
+    }
 
-	@Override
-	public int getPositionIncrementGap(String fieldName) {
-		return delegate.getPositionIncrementGap( fieldName );
-	}
+    @Override
+    public int getPositionIncrementGap(String fieldName) {
+        return delegate.getPositionIncrementGap( fieldName );
+    }
 
-	@Override
-	public int getOffsetGap(Fieldable field) {
-		return delegate.getOffsetGap( field );
-	}
+    @Override
+    public int getOffsetGap(Fieldable field) {
+        return delegate.getOffsetGap( field );
+    }
 
-	@Override
-	public void close() {
-		super.close();
-		delegate.close();
-	}
+    @Override
+    public void close() {
+        super.close();
+        delegate.close();
+    }
 }

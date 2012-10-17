@@ -53,100 +53,100 @@ import static junit.framework.Assert.fail;
  */
 @TestForIssue(jiraKey = "HSEARCH-1026")
 public class MultipleStatisticsMBeanTest {
-	private static File simpleJndiDir;
-	private static MBeanServer mbeanServer;
+    private static File simpleJndiDir;
+    private static MBeanServer mbeanServer;
 
-	@BeforeClass
-	public static void beforeClass() {
-		File targetDir = TestConstants.getTargetDir();
-		simpleJndiDir = new File( targetDir, "simpleJndi" );
-		simpleJndiDir.mkdir();
-		mbeanServer = ManagementFactory.getPlatformMBeanServer();
-	}
+    @BeforeClass
+    public static void beforeClass() {
+        File targetDir = TestConstants.getTargetDir();
+        simpleJndiDir = new File( targetDir, "simpleJndi" );
+        simpleJndiDir.mkdir();
+        mbeanServer = ManagementFactory.getPlatformMBeanServer();
+    }
 
-	@AfterClass
-	public static void afterClass() {
-		simpleJndiDir.delete();
-	}
+    @AfterClass
+    public static void afterClass() {
+        simpleJndiDir.delete();
+    }
 
-	@Test
-	public void testDefaultRegistration() throws Exception {
-		String suffix = null;
-		SearchFactoryImplementor searchFactory = createSearchFactoryUsingJndiPrefix( suffix );
-		testStatisticsMBeanRegistered( suffix );
-		searchFactory.close();
-	}
+    @Test
+    public void testDefaultRegistration() throws Exception {
+        String suffix = null;
+        SearchFactoryImplementor searchFactory = createSearchFactoryUsingJndiPrefix( suffix );
+        testStatisticsMBeanRegistered( suffix );
+        searchFactory.close();
+    }
 
-	@Test
-	public void testRegistrationWithSuffix() throws Exception {
-		String suffix = "myapp";
-		SearchFactoryImplementor searchFactory = createSearchFactoryUsingJndiPrefix( suffix );
-		testStatisticsMBeanRegistered( suffix );
-		searchFactory.close();
-	}
+    @Test
+    public void testRegistrationWithSuffix() throws Exception {
+        String suffix = "myapp";
+        SearchFactoryImplementor searchFactory = createSearchFactoryUsingJndiPrefix( suffix );
+        testStatisticsMBeanRegistered( suffix );
+        searchFactory.close();
+    }
 
-	@Test
-	public void testMultipleMbeanRegistration() throws Exception {
-		String suffixApp1 = "app-1";
-		SearchFactoryImplementor factory1 = createSearchFactoryUsingJndiPrefix( suffixApp1 );
-		testStatisticsMBeanRegistered( suffixApp1 );
+    @Test
+    public void testMultipleMbeanRegistration() throws Exception {
+        String suffixApp1 = "app-1";
+        SearchFactoryImplementor factory1 = createSearchFactoryUsingJndiPrefix( suffixApp1 );
+        testStatisticsMBeanRegistered( suffixApp1 );
 
-		String suffixApp2 = "app-2";
-		SearchFactoryImplementor factory2 = createSearchFactoryUsingJndiPrefix( suffixApp2 );
-		testStatisticsMBeanRegistered( suffixApp2 );
+        String suffixApp2 = "app-2";
+        SearchFactoryImplementor factory2 = createSearchFactoryUsingJndiPrefix( suffixApp2 );
+        testStatisticsMBeanRegistered( suffixApp2 );
 
-		factory1.close();
-		factory2.close();
-	}
+        factory1.close();
+        factory2.close();
+    }
 
-	@Test
-	public void testStatisticMBeanGetsUnregistered() throws Exception {
-		String suffix = "myapp";
+    @Test
+    public void testStatisticMBeanGetsUnregistered() throws Exception {
+        String suffix = "myapp";
 
-		SearchFactoryImplementor searchFactory = createSearchFactoryUsingJndiPrefix( suffix );
-		testStatisticsMBeanRegistered( suffix );
+        SearchFactoryImplementor searchFactory = createSearchFactoryUsingJndiPrefix( suffix );
+        testStatisticsMBeanRegistered( suffix );
 
-		searchFactory.close();
-		testStatisticsMBeanUnregistered( suffix );
-	}
+        searchFactory.close();
+        testStatisticsMBeanUnregistered( suffix );
+    }
 
-	private void testStatisticsMBeanUnregistered(String suffix) throws Exception {
-		String objectName = JMXRegistrar.buildMBeanName( StatisticsInfoMBean.STATISTICS_MBEAN_OBJECT_NAME, suffix );
-		ObjectName statisticsBeanObjectName = new ObjectName( objectName );
+    private void testStatisticsMBeanUnregistered(String suffix) throws Exception {
+        String objectName = JMXRegistrar.buildMBeanName( StatisticsInfoMBean.STATISTICS_MBEAN_OBJECT_NAME, suffix );
+        ObjectName statisticsBeanObjectName = new ObjectName( objectName );
 
-		assertFalse( "The MBean should be unregistered", mbeanServer.isRegistered( statisticsBeanObjectName ) );
-	}
+        assertFalse( "The MBean should be unregistered", mbeanServer.isRegistered( statisticsBeanObjectName ) );
+    }
 
-	private void testStatisticsMBeanRegistered(String suffix) throws Exception {
-		String objectName = JMXRegistrar.buildMBeanName( StatisticsInfoMBean.STATISTICS_MBEAN_OBJECT_NAME, suffix );
-		ObjectName statisticsBeanObjectName = new ObjectName( objectName );
+    private void testStatisticsMBeanRegistered(String suffix) throws Exception {
+        String objectName = JMXRegistrar.buildMBeanName( StatisticsInfoMBean.STATISTICS_MBEAN_OBJECT_NAME, suffix );
+        ObjectName statisticsBeanObjectName = new ObjectName( objectName );
 
 
-		ObjectInstance mBean = null;
-		try {
-			mBean = mbeanServer.getObjectInstance( statisticsBeanObjectName );
-		}
-		catch ( InstanceNotFoundException e ) {
-			fail( "The mbean " + statisticsBeanObjectName.getCanonicalName() + " should be registered with the MBean server " );
-		}
-		assertEquals( StatisticsInfo.class.getName(), mBean.getClassName() );
-	}
+        ObjectInstance mBean = null;
+        try {
+            mBean = mbeanServer.getObjectInstance( statisticsBeanObjectName );
+        }
+        catch ( InstanceNotFoundException e ) {
+            fail( "The mbean " + statisticsBeanObjectName.getCanonicalName() + " should be registered with the MBean server " );
+        }
+        assertEquals( StatisticsInfo.class.getName(), mBean.getClassName() );
+    }
 
-	private SearchFactoryImplementor createSearchFactoryUsingJndiPrefix(String suffix) {
-		ManualConfiguration configuration = new ManualConfiguration()
-				.addProperty( "hibernate.search.default.directory_provider", "ram" )
-				.addProperty( "hibernate.session_factory_name", "java:comp/SessionFactory" )
-				.addProperty( "hibernate.jndi.class", "org.osjava.sj.SimpleContextFactory" )
-				.addProperty( "hibernate.jndi.org.osjava.sj.root", simpleJndiDir.getAbsolutePath() )
-				.addProperty( "hibernate.jndi.org.osjava.sj.jndi.shared", "true" )
-				.addProperty( Environment.JMX_ENABLED, "true" );
+    private SearchFactoryImplementor createSearchFactoryUsingJndiPrefix(String suffix) {
+        ManualConfiguration configuration = new ManualConfiguration()
+                .addProperty( "hibernate.search.default.directory_provider", "ram" )
+                .addProperty( "hibernate.session_factory_name", "java:comp/SessionFactory" )
+                .addProperty( "hibernate.jndi.class", "org.osjava.sj.SimpleContextFactory" )
+                .addProperty( "hibernate.jndi.org.osjava.sj.root", simpleJndiDir.getAbsolutePath() )
+                .addProperty( "hibernate.jndi.org.osjava.sj.jndi.shared", "true" )
+                .addProperty( Environment.JMX_ENABLED, "true" );
 
-		if ( suffix != null ) {
-			configuration.addProperty( Environment.JMX_BEAN_SUFFIX, suffix );
-		}
+        if ( suffix != null ) {
+            configuration.addProperty( Environment.JMX_BEAN_SUFFIX, suffix );
+        }
 
-		return new SearchFactoryBuilder().configuration( configuration ).buildSearchFactory();
-	}
+        return new SearchFactoryBuilder().configuration( configuration ).buildSearchFactory();
+    }
 }
 
 

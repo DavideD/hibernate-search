@@ -36,36 +36,36 @@ import org.hibernate.search.backend.spi.Work;
  */
 public interface InstanceInitializer {
 
-	<T> Class<T> getClassFromWork(Work<T> work);
+    <T> Class<T> getClassFromWork(Work<T> work);
 
-	/**
-	 * @param entity an instance or proxy of T
-	 * @return the class from the instance, or the underlying class from a proxy.
-	 */
-	public <T> Class<T> getClass(T entity);
+    /**
+     * @param entity an instance or proxy of T
+     * @return the class from the instance, or the underlying class from a proxy.
+     */
+    public <T> Class<T> getClass(T entity);
 
-	/**
-	 * @param value the object to unproxy
-	 * @return if value is a proxy, unwraps it, otherwise works as a pass-through function.
-	 */
-	public Object unproxy(Object value);
+    /**
+     * @param value the object to unproxy
+     * @return if value is a proxy, unwraps it, otherwise works as a pass-through function.
+     */
+    public Object unproxy(Object value);
 
-	/**
-	 * @param value the collection to initialize
-	 * @return the initialized Collection, to be used on lazily-loading collections
-	 */
-	public <T> Collection<T> initializeCollection(Collection<T> value);
+    /**
+     * @param value the collection to initialize
+     * @return the initialized Collection, to be used on lazily-loading collections
+     */
+    public <T> Collection<T> initializeCollection(Collection<T> value);
 
-	/**
-	 * @param value the map to initialize
-	 * @return the initialized Map, to be used on lazily-loading maps
-	 */
-	public <K,V> Map<K,V> initializeMap(Map<K,V> value);
+    /**
+     * @param value the map to initialize
+     * @return the initialized Map, to be used on lazily-loading maps
+     */
+    public <K,V> Map<K,V> initializeMap(Map<K,V> value);
 
-	/**
-	 * @param value the array to initialize
-	 * @return the initialized array, to be used on lazily-loading arrays
-	 */
-	public Object[] initializeArray(Object[] value);
+    /**
+     * @param value the array to initialize
+     * @return the initialized array, to be used on lazily-loading arrays
+     */
+    public Object[] initializeArray(Object[] value);
 
 }

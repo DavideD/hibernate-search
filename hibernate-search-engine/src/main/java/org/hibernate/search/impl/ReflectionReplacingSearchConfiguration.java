@@ -42,80 +42,80 @@ import org.hibernate.search.spi.ServiceProvider;
  */
 public final class ReflectionReplacingSearchConfiguration implements SearchConfiguration {
 
-	private final ReflectionManager reflectionManager;
-	private final SearchConfiguration cfg;
+    private final ReflectionManager reflectionManager;
+    private final SearchConfiguration cfg;
 
-	/**
-	 * Create a new SearchConfiguration which returns the same values as the provided SearchConfiguration
-	 * instance, with the exception of {@link #getReflectionManager()} which will return the constructor
-	 * defined ReflectionManager.
-	 * 
-	 * @param reflectionManager
-	 * @param cfg
-	 */
-	public ReflectionReplacingSearchConfiguration(ReflectionManager reflectionManager, SearchConfiguration cfg) {
-		this.reflectionManager = reflectionManager;
-		this.cfg = cfg;
-	}
+    /**
+     * Create a new SearchConfiguration which returns the same values as the provided SearchConfiguration
+     * instance, with the exception of {@link #getReflectionManager()} which will return the constructor
+     * defined ReflectionManager.
+     * 
+     * @param reflectionManager
+     * @param cfg
+     */
+    public ReflectionReplacingSearchConfiguration(ReflectionManager reflectionManager, SearchConfiguration cfg) {
+        this.reflectionManager = reflectionManager;
+        this.cfg = cfg;
+    }
 
-	@Override
-	public Iterator<Class<?>> getClassMappings() {
-		return cfg.getClassMappings();
-	}
+    @Override
+    public Iterator<Class<?>> getClassMappings() {
+        return cfg.getClassMappings();
+    }
 
-	@Override
-	public Class<?> getClassMapping(String name) {
-		return cfg.getClassMapping( name );
-	}
+    @Override
+    public Class<?> getClassMapping(String name) {
+        return cfg.getClassMapping( name );
+    }
 
-	@Override
-	public String getProperty(String propertyName) {
-		return cfg.getProperty( propertyName );
-	}
+    @Override
+    public String getProperty(String propertyName) {
+        return cfg.getProperty( propertyName );
+    }
 
-	@Override
-	public Properties getProperties() {
-		return cfg.getProperties();
-	}
+    @Override
+    public Properties getProperties() {
+        return cfg.getProperties();
+    }
 
-	@Override
-	public ReflectionManager getReflectionManager() {
-		return reflectionManager;
-	}
+    @Override
+    public ReflectionManager getReflectionManager() {
+        return reflectionManager;
+    }
 
-	@Override
-	public SearchMapping getProgrammaticMapping() {
-		return cfg.getProgrammaticMapping();
-	}
+    @Override
+    public SearchMapping getProgrammaticMapping() {
+        return cfg.getProgrammaticMapping();
+    }
 
-	@Override
-	public Map<Class<? extends ServiceProvider<?>>, Object> getProvidedServices() {
-		return cfg.getProvidedServices();
-	}
+    @Override
+    public Map<Class<? extends ServiceProvider<?>>, Object> getProvidedServices() {
+        return cfg.getProvidedServices();
+    }
 
-	@Override
-	public boolean isTransactionManagerExpected() {
-		return cfg.isTransactionManagerExpected();
-	}
+    @Override
+    public boolean isTransactionManagerExpected() {
+        return cfg.isTransactionManagerExpected();
+    }
 
-	@Override
-	public InstanceInitializer getInstanceInitializer() {
-		return cfg.getInstanceInitializer();
-	}
+    @Override
+    public InstanceInitializer getInstanceInitializer() {
+        return cfg.getInstanceInitializer();
+    }
 
-	@Override
-	public boolean isIndexMetadataComplete() {
-		return cfg.isIndexMetadataComplete();
-	}
+    @Override
+    public boolean isIndexMetadataComplete() {
+        return cfg.isIndexMetadataComplete();
+    }
 
-	@Override
-	public boolean isIdProvidedImplicit() {
-		return cfg.isIdProvidedImplicit();
-	}
+    @Override
+    public boolean isIdProvidedImplicit() {
+        return cfg.isIdProvidedImplicit();
+    }
 
-	@Override
-	public IndexManagerFactory getIndexManagerFactory() {
-		return cfg.getIndexManagerFactory();
-	}
+    @Override
+    public IndexManagerFactory getIndexManagerFactory() {
+        return cfg.getIndexManagerFactory();
+    }
 
 }

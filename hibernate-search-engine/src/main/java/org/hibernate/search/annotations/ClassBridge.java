@@ -41,60 +41,60 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Documented
 public @interface ClassBridge {
-	/**
-	 * @return default field name passed to your bridge implementation (see {@link org.hibernate.search.bridge.FieldBridge#set(String, Object, org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)}).
-	 * <p><b>Note:</b><br/>
-	 * You can ignore the passed field name in your bridge implementation and add a field or even fields with different names, however any
-	 * analyzer specified via {@link #analyzer()} will only apply for the field name specified with this parameter.
-	 */
-	String name() default "";
+    /**
+     * @return default field name passed to your bridge implementation (see {@link org.hibernate.search.bridge.FieldBridge#set(String, Object, org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)}).
+     * <p><b>Note:</b><br/>
+     * You can ignore the passed field name in your bridge implementation and add a field or even fields with different names, however any
+     * analyzer specified via {@link #analyzer()} will only apply for the field name specified with this parameter.
+     */
+    String name() default "";
 
-	/**
-	 * @return Returns an instance of the {@link Store} enum, indicating whether the value should be stored in the document.
-	 *         Defaults to {@code Store.NO}
-	 */
-	Store store() default Store.NO;
+    /**
+     * @return Returns an instance of the {@link Store} enum, indicating whether the value should be stored in the document.
+     *         Defaults to {@code Store.NO}
+     */
+    Store store() default Store.NO;
 
-	/**
-	 * @return Returns a {@code Index} enum defining whether the value should be indexed or not. Defaults to {@code Index.YES}
-	 */
-	Index index() default Index.YES;
+    /**
+     * @return Returns a {@code Index} enum defining whether the value should be indexed or not. Defaults to {@code Index.YES}
+     */
+    Index index() default Index.YES;
 
-	/**
-	 * @return Returns a {@code Analyze} enum defining whether the value should be analyzed or not. Defaults to {@code Analyze.YES}
-	 */
-	Analyze analyze() default Analyze.YES;
+    /**
+     * @return Returns a {@code Analyze} enum defining whether the value should be analyzed or not. Defaults to {@code Analyze.YES}
+     */
+    Analyze analyze() default Analyze.YES;
 
-	/**
-	 * @return Returns a {@code Norms} enum defining whether the norms should be stored in the index or not. Defaults to {@code Norms.YES}
-	 */
-	Norms norms() default Norms.YES;
+    /**
+     * @return Returns a {@code Norms} enum defining whether the norms should be stored in the index or not. Defaults to {@code Norms.YES}
+     */
+    Norms norms() default Norms.YES;
 
-	/**
-	 * @return Returns an instance of the {@link TermVector} enum defining how and if term vectors should be stored.
-	 *         Default is {@code TermVector.NO}
-	 */
-	TermVector termVector() default TermVector.NO;
+    /**
+     * @return Returns an instance of the {@link TermVector} enum defining how and if term vectors should be stored.
+     *         Default is {@code TermVector.NO}
+     */
+    TermVector termVector() default TermVector.NO;
 
-	/**
-	 * @return Returns a analyzer annotation defining the analyzer to be used. Defaults to
-	 *         the inherited analyzer
-	 */
-	Analyzer analyzer() default @Analyzer;
+    /**
+     * @return Returns a analyzer annotation defining the analyzer to be used. Defaults to
+     *         the inherited analyzer
+     */
+    Analyzer analyzer() default @Analyzer;
 
-	/**
-	 * @return Returns a {@code Boost} annotation defining a float index time boost value
-	 */
-	Boost boost() default @Boost(value = 1.0F);
+    /**
+     * @return Returns a {@code Boost} annotation defining a float index time boost value
+     */
+    Boost boost() default @Boost(value = 1.0F);
 
-	/**
-	 * @return Custom implementation of class bridge
-	 */
-	public Class<?> impl();
+    /**
+     * @return Custom implementation of class bridge
+     */
+    public Class<?> impl();
 
-	/**
-	 * @return Array of {@code Parameter} instances passed to the class specified by {@link #impl} to initialize the class
-	 *         bridge
-	 */
-	public Parameter[] params() default { };
+    /**
+     * @return Array of {@code Parameter} instances passed to the class specified by {@link #impl} to initialize the class
+     *         bridge
+     */
+    public Parameter[] params() default { };
 }

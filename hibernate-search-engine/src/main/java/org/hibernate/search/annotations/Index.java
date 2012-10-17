@@ -30,15 +30,15 @@ package org.hibernate.search.annotations;
  * @author Hardy Ferentschik
  */
 public enum Index {
-	/**
-	 * Index the field value.
-	 */
-	YES,
+    /**
+     * Index the field value.
+     */
+    YES,
 
-	/**
-	 * Do not index the field value. This field can thus not be searched,
-	 * but one can still access its contents provided it is
-	 * {@link Store stored}.
-	 */
-	NO
+    /**
+     * Do not index the field value. This field can thus not be searched,
+     * but one can still access its contents provided it is
+     * {@link Store stored}.
+     */
+    NO
 }

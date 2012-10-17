@@ -33,7 +33,7 @@ import org.hibernate.search.backend.IndexingMonitor;
  * <p/>
  * Implementations must:
  * <ul>
- * <li>	be threadsafe </li>
+ * <li>    be threadsafe </li>
  * <li> have a no-arg constructor </li>
  * </ul>
  *
@@ -42,38 +42,38 @@ import org.hibernate.search.backend.IndexingMonitor;
  */
 public interface MassIndexerProgressMonitor extends IndexingMonitor {
 
-	/**
-	 * The number of Documents built;
-	 * This is invoked several times and concurrently during
-	 * the indexing process.
-	 *
-	 * @param number number of {@code Document}s built
-	 */
-	void documentsBuilt(int number);
+    /**
+     * The number of Documents built;
+     * This is invoked several times and concurrently during
+     * the indexing process.
+     *
+     * @param number number of {@code Document}s built
+     */
+    void documentsBuilt(int number);
 
-	/**
-	 * The number of entities loaded from database;
-	 * This is invoked several times and concurrently during
-	 * the indexing process.
-	 *
-	 * @param size number of entities loaded from database
-	 */
-	void entitiesLoaded(int size);
+    /**
+     * The number of entities loaded from database;
+     * This is invoked several times and concurrently during
+     * the indexing process.
+     *
+     * @param size number of entities loaded from database
+     */
+    void entitiesLoaded(int size);
 
-	/**
-	 * The total count of entities to be indexed is
-	 * added here; It could be called more than once,
-	 * the implementation should add them up.
-	 * This is invoked several times and concurrently during
-	 * the indexing process.
-	 *
-	 * @param count number of newly indexed entities which has to
-	 * be added to total count
-	 */
-	void addToTotalCount(long count);
+    /**
+     * The total count of entities to be indexed is
+     * added here; It could be called more than once,
+     * the implementation should add them up.
+     * This is invoked several times and concurrently during
+     * the indexing process.
+     *
+     * @param count number of newly indexed entities which has to
+     * be added to total count
+     */
+    void addToTotalCount(long count);
 
-	/**
-	 * Invoked when the indexing is completed.
-	 */
-	void indexingCompleted();
+    /**
+     * Invoked when the indexing is completed.
+     */
+    void indexingCompleted();
 }

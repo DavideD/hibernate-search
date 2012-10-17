@@ -31,5 +31,5 @@ package org.hibernate.search.indexes.serialization.spi;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface Deserializer {
-	void deserialize(byte[] data, LuceneWorksBuilder hydrator);
+    void deserialize(byte[] data, LuceneWorksBuilder hydrator);
 }

@@ -35,39 +35,39 @@ import org.hibernate.search.bridge.TwoWayFieldBridge;
  */
 public class NullEncodingTwoWayFieldBridge implements TwoWayFieldBridge {
 
-	private final TwoWayFieldBridge fieldBridge;
-	private final String nullMarker;
+    private final TwoWayFieldBridge fieldBridge;
+    private final String nullMarker;
 
-	public NullEncodingTwoWayFieldBridge(TwoWayFieldBridge fieldBridge, String nullMarker) {
-		this.fieldBridge = fieldBridge;
-		this.nullMarker = nullMarker;
-	}
+    public NullEncodingTwoWayFieldBridge(TwoWayFieldBridge fieldBridge, String nullMarker) {
+        this.fieldBridge = fieldBridge;
+        this.nullMarker = nullMarker;
+    }
 
-	public Object get(String name, Document document) {
-		Fieldable field = document.getFieldable( name );
-		String stringValue = field.stringValue();
-		if ( nullMarker.equals( stringValue ) ) {
-			return null;
-		}
-		else {
-			return fieldBridge.get( name, document );
-		}
-	}
+    public Object get(String name, Document document) {
+        Fieldable field = document.getFieldable( name );
+        String stringValue = field.stringValue();
+        if ( nullMarker.equals( stringValue ) ) {
+            return null;
+        }
+        else {
+            return fieldBridge.get( name, document );
+        }
+    }
 
-	public String objectToString(Object object) {
-		if ( object == null ) {
-			return nullMarker;
-		}
-		else {
-			return fieldBridge.objectToString( object );
-		}
-	}
-	
-	public TwoWayFieldBridge unwrap() {
-		return fieldBridge;
-	}
+    public String objectToString(Object object) {
+        if ( object == null ) {
+            return nullMarker;
+        }
+        else {
+            return fieldBridge.objectToString( object );
+        }
+    }
+    
+    public TwoWayFieldBridge unwrap() {
+        return fieldBridge;
+    }
 
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		fieldBridge.set( name, value, document, luceneOptions );
-	}
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        fieldBridge.set( name, value, document, luceneOptions );
+    }
 }

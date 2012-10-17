@@ -30,45 +30,45 @@ import org.hibernate.search.bridge.LuceneOptions;
  */
 public class SpatialFieldBridgeByRange extends SpatialFieldBridge {
 
-	public SpatialFieldBridgeByRange() {
-		this.fieldMode = false;
-	}
+    public SpatialFieldBridgeByRange() {
+        this.fieldMode = false;
+    }
 
-	public SpatialFieldBridgeByRange(String latitudeField, String longitudeField) {
-		this.latitudeField = latitudeField;
-		this.longitudeField = longitudeField;
-		this.fieldMode = true;
-	}
+    public SpatialFieldBridgeByRange(String latitudeField, String longitudeField) {
+        this.latitudeField = latitudeField;
+        this.longitudeField = longitudeField;
+        this.fieldMode = true;
+    }
 
-	/**
-	 * Actual overridden method that does the indexing
-	 *
-	 * @param name of the field
-	 * @param value of the field
-	 * @param document document being indexed
-	 * @param luceneOptions current indexing options and accessors
-	 */
-	@Override
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		if ( value != null ) {
+    /**
+     * Actual overridden method that does the indexing
+     *
+     * @param name of the field
+     * @param value of the field
+     * @param document document being indexed
+     * @param luceneOptions current indexing options and accessors
+     */
+    @Override
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        if ( value != null ) {
 
-			Double latitude = getLatitude( value );
-			Double longitude = getLongitude( value );
+            Double latitude = getLatitude( value );
+            Double longitude = getLongitude( value );
 
-			if ( ( latitude != null ) && ( longitude != null ) ) {
+            if ( ( latitude != null ) && ( longitude != null ) ) {
 
-				luceneOptions.addNumericFieldToDocument(
-						name + "_HSSI_Latitude",
-						latitude,
-						document
-				);
+                luceneOptions.addNumericFieldToDocument(
+                        name + "_HSSI_Latitude",
+                        latitude,
+                        document
+                );
 
-				luceneOptions.addNumericFieldToDocument(
-						name + "_HSSI_Longitude",
-						longitude,
-						document
-				);
-			}
-		}
-	}
+                luceneOptions.addNumericFieldToDocument(
+                        name + "_HSSI_Longitude",
+                        longitude,
+                        document
+                );
+            }
+        }
+    }
 }

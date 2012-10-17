@@ -35,26 +35,26 @@ import org.hibernate.search.spi.WorkerBuildContext;
  * @author Emmanuel Bernard
  */
 public interface Worker {
-	/**
-	 * Declare a work to be done within a given transaction context
-	 *
-	 * @param work the work to be executed
-	 * @param transactionContext transactional context information
-	 */
-	void performWork(Work<?> work, TransactionContext transactionContext);
+    /**
+     * Declare a work to be done within a given transaction context
+     *
+     * @param work the work to be executed
+     * @param transactionContext transactional context information
+     */
+    void performWork(Work<?> work, TransactionContext transactionContext);
 
-	void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor);
+    void initialize(Properties props, WorkerBuildContext context, QueueingProcessor queueingProcessor);
 
-	/**
-	 * clean resources
-	 * This method can return exceptions
-	 */
-	void close();
+    /**
+     * clean resources
+     * This method can return exceptions
+     */
+    void close();
 
-	/**
-	 * Flush any work queue.
-	 *
-	 * @param transactionContext the current transaction (context).
-	 */
-	void flushWorks(TransactionContext transactionContext);
+    /**
+     * Flush any work queue.
+     *
+     * @param transactionContext the current transaction (context).
+     */
+    void flushWorks(TransactionContext transactionContext);
 }

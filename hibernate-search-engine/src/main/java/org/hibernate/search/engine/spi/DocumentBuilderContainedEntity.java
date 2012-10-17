@@ -46,35 +46,35 @@ import org.hibernate.search.spi.InstanceInitializer;
  * @author Hardy Ferentschik
  */
 public class DocumentBuilderContainedEntity<T> extends AbstractDocumentBuilder<T> {
-	/**
-	 * Constructor used on contained entities not annotated with {@code @Indexed} themselves.
-	 *
-	 * @param xClass The class for which to build a {@code DocumentBuilderContainedEntity}.
-	 * @param context Handle to default configuration settings.
-	 * @param reflectionManager Reflection manager to use for processing the annotations.
-	 * @param optimizationBlackList mutable register, keeps track of types on which we need to disable collection events optimizations
-	 * @param instanceInitializer a {@link org.hibernate.search.spi.InstanceInitializer} object.
-	 */
-	public DocumentBuilderContainedEntity(XClass xClass, ConfigContext context,
-			ReflectionManager reflectionManager, Set<XClass> optimizationBlackList, InstanceInitializer instanceInitializer) {
-		super( xClass, context, null, reflectionManager, optimizationBlackList, instanceInitializer );
-		//done after init:
-		if ( metadata.containedInGetters.size() == 0 ) {
-			this.entityState = EntityState.NON_INDEXABLE;
-		}
-	}
+    /**
+     * Constructor used on contained entities not annotated with {@code @Indexed} themselves.
+     *
+     * @param xClass The class for which to build a {@code DocumentBuilderContainedEntity}.
+     * @param context Handle to default configuration settings.
+     * @param reflectionManager Reflection manager to use for processing the annotations.
+     * @param optimizationBlackList mutable register, keeps track of types on which we need to disable collection events optimizations
+     * @param instanceInitializer a {@link org.hibernate.search.spi.InstanceInitializer} object.
+     */
+    public DocumentBuilderContainedEntity(XClass xClass, ConfigContext context,
+            ReflectionManager reflectionManager, Set<XClass> optimizationBlackList, InstanceInitializer instanceInitializer) {
+        super( xClass, context, null, reflectionManager, optimizationBlackList, instanceInitializer );
+        //done after init:
+        if ( metadata.containedInGetters.size() == 0 ) {
+            this.entityState = EntityState.NON_INDEXABLE;
+        }
+    }
 
-	protected void documentBuilderSpecificChecks(XProperty member, PropertiesMetadata propertiesMetadata, boolean isRoot, String prefix, ConfigContext context, PathsContext pathsContext) {
-	}
+    protected void documentBuilderSpecificChecks(XProperty member, PropertiesMetadata propertiesMetadata, boolean isRoot, String prefix, ConfigContext context, PathsContext pathsContext) {
+    }
 
-	@Override
-	public void addWorkToQueue(Class<T> entityClass, T entity, Serializable id, boolean delete, boolean add, List<LuceneWork> queue, ConversionContext contextualBridge) {
-		// nothing to do
-	}
+    @Override
+    public void addWorkToQueue(Class<T> entityClass, T entity, Serializable id, boolean delete, boolean add, List<LuceneWork> queue, ConversionContext contextualBridge) {
+        // nothing to do
+    }
 
-	@Override
-	public Serializable getId(Object entity) {
-		//this is not an indexed entity
-		return null;
-	}
+    @Override
+    public Serializable getId(Object entity) {
+        //this is not an indexed entity
+        return null;
+    }
 }

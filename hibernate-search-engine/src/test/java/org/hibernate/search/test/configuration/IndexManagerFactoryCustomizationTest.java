@@ -46,63 +46,63 @@ import org.junit.Test;
 @TestForIssue(jiraKey = "HSEARCH-1211")
 public class IndexManagerFactoryCustomizationTest {
 
-	@Test
-	public void testDefaultImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		verifyIndexManagerTypeIs( DirectoryBasedIndexManager.class.getName(), cfg );
-	}
+    @Test
+    public void testDefaultImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        verifyIndexManagerTypeIs( DirectoryBasedIndexManager.class.getName(), cfg );
+    }
 
-	@Test
-	public void testOverriddenDefaultImplementation() {
-		ManualConfiguration cfg = new ManualConfiguration();
-		cfg.setIndexManagerFactory( new DefaultIndexManagerFactory() {
-			@Override
-			public IndexManager createDefaultIndexManager() {
-				return new NRTIndexManager();
-			}
-		} );
-		verifyIndexManagerTypeIs( NRTIndexManager.class.getName(), cfg );
-	}
+    @Test
+    public void testOverriddenDefaultImplementation() {
+        ManualConfiguration cfg = new ManualConfiguration();
+        cfg.setIndexManagerFactory( new DefaultIndexManagerFactory() {
+            @Override
+            public IndexManager createDefaultIndexManager() {
+                return new NRTIndexManager();
+            }
+        } );
+        verifyIndexManagerTypeIs( NRTIndexManager.class.getName(), cfg );
+    }
 
-	private void verifyIndexManagerTypeIs(String expectedIndexManagerClassName, ManualConfiguration cfg) {
-		SearchMapping mapping = new SearchMapping();
-		mapping
-			.entity( Document.class ).indexed().indexName( "documents" )
-			.property( "id", ElementType.FIELD ).documentId()
-			.property( "title", ElementType.FIELD ).field()
-			;
-		cfg.setProgrammaticMapping( mapping );
-		cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
-		cfg.addClass( Document.class );
-		MutableSearchFactory sf = (MutableSearchFactory) new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
-		try {
-			Assert.assertEquals( expectedIndexManagerClassName, extractDocumentIndexManagerClassName( sf, "documents" ) );
-			// trigger a SearchFactory rebuild:
-			sf.addClasses( Dvd.class );
-			// and verify the option is not lost:
-			Assert.assertEquals( expectedIndexManagerClassName, extractDocumentIndexManagerClassName( sf, "dvds" ) );
-			Assert.assertEquals( expectedIndexManagerClassName, extractDocumentIndexManagerClassName( sf, "documents" ) );
-		}
-		finally {
-			sf.close();
-		}
-	}
+    private void verifyIndexManagerTypeIs(String expectedIndexManagerClassName, ManualConfiguration cfg) {
+        SearchMapping mapping = new SearchMapping();
+        mapping
+            .entity( Document.class ).indexed().indexName( "documents" )
+            .property( "id", ElementType.FIELD ).documentId()
+            .property( "title", ElementType.FIELD ).field()
+            ;
+        cfg.setProgrammaticMapping( mapping );
+        cfg.addProperty( "hibernate.search.default.directory_provider", "ram" );
+        cfg.addClass( Document.class );
+        MutableSearchFactory sf = (MutableSearchFactory) new SearchFactoryBuilder().configuration( cfg ).buildSearchFactory();
+        try {
+            Assert.assertEquals( expectedIndexManagerClassName, extractDocumentIndexManagerClassName( sf, "documents" ) );
+            // trigger a SearchFactory rebuild:
+            sf.addClasses( Dvd.class );
+            // and verify the option is not lost:
+            Assert.assertEquals( expectedIndexManagerClassName, extractDocumentIndexManagerClassName( sf, "dvds" ) );
+            Assert.assertEquals( expectedIndexManagerClassName, extractDocumentIndexManagerClassName( sf, "documents" ) );
+        }
+        finally {
+            sf.close();
+        }
+    }
 
-	private String extractDocumentIndexManagerClassName(MutableSearchFactory sf, String indexName) {
-		IndexManager indexManager = sf.getAllIndexesManager().getIndexManager( indexName );
-		Assert.assertNotNull( indexManager );
-		return indexManager.getClass().getName();
-	}
+    private String extractDocumentIndexManagerClassName(MutableSearchFactory sf, String indexName) {
+        IndexManager indexManager = sf.getAllIndexesManager().getIndexManager( indexName );
+        Assert.assertNotNull( indexManager );
+        return indexManager.getClass().getName();
+    }
 
-	public static final class Document {
-		long id;
-		String title;
-	}
+    public static final class Document {
+        long id;
+        String title;
+    }
 
-	@Indexed(index="dvds")
-	public static final class Dvd {
-		@DocumentId long id;
-		@Field String title;
-	}
+    @Indexed(index="dvds")
+    public static final class Dvd {
+        @DocumentId long id;
+        @Field String title;
+    }
 
 }

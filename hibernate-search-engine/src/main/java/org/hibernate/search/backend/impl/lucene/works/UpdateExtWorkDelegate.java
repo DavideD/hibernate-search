@@ -51,56 +51,56 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public final class UpdateExtWorkDelegate extends UpdateWorkDelegate {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final AddWorkDelegate addDelegate;
-	private final Class<?> managedType;
-	private final DocumentBuilderIndexedEntity<?> builder;
-	private final boolean idIsNumeric;
-	private final Workspace workspace;
+    private final AddWorkDelegate addDelegate;
+    private final Class<?> managedType;
+    private final DocumentBuilderIndexedEntity<?> builder;
+    private final boolean idIsNumeric;
+    private final Workspace workspace;
 
-	UpdateExtWorkDelegate(Workspace workspace, AddWorkDelegate addDelegate) {
-		super( null, null );
-		this.workspace = workspace;
-		this.addDelegate = addDelegate;
-		this.managedType = workspace.getEntitiesInIndexManager().iterator().next();
-		this.builder = workspace.getDocumentBuilder( managedType );
-		this.idIsNumeric = DeleteWorkDelegate.isIdNumeric( builder );
-	}
+    UpdateExtWorkDelegate(Workspace workspace, AddWorkDelegate addDelegate) {
+        super( null, null );
+        this.workspace = workspace;
+        this.addDelegate = addDelegate;
+        this.managedType = workspace.getEntitiesInIndexManager().iterator().next();
+        this.builder = workspace.getDocumentBuilder( managedType );
+        this.idIsNumeric = DeleteWorkDelegate.isIdNumeric( builder );
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		checkType( work );
-		final Serializable id = work.getId();
-		try {
-			if ( idIsNumeric ) {
-				log.tracef( "Deleting %s#%s by query using an IndexWriter#updateDocument as id is Numeric", managedType, id );
-				writer.deleteDocuments( NumericFieldUtils.createExactMatchQuery( builder.getIdKeywordName(), id ) );
-				// no need to log the Add operation as we'll log in the delegate
-				this.addDelegate.performWork( work, writer, monitor );
-			}
-			else {
-				log.tracef( "Updating %s#%s by id using an IndexWriter#updateDocument.", managedType, id );
-				Term idTerm = new Term( builder.getIdKeywordName(), work.getIdInString() );
-				Map<String, String> fieldToAnalyzerMap = work.getFieldToAnalyzerMap();
-				ScopedAnalyzer analyzer = builder.getAnalyzer();
-				analyzer = AddWorkDelegate.updateAnalyzerMappings( workspace, analyzer, fieldToAnalyzerMap );
-				writer.updateDocument( idTerm, work.getDocument(), analyzer );
-			}
-			workspace.incrementModificationCounter( 1 );
-		}
-		catch ( Exception e ) {
-			String message = "Unable to update " + managedType + "#" + id + " in index.";
-			throw new SearchException( message, e );
-		}
-		if ( monitor != null ) {
-			monitor.documentsAdded( 1l );
-		}
-	}
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        checkType( work );
+        final Serializable id = work.getId();
+        try {
+            if ( idIsNumeric ) {
+                log.tracef( "Deleting %s#%s by query using an IndexWriter#updateDocument as id is Numeric", managedType, id );
+                writer.deleteDocuments( NumericFieldUtils.createExactMatchQuery( builder.getIdKeywordName(), id ) );
+                // no need to log the Add operation as we'll log in the delegate
+                this.addDelegate.performWork( work, writer, monitor );
+            }
+            else {
+                log.tracef( "Updating %s#%s by id using an IndexWriter#updateDocument.", managedType, id );
+                Term idTerm = new Term( builder.getIdKeywordName(), work.getIdInString() );
+                Map<String, String> fieldToAnalyzerMap = work.getFieldToAnalyzerMap();
+                ScopedAnalyzer analyzer = builder.getAnalyzer();
+                analyzer = AddWorkDelegate.updateAnalyzerMappings( workspace, analyzer, fieldToAnalyzerMap );
+                writer.updateDocument( idTerm, work.getDocument(), analyzer );
+            }
+            workspace.incrementModificationCounter( 1 );
+        }
+        catch ( Exception e ) {
+            String message = "Unable to update " + managedType + "#" + id + " in index.";
+            throw new SearchException( message, e );
+        }
+        if ( monitor != null ) {
+            monitor.documentsAdded( 1l );
+        }
+    }
 
-	private void checkType(final LuceneWork work) {
-		if ( work.getEntityClass() != managedType ) {
-			throw new AssertionFailure( "Unexpected type: " + work.getEntityClass() + " This workspace expects: " + managedType );
-		}
-	}
+    private void checkType(final LuceneWork work) {
+        if ( work.getEntityClass() != managedType ) {
+            throw new AssertionFailure( "Unexpected type: " + work.getEntityClass() + " This workspace expects: " + managedType );
+        }
+    }
 
 }

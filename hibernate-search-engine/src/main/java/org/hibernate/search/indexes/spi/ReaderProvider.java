@@ -30,9 +30,9 @@ import org.apache.lucene.index.IndexReader;
  * @author Sanne Grinovero
  */
 public interface ReaderProvider {
-	
-	IndexReader openIndexReader();
-	
-	void closeIndexReader(IndexReader reader);
+    
+    IndexReader openIndexReader();
+    
+    void closeIndexReader(IndexReader reader);
 
 }

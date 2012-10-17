@@ -35,22 +35,22 @@ import org.jgroups.blocks.RequestOptions;
  */
 class DispatcherMessageSender extends AbstractMessageSender {
 
-	private final MessageDispatcher dispatcher;
+    private final MessageDispatcher dispatcher;
 
-	DispatcherMessageSender(final MessageDispatcher dispatcher) {
-		super( dispatcher.getChannel() );
-		this.dispatcher = dispatcher;
-	}
+    DispatcherMessageSender(final MessageDispatcher dispatcher) {
+        super( dispatcher.getChannel() );
+        this.dispatcher = dispatcher;
+    }
 
-	public void stop() {
-		dispatcher.stop();
-	}
+    public void stop() {
+        dispatcher.stop();
+    }
 
-	public void send(final Message message) throws Exception {
-		dispatcher.castMessage( null, message, RequestOptions.ASYNC() );
-	}
+    public void send(final Message message) throws Exception {
+        dispatcher.castMessage( null, message, RequestOptions.ASYNC() );
+    }
 
-	@Override
-	public void start() {
-	}
+    @Override
+    public void start() {
+    }
 }

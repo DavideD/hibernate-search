@@ -43,99 +43,99 @@ import org.hibernate.search.store.IndexShardingStrategy;
  * @author Sanne Grinovero
  */
 public class StreamingSelectionVisitor implements WorkVisitor<StreamingOperationSelectionDelegate> {
-	
-	private final AddSelectionDelegate addDelegate = new AddSelectionDelegate();
-	private final DeleteSelectionDelegate deleteDelegate = new DeleteSelectionDelegate();
-	private final AllSelectionDelegate allManagersDelegate = new AllSelectionDelegate();
-	private final PurgeAllSelectionDelegate purgeDelegate = new PurgeAllSelectionDelegate();
-	
-	public static final StreamingSelectionVisitor INSTANCE = new StreamingSelectionVisitor();
-	
-	private StreamingSelectionVisitor() {
-		// use INSTANCE as this delegator is stateless
-	}
+    
+    private final AddSelectionDelegate addDelegate = new AddSelectionDelegate();
+    private final DeleteSelectionDelegate deleteDelegate = new DeleteSelectionDelegate();
+    private final AllSelectionDelegate allManagersDelegate = new AllSelectionDelegate();
+    private final PurgeAllSelectionDelegate purgeDelegate = new PurgeAllSelectionDelegate();
+    
+    public static final StreamingSelectionVisitor INSTANCE = new StreamingSelectionVisitor();
+    
+    private StreamingSelectionVisitor() {
+        // use INSTANCE as this delegator is stateless
+    }
 
-	public StreamingOperationSelectionDelegate getDelegate(AddLuceneWork addLuceneWork) {
-		return addDelegate;
-	}
-	
-	public StreamingOperationSelectionDelegate getDelegate(UpdateLuceneWork addLuceneWork) {
-		return addDelegate;
-	}
+    public StreamingOperationSelectionDelegate getDelegate(AddLuceneWork addLuceneWork) {
+        return addDelegate;
+    }
+    
+    public StreamingOperationSelectionDelegate getDelegate(UpdateLuceneWork addLuceneWork) {
+        return addDelegate;
+    }
 
-	public StreamingOperationSelectionDelegate getDelegate(DeleteLuceneWork deleteLuceneWork) {
-		return deleteDelegate;
-	}
+    public StreamingOperationSelectionDelegate getDelegate(DeleteLuceneWork deleteLuceneWork) {
+        return deleteDelegate;
+    }
 
-	public StreamingOperationSelectionDelegate getDelegate(OptimizeLuceneWork optimizeLuceneWork) {
-		return allManagersDelegate;
-	}
+    public StreamingOperationSelectionDelegate getDelegate(OptimizeLuceneWork optimizeLuceneWork) {
+        return allManagersDelegate;
+    }
 
-	public StreamingOperationSelectionDelegate getDelegate(PurgeAllLuceneWork purgeAllLuceneWork) {
-		return purgeDelegate;
-	}
+    public StreamingOperationSelectionDelegate getDelegate(PurgeAllLuceneWork purgeAllLuceneWork) {
+        return purgeDelegate;
+    }
 
-	public StreamingOperationSelectionDelegate getDelegate(FlushLuceneWork flushLuceneWork) {
-		return allManagersDelegate;
-	}
+    public StreamingOperationSelectionDelegate getDelegate(FlushLuceneWork flushLuceneWork) {
+        return allManagersDelegate;
+    }
 
-	private static class AddSelectionDelegate implements StreamingOperationSelectionDelegate {
+    private static class AddSelectionDelegate implements StreamingOperationSelectionDelegate {
 
-		public final void performStreamOperation(LuceneWork work,
-				IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
-			IndexManager indexManager = shardingStrategy.getIndexManagerForAddition(
-					work.getEntityClass(),
-					work.getId(),
-					work.getIdInString(),
-					work.getDocument()
-			);
-			indexManager.performStreamOperation( work, monitor, forceAsync );
-		}
+        public final void performStreamOperation(LuceneWork work,
+                IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
+            IndexManager indexManager = shardingStrategy.getIndexManagerForAddition(
+                    work.getEntityClass(),
+                    work.getId(),
+                    work.getIdInString(),
+                    work.getDocument()
+            );
+            indexManager.performStreamOperation( work, monitor, forceAsync );
+        }
 
-	}
-	
-	private static class DeleteSelectionDelegate implements StreamingOperationSelectionDelegate {
+    }
+    
+    private static class DeleteSelectionDelegate implements StreamingOperationSelectionDelegate {
 
-		public final void performStreamOperation(LuceneWork work,
-				IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
-			IndexManager[] indexManagers = shardingStrategy.getIndexManagersForDeletion(
-					work.getEntityClass(),
-					work.getId(),
-					work.getIdInString()
-			);
-			for (IndexManager indexManager : indexManagers) {
-				indexManager.performStreamOperation( work, monitor, forceAsync );
-			}
-		}
+        public final void performStreamOperation(LuceneWork work,
+                IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
+            IndexManager[] indexManagers = shardingStrategy.getIndexManagersForDeletion(
+                    work.getEntityClass(),
+                    work.getId(),
+                    work.getIdInString()
+            );
+            for (IndexManager indexManager : indexManagers) {
+                indexManager.performStreamOperation( work, monitor, forceAsync );
+            }
+        }
 
-	}
-	
-	private static class AllSelectionDelegate implements StreamingOperationSelectionDelegate {
+    }
+    
+    private static class AllSelectionDelegate implements StreamingOperationSelectionDelegate {
 
-		public final void performStreamOperation(LuceneWork work,
-				IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
-			IndexManager[] indexManagers = shardingStrategy.getIndexManagersForAllShards();
-			for (IndexManager indexManager : indexManagers) {
-				indexManager.performStreamOperation( work, monitor, forceAsync );
-			}
-		}
+        public final void performStreamOperation(LuceneWork work,
+                IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
+            IndexManager[] indexManagers = shardingStrategy.getIndexManagersForAllShards();
+            for (IndexManager indexManager : indexManagers) {
+                indexManager.performStreamOperation( work, monitor, forceAsync );
+            }
+        }
 
-	}
+    }
 
-	private static class PurgeAllSelectionDelegate implements StreamingOperationSelectionDelegate {
+    private static class PurgeAllSelectionDelegate implements StreamingOperationSelectionDelegate {
 
-		public final void performStreamOperation(LuceneWork work,
-				IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
-			IndexManager[] indexManagers = shardingStrategy.getIndexManagersForDeletion(
-					work.getEntityClass(),
-					work.getId(),
-					work.getIdInString()
-			);
-			for (IndexManager indexManager : indexManagers) {
-				indexManager.performStreamOperation( work, monitor, forceAsync );
-			}
-		}
+        public final void performStreamOperation(LuceneWork work,
+                IndexShardingStrategy shardingStrategy, IndexingMonitor monitor, boolean forceAsync) {
+            IndexManager[] indexManagers = shardingStrategy.getIndexManagersForDeletion(
+                    work.getEntityClass(),
+                    work.getId(),
+                    work.getIdInString()
+            );
+            for (IndexManager indexManager : indexManagers) {
+                indexManager.performStreamOperation( work, monitor, forceAsync );
+            }
+        }
 
-	}
+    }
 
 }

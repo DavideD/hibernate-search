@@ -29,12 +29,12 @@ package org.hibernate.search.annotations;
  * @author Hardy Ferentschik
  */
 public enum SpatialMode {
-	/**
-	 * Simple mode : double range query + distance filter
-	 */
-	SIMPLE,
-	/**
-	 * Grid mode : Quad Tree index query + distance filer
-	 */
-	GRID
+    /**
+     * Simple mode : double range query + distance filter
+     */
+    SIMPLE,
+    /**
+     * Grid mode : Quad Tree index query + distance filer
+     */
+    GRID
 }

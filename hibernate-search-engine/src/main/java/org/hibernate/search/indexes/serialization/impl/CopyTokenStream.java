@@ -43,69 +43,69 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class CopyTokenStream extends TokenStream implements Serializable {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private List<List<AttributeImpl>> cache;
-	private int index;
+    private List<List<AttributeImpl>> cache;
+    private int index;
 
-	public static SerializableTokenStream buildSerializabletokenStream(TokenStream tokenStream) {
-		try {
-			List<List<AttributeImpl>> stream = fillCache( tokenStream );
-			return new SerializableTokenStream(stream);
-		}
-		catch ( IOException e ) {
-			throw log.unableToReadTokenStream();
-		}
-	}
+    public static SerializableTokenStream buildSerializabletokenStream(TokenStream tokenStream) {
+        try {
+            List<List<AttributeImpl>> stream = fillCache( tokenStream );
+            return new SerializableTokenStream(stream);
+        }
+        catch ( IOException e ) {
+            throw log.unableToReadTokenStream();
+        }
+    }
 
-	public CopyTokenStream(List<List<AttributeImpl>> stream) {
-		this.index = 0;
-		this.cache = stream;
-	}
+    public CopyTokenStream(List<List<AttributeImpl>> stream) {
+        this.index = 0;
+        this.cache = stream;
+    }
 
-	@Override
-	public final boolean incrementToken() throws IOException {
-		if ( index >= cache.size() ) {
-			// the cache is exhausted, return false
-			return false;
-		}
+    @Override
+    public final boolean incrementToken() throws IOException {
+        if ( index >= cache.size() ) {
+            // the cache is exhausted, return false
+            return false;
+        }
 
-		// Since the TokenFilter can be reset, the tokens need to be preserved as immutable.
-		setState(index);
-		index++;
-		return true;
-	}
+        // Since the TokenFilter can be reset, the tokens need to be preserved as immutable.
+        setState(index);
+        index++;
+        return true;
+    }
 
-	private void setState(int localIndex) {
-		for ( AttributeImpl attr : cache.get(localIndex) ) {
-			addAttributeImpl( attr );
-		}
-	}
+    private void setState(int localIndex) {
+        for ( AttributeImpl attr : cache.get(localIndex) ) {
+            addAttributeImpl( attr );
+        }
+    }
 
-	@Override
-	public final void end() throws IOException {
-		if (cache.size() > 0) {
-			setState(cache.size()-1);
-		}
-	}
+    @Override
+    public final void end() throws IOException {
+        if (cache.size() > 0) {
+            setState(cache.size()-1);
+        }
+    }
 
-	@Override
-	public void reset() throws IOException {
-		index = 0;
-	}
+    @Override
+    public void reset() throws IOException {
+        index = 0;
+    }
 
-	private static List<List<AttributeImpl>> fillCache(TokenStream input) throws IOException {
-		List<List<AttributeImpl>> results = new ArrayList<List<AttributeImpl>>();
-		while ( input.incrementToken() ) {
-			List<AttributeImpl> attrs = new ArrayList<AttributeImpl>(  );
-			results.add( attrs );
-			Iterator<AttributeImpl> iter = input.getAttributeImplsIterator();
-			while ( iter.hasNext() ) {
-				//we need to clone as AttributeImpl instances can be reused across incrementToken() calls
-				attrs.add( (AttributeImpl) iter.next().clone() );
-			}
-		}
-		input.end();
-		return results;
-	}
+    private static List<List<AttributeImpl>> fillCache(TokenStream input) throws IOException {
+        List<List<AttributeImpl>> results = new ArrayList<List<AttributeImpl>>();
+        while ( input.incrementToken() ) {
+            List<AttributeImpl> attrs = new ArrayList<AttributeImpl>(  );
+            results.add( attrs );
+            Iterator<AttributeImpl> iter = input.getAttributeImplsIterator();
+            while ( iter.hasNext() ) {
+                //we need to clone as AttributeImpl instances can be reused across incrementToken() calls
+                attrs.add( (AttributeImpl) iter.next().clone() );
+            }
+        }
+        input.end();
+        return results;
+    }
 }

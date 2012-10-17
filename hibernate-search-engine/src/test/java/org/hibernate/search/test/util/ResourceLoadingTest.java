@@ -38,24 +38,24 @@ import static junit.framework.Assert.assertNotNull;
  */
 public class ResourceLoadingTest {
 
-	@Test
-	public void testOpenKnownResource() throws Exception {
-		// using a known resource for testing
-		String resource = "org/hibernate/search/remote/codex/avro/v1_0/Message.avro";
-		String resourceContent = FileHelper.readResourceAsString( resource, AvroSerializationProvider.class.getClassLoader() );
-		assertNotNull( resourceContent );
-		assertFalse( resourceContent.isEmpty() );
-	}
+    @Test
+    public void testOpenKnownResource() throws Exception {
+        // using a known resource for testing
+        String resource = "org/hibernate/search/remote/codex/avro/v1_0/Message.avro";
+        String resourceContent = FileHelper.readResourceAsString( resource, AvroSerializationProvider.class.getClassLoader() );
+        assertNotNull( resourceContent );
+        assertFalse( resourceContent.isEmpty() );
+    }
 
-	@Test
-	public void testUnKnownResource() throws Exception {
-		// using a known resource for testing
-		String resource = "foo";
-		try {
-			FileHelper.readResourceAsString( resource, AvroSerializationProvider.class.getClassLoader() );
-		}
-		catch ( SearchException e ) {
-			assertEquals( "Wrong error message", "HSEARCH000114: Could not load resource: 'foo'", e.getMessage() );
-		}
-	}
+    @Test
+    public void testUnKnownResource() throws Exception {
+        // using a known resource for testing
+        String resource = "foo";
+        try {
+            FileHelper.readResourceAsString( resource, AvroSerializationProvider.class.getClassLoader() );
+        }
+        catch ( SearchException e ) {
+            assertEquals( "Wrong error message", "HSEARCH000114: Could not load resource: 'foo'", e.getMessage() );
+        }
+    }
 }

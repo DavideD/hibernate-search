@@ -45,59 +45,59 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class BatchedQueueingProcessor implements QueueingProcessor {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final int batchSize;
+    private final int batchSize;
 
-	private final Map<Class<?>, EntityIndexBinder> entityIndexBinders;
+    private final Map<Class<?>, EntityIndexBinder> entityIndexBinders;
 
-	public BatchedQueueingProcessor(Map<Class<?>, EntityIndexBinder> entityIndexBinders, Properties properties) {
-		this.entityIndexBinders = entityIndexBinders;
-		batchSize = ConfigurationParseHelper.getIntValue( properties, Environment.QUEUEINGPROCESSOR_BATCHSIZE, 0 );
-	}
+    public BatchedQueueingProcessor(Map<Class<?>, EntityIndexBinder> entityIndexBinders, Properties properties) {
+        this.entityIndexBinders = entityIndexBinders;
+        batchSize = ConfigurationParseHelper.getIntValue( properties, Environment.QUEUEINGPROCESSOR_BATCHSIZE, 0 );
+    }
 
-	public void add(Work work, WorkQueue workQueue) {
-		//don't check for builder it's done in prepareWork
-		//FIXME WorkType.COLLECTION does not play well with batchSize
-		workQueue.add( work );
-		if ( batchSize > 0 && workQueue.size() >= batchSize ) {
-			WorkQueue subQueue = workQueue.splitQueue();
-			prepareWorks( subQueue );
-			performWorks( subQueue );
-		}
-	}
+    public void add(Work work, WorkQueue workQueue) {
+        //don't check for builder it's done in prepareWork
+        //FIXME WorkType.COLLECTION does not play well with batchSize
+        workQueue.add( work );
+        if ( batchSize > 0 && workQueue.size() >= batchSize ) {
+            WorkQueue subQueue = workQueue.splitQueue();
+            prepareWorks( subQueue );
+            performWorks( subQueue );
+        }
+    }
 
-	public void prepareWorks(WorkQueue workQueue) {
-		workQueue.prepareWorkPlan();
-	}
+    public void prepareWorks(WorkQueue workQueue) {
+        workQueue.prepareWorkPlan();
+    }
 
-	public void performWorks(WorkQueue workQueue) {
-		List<LuceneWork> sealedQueue = workQueue.getSealedQueue();
-		if ( log.isTraceEnabled() ) {
-			StringBuilder sb = new StringBuilder( "Lucene WorkQueue to send to backends:[ \n\t" );
-			for ( LuceneWork lw : sealedQueue ) {
-				sb.append( lw.toString() );
-				sb.append( "\n\t" );
-			}
-			if ( sealedQueue.size() > 0 ) {
-				sb.deleteCharAt( sb.length() - 1 );
-			}
-			sb.append( "]" );
-			log.trace( sb.toString() );
-		}
-		WorkQueuePerIndexSplitter context = new WorkQueuePerIndexSplitter();
-		for ( LuceneWork work : sealedQueue ) {
-			final Class<?> entityType = work.getEntityClass();
-			EntityIndexBinder entityIndexBinding = entityIndexBinders.get( entityType );
-			IndexShardingStrategy shardingStrategy = entityIndexBinding.getSelectionStrategy();
-			work.getWorkDelegate( TransactionalSelectionVisitor.INSTANCE )
-				.performOperation( work, shardingStrategy, context );
-		}
-		context.commitOperations( null );
-	}
+    public void performWorks(WorkQueue workQueue) {
+        List<LuceneWork> sealedQueue = workQueue.getSealedQueue();
+        if ( log.isTraceEnabled() ) {
+            StringBuilder sb = new StringBuilder( "Lucene WorkQueue to send to backends:[ \n\t" );
+            for ( LuceneWork lw : sealedQueue ) {
+                sb.append( lw.toString() );
+                sb.append( "\n\t" );
+            }
+            if ( sealedQueue.size() > 0 ) {
+                sb.deleteCharAt( sb.length() - 1 );
+            }
+            sb.append( "]" );
+            log.trace( sb.toString() );
+        }
+        WorkQueuePerIndexSplitter context = new WorkQueuePerIndexSplitter();
+        for ( LuceneWork work : sealedQueue ) {
+            final Class<?> entityType = work.getEntityClass();
+            EntityIndexBinder entityIndexBinding = entityIndexBinders.get( entityType );
+            IndexShardingStrategy shardingStrategy = entityIndexBinding.getSelectionStrategy();
+            work.getWorkDelegate( TransactionalSelectionVisitor.INSTANCE )
+                .performOperation( work, shardingStrategy, context );
+        }
+        context.commitOperations( null );
+    }
 
-	public void cancelWorks(WorkQueue workQueue) {
-		workQueue.clear();
-	}
+    public void cancelWorks(WorkQueue workQueue) {
+        workQueue.clear();
+    }
 
 }

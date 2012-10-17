@@ -33,43 +33,43 @@ import org.hibernate.search.spi.InstanceInitializer;
  */
 public final class SimpleInitializer implements InstanceInitializer {
 
-	public static final SimpleInitializer INSTANCE = new SimpleInitializer();
+    public static final SimpleInitializer INSTANCE = new SimpleInitializer();
 
-	private SimpleInitializer() {
-		//use INSTANCE as this is stateless
-	}
+    private SimpleInitializer() {
+        //use INSTANCE as this is stateless
+    }
 
-	@Override
-	public Object unproxy(Object entity) {
-		return entity;
-	}
+    @Override
+    public Object unproxy(Object entity) {
+        return entity;
+    }
 
-	@Override
-	public <T> Class<T> getClassFromWork(Work<T> work) {
-		return work.getEntityClass() != null ?
-				work.getEntityClass() :
-				getClass( work.getEntity() );
-	}
+    @Override
+    public <T> Class<T> getClassFromWork(Work<T> work) {
+        return work.getEntityClass() != null ?
+                work.getEntityClass() :
+                getClass( work.getEntity() );
+    }
 
-	@Override
-	@SuppressWarnings( "unchecked" )
-	public <T> Class<T> getClass(T entity) {
-		return (Class<T>) entity.getClass();
-	}
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public <T> Class<T> getClass(T entity) {
+        return (Class<T>) entity.getClass();
+    }
 
-	@Override
-	public <T> Collection<T> initializeCollection(Collection<T> value) {
-		return value;
-	}
+    @Override
+    public <T> Collection<T> initializeCollection(Collection<T> value) {
+        return value;
+    }
 
-	@Override
-	public <K, V> Map<K, V> initializeMap(Map<K, V> value) {
-		return value;
-	}
+    @Override
+    public <K, V> Map<K, V> initializeMap(Map<K, V> value) {
+        return value;
+    }
 
-	@Override
-	public Object[] initializeArray(Object[] value) {
-		return value;
-	}
+    @Override
+    public Object[] initializeArray(Object[] value) {
+        return value;
+    }
 
 }

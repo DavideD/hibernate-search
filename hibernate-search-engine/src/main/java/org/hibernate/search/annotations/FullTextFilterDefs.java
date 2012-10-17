@@ -38,5 +38,5 @@ import java.lang.annotation.Documented;
 @Target( { ElementType.TYPE } )
 @Documented
 public @interface FullTextFilterDefs {
-	FullTextFilterDef[] value();
+    FullTextFilterDef[] value();
 }

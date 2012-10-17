@@ -38,35 +38,35 @@ import java.lang.annotation.Target;
 @Target( { ElementType.METHOD, ElementType.FIELD, ElementType.TYPE })
 @Documented
 public @interface Spatial {
-	/**
-	 * @return the field name
-	 */
-	String name() default "";
+    /**
+     * @return the field name
+     */
+    String name() default "";
 
-	/**
-	 * @return Returns an instance of the {@link Store} enum, indicating whether the value should be stored in the document.
-	 *         Defaults to {@code Store.NO}
-	 */
-	Store store() default Store.NO;
+    /**
+     * @return Returns an instance of the {@link Store} enum, indicating whether the value should be stored in the document.
+     *         Defaults to {@code Store.NO}
+     */
+    Store store() default Store.NO;
 
-	/**
-	 * @return Returns a {@code Boost} annotation defining a float index time boost value
-	 */
-	Boost boost() default @Boost(value = 1.0F);
+    /**
+     * @return Returns a {@code Boost} annotation defining a float index time boost value
+     */
+    Boost boost() default @Boost(value = 1.0F);
 
-	/**
-	 * @return grid mode activation status
-	 */
-	SpatialMode spatialMode() default SpatialMode.SIMPLE;
-	
-	/**
-	 * @return top range grid level for spatial indexing
-	 */
-	int topGridLevel() default SpatialFieldBridgeByGrid.DEFAULT_TOP_GRID_LEVEL;
+    /**
+     * @return grid mode activation status
+     */
+    SpatialMode spatialMode() default SpatialMode.SIMPLE;
+    
+    /**
+     * @return top range grid level for spatial indexing
+     */
+    int topGridLevel() default SpatialFieldBridgeByGrid.DEFAULT_TOP_GRID_LEVEL;
 
-	/**
-	 * @return bottom grid level for spatial indexing
-	 */
-	int bottomGridLevel() default SpatialFieldBridgeByGrid.DEFAULT_BOTTOM_GRID_LEVEL;
+    /**
+     * @return bottom grid level for spatial indexing
+     */
+    int bottomGridLevel() default SpatialFieldBridgeByGrid.DEFAULT_BOTTOM_GRID_LEVEL;
 }
 

@@ -41,17 +41,17 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 class FlushWorkDelegate implements LuceneWorkDelegate {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final Workspace workspace;
+    private final Workspace workspace;
 
-	FlushWorkDelegate(Workspace workspace) {
-		this.workspace = workspace;
-	}
+    FlushWorkDelegate(Workspace workspace) {
+        this.workspace = workspace;
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		log.debug( "performing FlushWorkDelegate" );
-		workspace.flush();
-	}
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        log.debug( "performing FlushWorkDelegate" );
+        workspace.flush();
+    }
 
 }

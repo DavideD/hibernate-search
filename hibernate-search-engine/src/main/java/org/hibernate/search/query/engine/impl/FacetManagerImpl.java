@@ -50,159 +50,159 @@ import static org.hibernate.search.util.impl.CollectionHelper.newHashMap;
  * @author Hardy Ferentschik
  */
 public class FacetManagerImpl implements FacetManager {
-	/**
-	 * The map of currently active/enabled facet requests.
-	 */
-	private final Map<String, FacetingRequestImpl> facetRequests = newHashMap();
+    /**
+     * The map of currently active/enabled facet requests.
+     */
+    private final Map<String, FacetingRequestImpl> facetRequests = newHashMap();
 
-	/**
-	 * Keep track of the current facet selection groups.
-	 */
-	private final Map<String, FacetSelectionImpl> facetSelection = newHashMap();
+    /**
+     * Keep track of the current facet selection groups.
+     */
+    private final Map<String, FacetSelectionImpl> facetSelection = newHashMap();
 
-	/**
-	 * Keeps track of faceting results. This map gets populated once the query gets executed and needs to be
-	 * reset on any query changing call.
-	 */
-	private Map<String, List<Facet>> facetResults;
+    /**
+     * Keeps track of faceting results. This map gets populated once the query gets executed and needs to be
+     * reset on any query changing call.
+     */
+    private Map<String, List<Facet>> facetResults;
 
-	/**
-	 * The combined filter for all selected facets which needs to be applied on the current query
-	 */
-	private Filter facetFilter;
+    /**
+     * The combined filter for all selected facets which needs to be applied on the current query
+     */
+    private Filter facetFilter;
 
-	/**
-	 * The query from which this manager was retrieved
-	 */
-	private final HSQueryImpl query;
+    /**
+     * The query from which this manager was retrieved
+     */
+    private final HSQueryImpl query;
 
-	FacetManagerImpl(HSQueryImpl query) {
-		this.query = query;
-	}
+    FacetManagerImpl(HSQueryImpl query) {
+        this.query = query;
+    }
 
-	public FacetManager enableFaceting(FacetingRequest facetingRequest) {
-		facetRequests.put( facetingRequest.getFacetingName(), (FacetingRequestImpl) facetingRequest );
-		queryHasChanged();
-		return this;
-	}
+    public FacetManager enableFaceting(FacetingRequest facetingRequest) {
+        facetRequests.put( facetingRequest.getFacetingName(), (FacetingRequestImpl) facetingRequest );
+        queryHasChanged();
+        return this;
+    }
 
-	public void disableFaceting(String facetingName) {
-		facetRequests.remove( facetingName );
-		if ( facetResults != null ) {
-			facetResults.remove( facetingName );
-		}
-		queryHasChanged();
-	}
+    public void disableFaceting(String facetingName) {
+        facetRequests.remove( facetingName );
+        if ( facetResults != null ) {
+            facetResults.remove( facetingName );
+        }
+        queryHasChanged();
+    }
 
-	public List<Facet> getFacets(String facetingName) {
-		// if there are no facet requests we don't have to do anything
-		if ( facetRequests.isEmpty() || !facetRequests.containsKey( facetingName ) ) {
-			return Collections.emptyList();
-		}
-		
-		List<Facet> facets = null;
-		if ( facetResults != null ) {
-			facets = facetResults.get( facetingName );
-		}
-		if ( facets != null ) {
-			return facets;
-		}
-		DocumentExtractor queryDocumentExtractor = query.queryDocumentExtractor();
-		queryDocumentExtractor.close();
-		//handle edge case of an empty index
-		if (facetResults == null) {
-			return Collections.emptyList();
-		}
-		List<Facet> results = facetResults.get( facetingName );
-		if (results != null) {
-			return results;
-		}
-		else {
-			return Collections.emptyList();
-		}
-	}
+    public List<Facet> getFacets(String facetingName) {
+        // if there are no facet requests we don't have to do anything
+        if ( facetRequests.isEmpty() || !facetRequests.containsKey( facetingName ) ) {
+            return Collections.emptyList();
+        }
+        
+        List<Facet> facets = null;
+        if ( facetResults != null ) {
+            facets = facetResults.get( facetingName );
+        }
+        if ( facets != null ) {
+            return facets;
+        }
+        DocumentExtractor queryDocumentExtractor = query.queryDocumentExtractor();
+        queryDocumentExtractor.close();
+        //handle edge case of an empty index
+        if (facetResults == null) {
+            return Collections.emptyList();
+        }
+        List<Facet> results = facetResults.get( facetingName );
+        if (results != null) {
+            return results;
+        }
+        else {
+            return Collections.emptyList();
+        }
+    }
 
-	public FacetSelection getFacetGroup(String groupName) {
-		if ( groupName == null ) {
-			throw new IllegalArgumentException( "null is not a valid facet selection group name" );
-		}
-		FacetSelectionImpl selection = facetSelection.get( groupName );
-		if ( selection == null ) {
-			selection = new FacetSelectionImpl();
-			facetSelection.put( groupName, selection );
-		}
-		return selection;
-	}
+    public FacetSelection getFacetGroup(String groupName) {
+        if ( groupName == null ) {
+            throw new IllegalArgumentException( "null is not a valid facet selection group name" );
+        }
+        FacetSelectionImpl selection = facetSelection.get( groupName );
+        if ( selection == null ) {
+            selection = new FacetSelectionImpl();
+            facetSelection.put( groupName, selection );
+        }
+        return selection;
+    }
 
-	Map<String, FacetingRequestImpl> getFacetRequests() {
-		return facetRequests;
-	}
+    Map<String, FacetingRequestImpl> getFacetRequests() {
+        return facetRequests;
+    }
 
-	void setFacetResults(Map<String, List<Facet>> facetResults) {
-		this.facetResults = facetResults;
-	}
+    void setFacetResults(Map<String, List<Facet>> facetResults) {
+        this.facetResults = facetResults;
+    }
 
-	void queryHasChanged() {
-		facetFilter = null;
-		this.facetResults = null;
-		query.clearCachedResults();
-	}
+    void queryHasChanged() {
+        facetFilter = null;
+        this.facetResults = null;
+        query.clearCachedResults();
+    }
 
-	Filter getFacetFilter() {
-		if ( facetFilter == null ) {
-			BooleanQuery boolQuery = new BooleanQuery();
-			for ( FacetSelectionImpl selection : facetSelection.values() ) {
-				if ( !selection.getFacetList().isEmpty() ) {
-					Query selectionGroupQuery = createSelectionGroupQuery( selection );
-					boolQuery.add( selectionGroupQuery, BooleanClause.Occur.MUST );
-				}
-			}
-			if ( boolQuery.getClauses().length > 0 ) {
-				this.facetFilter = new QueryWrapperFilter( boolQuery );
-			}
-		}
-		return facetFilter;
-	}
+    Filter getFacetFilter() {
+        if ( facetFilter == null ) {
+            BooleanQuery boolQuery = new BooleanQuery();
+            for ( FacetSelectionImpl selection : facetSelection.values() ) {
+                if ( !selection.getFacetList().isEmpty() ) {
+                    Query selectionGroupQuery = createSelectionGroupQuery( selection );
+                    boolQuery.add( selectionGroupQuery, BooleanClause.Occur.MUST );
+                }
+            }
+            if ( boolQuery.getClauses().length > 0 ) {
+                this.facetFilter = new QueryWrapperFilter( boolQuery );
+            }
+        }
+        return facetFilter;
+    }
 
-	private Query createSelectionGroupQuery(FacetSelectionImpl selection) {
-		BooleanQuery orQuery = new BooleanQuery();
-		for ( Facet facet : selection.getFacetList() ) {
-			orQuery.add( facet.getFacetQuery(), BooleanClause.Occur.SHOULD );
-		}
-		return orQuery;
-	}
+    private Query createSelectionGroupQuery(FacetSelectionImpl selection) {
+        BooleanQuery orQuery = new BooleanQuery();
+        for ( Facet facet : selection.getFacetList() ) {
+            orQuery.add( facet.getFacetQuery(), BooleanClause.Occur.SHOULD );
+        }
+        return orQuery;
+    }
 
-	class FacetSelectionImpl implements FacetSelection {
-		private final List<Facet> facetList = newArrayList();
+    class FacetSelectionImpl implements FacetSelection {
+        private final List<Facet> facetList = newArrayList();
 
-		public List<Facet> getFacetList() {
-			return facetList;
-		}
+        public List<Facet> getFacetList() {
+            return facetList;
+        }
 
-		public void selectFacets(Facet... facets) {
-			if ( facets == null ) {
-				return;
-			}
-			facetList.addAll( Arrays.asList( facets ) );
-			queryHasChanged();
-		}
+        public void selectFacets(Facet... facets) {
+            if ( facets == null ) {
+                return;
+            }
+            facetList.addAll( Arrays.asList( facets ) );
+            queryHasChanged();
+        }
 
-		public List<Facet> getSelectedFacets() {
-			return Collections.unmodifiableList( facetList );
-		}
+        public List<Facet> getSelectedFacets() {
+            return Collections.unmodifiableList( facetList );
+        }
 
-		public void deselectFacets(Facet... facets) {
-			boolean hasChanged = facetList.removeAll( Arrays.asList( facets ) );
-			if ( hasChanged ) {
-				queryHasChanged();
-			}
-		}
+        public void deselectFacets(Facet... facets) {
+            boolean hasChanged = facetList.removeAll( Arrays.asList( facets ) );
+            if ( hasChanged ) {
+                queryHasChanged();
+            }
+        }
 
-		public void clearSelectedFacets() {
-			facetList.clear();
-			queryHasChanged();
-		}
-	}
+        public void clearSelectedFacets() {
+            facetList.clear();
+            queryHasChanged();
+        }
+    }
 }
 
 

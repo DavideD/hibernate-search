@@ -38,27 +38,27 @@ import org.hibernate.search.backend.impl.lucene.LuceneBackendQueueProcessor;
  * 
  */
 public class LeakingLuceneBackend extends LuceneBackendQueueProcessor {
-	
-	private static volatile List<LuceneWork> lastProcessedQueue = new ArrayList<LuceneWork>();
-	
-	@Override
-	public void close() {
-		lastProcessedQueue = new ArrayList<LuceneWork>();
-		super.close();
-	}
-	
-	public static List<LuceneWork> getLastProcessedQueue() {
-		return lastProcessedQueue;
-	}
-	
-	public static void reset() {
-		lastProcessedQueue = new ArrayList<LuceneWork>();
-	}
-	
-	@Override
-	public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
-		super.applyWork( workList, monitor );
-		lastProcessedQueue = workList;
-	}
+    
+    private static volatile List<LuceneWork> lastProcessedQueue = new ArrayList<LuceneWork>();
+    
+    @Override
+    public void close() {
+        lastProcessedQueue = new ArrayList<LuceneWork>();
+        super.close();
+    }
+    
+    public static List<LuceneWork> getLastProcessedQueue() {
+        return lastProcessedQueue;
+    }
+    
+    public static void reset() {
+        lastProcessedQueue = new ArrayList<LuceneWork>();
+    }
+    
+    @Override
+    public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
+        super.applyWork( workList, monitor );
+        lastProcessedQueue = workList;
+    }
 
 }

@@ -33,67 +33,67 @@ import org.hibernate.search.query.engine.spi.EntityInfo;
  * @author Hardy Ferentschik
  */
 public class EntityInfoImpl implements EntityInfo {
-	/**
-	 * The entity class.
-	 */
-	private final Class<?> clazz;
+    /**
+     * The entity class.
+     */
+    private final Class<?> clazz;
 
-	/**
-	 * The document id.
-	 */
-	private final Serializable id;
+    /**
+     * The document id.
+     */
+    private final Serializable id;
 
-	/**
-	 * The name of the document id property.
-	 */
-	private final String idName;
+    /**
+     * The name of the document id property.
+     */
+    private final String idName;
 
-	/**
-	 * Array of projected values. {@code null} in case there are no projections.
-	 */
-	private final Object[] projection;
+    /**
+     * Array of projected values. {@code null} in case there are no projections.
+     */
+    private final Object[] projection;
 
-	private final List<Integer> indexesOfThis = new LinkedList<Integer>();
+    private final List<Integer> indexesOfThis = new LinkedList<Integer>();
 
-	public Class<?> getClazz() {
-		return clazz;
-	}
+    public Class<?> getClazz() {
+        return clazz;
+    }
 
-	public Serializable getId() {
-		return id;
-	}
+    public Serializable getId() {
+        return id;
+    }
 
-	public String getIdName() {
-		return idName;
-	}
+    public String getIdName() {
+        return idName;
+    }
 
-	public Object[] getProjection() {
-		return projection;
-	}
+    public Object[] getProjection() {
+        return projection;
+    }
 
-	public List<Integer> getIndexesOfThis() {
-		return indexesOfThis;
-	}
+    public List<Integer> getIndexesOfThis() {
+        return indexesOfThis;
+    }
 
-	public boolean isProjectThis() {
-		return indexesOfThis.size() != 0;
-	}
+    public boolean isProjectThis() {
+        return indexesOfThis.size() != 0;
+    }
 
-	public void populateWithEntityInstance(Object entity) {
-		for (int index : indexesOfThis) {
-			projection[index] = entity;
-		}
-	}
+    public void populateWithEntityInstance(Object entity) {
+        for (int index : indexesOfThis) {
+            projection[index] = entity;
+        }
+    }
 
-	public EntityInfoImpl(Class clazz,  String idName,  Serializable id, Object[] projection) {
-		this.clazz = clazz;
-		this.idName = idName;
-		this.id = id;
-		if ( projection != null ) {
-			this.projection = projection.clone();
-		}
-		else {
-			this.projection = null;
-		}
-	}
+    public EntityInfoImpl(Class clazz,  String idName,  Serializable id, Object[] projection) {
+        this.clazz = clazz;
+        this.idName = idName;
+        this.id = id;
+        if ( projection != null ) {
+            this.projection = projection.clone();
+        }
+        else {
+            this.projection = null;
+        }
+    }
 }

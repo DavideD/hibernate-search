@@ -24,9 +24,9 @@ package org.hibernate.search.indexes.serialization.spi;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public enum SerializableIndex {
-	NO,
-	ANALYZED,
-	NOT_ANALYZED,
-	NOT_ANALYZED_NO_NORMS,
-	ANALYZED_NO_NORMS
+    NO,
+    ANALYZED,
+    NOT_ANALYZED,
+    NOT_ANALYZED_NO_NORMS,
+    ANALYZED_NO_NORMS
 }

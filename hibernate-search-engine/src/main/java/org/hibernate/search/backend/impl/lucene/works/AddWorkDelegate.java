@@ -50,66 +50,66 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 class AddWorkDelegate implements LuceneWorkDelegate {
 
-	private static final Log log = LoggerFactory.make();
-	protected final Workspace workspace;
+    private static final Log log = LoggerFactory.make();
+    protected final Workspace workspace;
 
-	AddWorkDelegate(Workspace workspace) {
-		this.workspace = workspace;
-	}
+    AddWorkDelegate(Workspace workspace) {
+        this.workspace = workspace;
+    }
 
-	public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
-		final Class<?> entityType = work.getEntityClass();
-		DocumentBuilderIndexedEntity<?> documentBuilder = workspace.getDocumentBuilder( entityType );
-		Map<String, String> fieldToAnalyzerMap = work.getFieldToAnalyzerMap();
-		ScopedAnalyzer analyzer = documentBuilder.getAnalyzer();
-		analyzer = updateAnalyzerMappings( workspace, analyzer, fieldToAnalyzerMap );
-		if ( log.isTraceEnabled() ) {
-			log.trace( "add to Lucene index: " + entityType + "#" + work.getId() + ":" + work.getDocument() );
-		}
-		try {
-			writer.addDocument( work.getDocument(), analyzer );
-			workspace.incrementModificationCounter( 1 );
-		}
-		catch ( IOException e ) {
-			throw new SearchException(
-					"Unable to add to Lucene index: "
-							+ entityType + "#" + work.getId(), e
-			);
-		}
-		if ( monitor != null ) {
-			monitor.documentsAdded( 1l );
-		}
-	}
+    public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+        final Class<?> entityType = work.getEntityClass();
+        DocumentBuilderIndexedEntity<?> documentBuilder = workspace.getDocumentBuilder( entityType );
+        Map<String, String> fieldToAnalyzerMap = work.getFieldToAnalyzerMap();
+        ScopedAnalyzer analyzer = documentBuilder.getAnalyzer();
+        analyzer = updateAnalyzerMappings( workspace, analyzer, fieldToAnalyzerMap );
+        if ( log.isTraceEnabled() ) {
+            log.trace( "add to Lucene index: " + entityType + "#" + work.getId() + ":" + work.getDocument() );
+        }
+        try {
+            writer.addDocument( work.getDocument(), analyzer );
+            workspace.incrementModificationCounter( 1 );
+        }
+        catch ( IOException e ) {
+            throw new SearchException(
+                    "Unable to add to Lucene index: "
+                            + entityType + "#" + work.getId(), e
+            );
+        }
+        if ( monitor != null ) {
+            monitor.documentsAdded( 1l );
+        }
+    }
 
-	/**
-	 * Allows to override the otherwise static field to analyzer mapping in <code>scopedAnalyzer</code>.
-	 *
-	 * @param workspace The current work context
-	 * @param scopedAnalyzer The scoped analyzer created at startup time.
-	 * @param fieldToAnalyzerMap A map of <code>Document</code> field names for analyzer names. This map gets creates
-	 * when the Lucene <code>Document</code> gets created and uses the state of the entity to index to determine analyzers
-	 * dynamically at index time.
-	 *
-	 * @return <code>scopedAnalyzer</code> in case <code>fieldToAnalyzerMap</code> is <code>null</code> or empty. Otherwise
-	 *         a clone of <code>scopedAnalyzer</code> is created where the analyzers get overriden according to <code>fieldToAnalyzerMap</code>.
-	 */
-	static ScopedAnalyzer updateAnalyzerMappings(Workspace workspace, ScopedAnalyzer scopedAnalyzer, Map<String, String> fieldToAnalyzerMap) {
-		// for backwards compatibility
-		if ( fieldToAnalyzerMap == null || fieldToAnalyzerMap.isEmpty() ) {
-			return scopedAnalyzer;
-		}
+    /**
+     * Allows to override the otherwise static field to analyzer mapping in <code>scopedAnalyzer</code>.
+     *
+     * @param workspace The current work context
+     * @param scopedAnalyzer The scoped analyzer created at startup time.
+     * @param fieldToAnalyzerMap A map of <code>Document</code> field names for analyzer names. This map gets creates
+     * when the Lucene <code>Document</code> gets created and uses the state of the entity to index to determine analyzers
+     * dynamically at index time.
+     *
+     * @return <code>scopedAnalyzer</code> in case <code>fieldToAnalyzerMap</code> is <code>null</code> or empty. Otherwise
+     *         a clone of <code>scopedAnalyzer</code> is created where the analyzers get overriden according to <code>fieldToAnalyzerMap</code>.
+     */
+    static ScopedAnalyzer updateAnalyzerMappings(Workspace workspace, ScopedAnalyzer scopedAnalyzer, Map<String, String> fieldToAnalyzerMap) {
+        // for backwards compatibility
+        if ( fieldToAnalyzerMap == null || fieldToAnalyzerMap.isEmpty() ) {
+            return scopedAnalyzer;
+        }
 
-		ScopedAnalyzer analyzerClone = scopedAnalyzer.clone();
-		for ( Map.Entry<String, String> entry : fieldToAnalyzerMap.entrySet() ) {
-			Analyzer analyzer = workspace.getAnalyzer( entry.getValue() );
-			if ( analyzer == null ) {
-				log.unableToRetrieveNamedAnalyzer( entry.getValue() );
-			}
-			else {
-				analyzerClone.addScopedAnalyzer( entry.getKey(), analyzer );
-			}
-		}
-		return analyzerClone;
-	}
+        ScopedAnalyzer analyzerClone = scopedAnalyzer.clone();
+        for ( Map.Entry<String, String> entry : fieldToAnalyzerMap.entrySet() ) {
+            Analyzer analyzer = workspace.getAnalyzer( entry.getValue() );
+            if ( analyzer == null ) {
+                log.unableToRetrieveNamedAnalyzer( entry.getValue() );
+            }
+            else {
+                analyzerClone.addScopedAnalyzer( entry.getKey(), analyzer );
+            }
+        }
+        return analyzerClone;
+    }
 
 }

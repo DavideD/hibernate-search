@@ -46,77 +46,77 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class BackendFactory {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	public static BackendQueueProcessor createBackend(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties properties) {
+    public static BackendQueueProcessor createBackend(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties properties) {
 
-		String backend = properties.getProperty( Environment.WORKER_BACKEND );
+        String backend = properties.getProperty( Environment.WORKER_BACKEND );
 
-		final BackendQueueProcessor backendQueueProcessor;
+        final BackendQueueProcessor backendQueueProcessor;
 
-		if ( StringHelper.isEmpty( backend ) || "lucene".equalsIgnoreCase( backend ) ) {
-			backendQueueProcessor = new LuceneBackendQueueProcessor();
-		}
-		else if ( "jms".equalsIgnoreCase( backend ) ) {
-			backendQueueProcessor = new JndiJMSBackendQueueProcessor();
-		}
-		else if ( "blackhole".equalsIgnoreCase( backend ) ) {
-			backendQueueProcessor = new BlackHoleBackendQueueProcessor();
-		}
-		else if ( "jgroupsMaster".equals( backend ) ) {
-			backendQueueProcessor = new JGroupsBackendQueueProcessor( new MasterNodeSelector() );
-		}
-		else if ( "jgroupsSlave".equals( backend ) ) {
-			backendQueueProcessor = new JGroupsBackendQueueProcessor( new SlaveNodeSelector() );
-		}
-		else if ( "jgroups".equals( backend ) ) {
-			backendQueueProcessor = new JGroupsBackendQueueProcessor( new AutoNodeSelector( indexManager.getIndexName() ) );
-		}
-		else {
-			backendQueueProcessor = ClassLoaderHelper.instanceFromName(
-					BackendQueueProcessor.class,
-					backend, BackendFactory.class, "processor"
-			);
-		}
-		backendQueueProcessor.initialize( properties, context, indexManager );
-		return backendQueueProcessor;
-	}
+        if ( StringHelper.isEmpty( backend ) || "lucene".equalsIgnoreCase( backend ) ) {
+            backendQueueProcessor = new LuceneBackendQueueProcessor();
+        }
+        else if ( "jms".equalsIgnoreCase( backend ) ) {
+            backendQueueProcessor = new JndiJMSBackendQueueProcessor();
+        }
+        else if ( "blackhole".equalsIgnoreCase( backend ) ) {
+            backendQueueProcessor = new BlackHoleBackendQueueProcessor();
+        }
+        else if ( "jgroupsMaster".equals( backend ) ) {
+            backendQueueProcessor = new JGroupsBackendQueueProcessor( new MasterNodeSelector() );
+        }
+        else if ( "jgroupsSlave".equals( backend ) ) {
+            backendQueueProcessor = new JGroupsBackendQueueProcessor( new SlaveNodeSelector() );
+        }
+        else if ( "jgroups".equals( backend ) ) {
+            backendQueueProcessor = new JGroupsBackendQueueProcessor( new AutoNodeSelector( indexManager.getIndexName() ) );
+        }
+        else {
+            backendQueueProcessor = ClassLoaderHelper.instanceFromName(
+                    BackendQueueProcessor.class,
+                    backend, BackendFactory.class, "processor"
+            );
+        }
+        backendQueueProcessor.initialize( properties, context, indexManager );
+        return backendQueueProcessor;
+    }
 
-	/**
-	 * @param properties the configuration to parse
-	 *
-	 * @return true if the configuration uses sync indexing
-	 */
-	public static boolean isConfiguredAsSync(Properties properties) {
-		// default to sync if none defined
-		return !"async".equalsIgnoreCase( properties.getProperty( Environment.WORKER_EXECUTION ) );
-	}
+    /**
+     * @param properties the configuration to parse
+     *
+     * @return true if the configuration uses sync indexing
+     */
+    public static boolean isConfiguredAsSync(Properties properties) {
+        // default to sync if none defined
+        return !"async".equalsIgnoreCase( properties.getProperty( Environment.WORKER_EXECUTION ) );
+    }
 
-	/**
-	 * Builds an ExecutorService to run backend work.
-	 *
-	 * @param properties Might optionally contain configuration options for the ExecutorService
-	 * @param indexManagerName The indexManager going to be linked to this ExecutorService
-	 * @return null if the work needs execution in sync
-	 */
-	public static ExecutorService buildWorkersExecutor(Properties properties, String indexManagerName) {
-		int threadPoolSize = getWorkerThreadPoolSize( properties );
-		int queueSize = getWorkerQueueSize( properties );
-		return Executors.newFixedThreadPool(
-				threadPoolSize,
-				"IndexWriter worker executor for " + indexManagerName,
-				queueSize
-		);
-	}
+    /**
+     * Builds an ExecutorService to run backend work.
+     *
+     * @param properties Might optionally contain configuration options for the ExecutorService
+     * @param indexManagerName The indexManager going to be linked to this ExecutorService
+     * @return null if the work needs execution in sync
+     */
+    public static ExecutorService buildWorkersExecutor(Properties properties, String indexManagerName) {
+        int threadPoolSize = getWorkerThreadPoolSize( properties );
+        int queueSize = getWorkerQueueSize( properties );
+        return Executors.newFixedThreadPool(
+                threadPoolSize,
+                "IndexWriter worker executor for " + indexManagerName,
+                queueSize
+        );
+    }
 
-	public static int getWorkerThreadPoolSize(Properties properties) {
-		//default to a simple asynchronous operation
-		return ConfigurationParseHelper.getIntValue( properties, Environment.WORKER_THREADPOOL_SIZE, 1 );
-	}
+    public static int getWorkerThreadPoolSize(Properties properties) {
+        //default to a simple asynchronous operation
+        return ConfigurationParseHelper.getIntValue( properties, Environment.WORKER_THREADPOOL_SIZE, 1 );
+    }
 
-	public static int getWorkerQueueSize(Properties properties) {
-		//no queue limit
-		return ConfigurationParseHelper.getIntValue( properties, Environment.WORKER_WORKQUEUE_SIZE, Integer.MAX_VALUE );
-	}
+    public static int getWorkerQueueSize(Properties properties) {
+        //no queue limit
+        return ConfigurationParseHelper.getIntValue( properties, Environment.WORKER_WORKQUEUE_SIZE, Integer.MAX_VALUE );
+    }
 
 }

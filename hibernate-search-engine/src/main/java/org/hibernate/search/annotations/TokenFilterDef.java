@@ -40,13 +40,13 @@ import org.apache.solr.analysis.TokenFilterFactory;
 @Target({ ElementType.TYPE, ElementType.FIELD, ElementType.METHOD })
 @Documented
 public @interface TokenFilterDef {
-	/**
-	 * @return the <code>TokenFilterFactory</code> class which shall be instantiated.
-	 */
-	public abstract Class<? extends TokenFilterFactory> factory();
+    /**
+     * @return the <code>TokenFilterFactory</code> class which shall be instantiated.
+     */
+    public abstract Class<? extends TokenFilterFactory> factory();
 
-	/**
-	 * @return Optional parameters passed to the <code>TokenFilterFactory</code>.
-	 */
-	public abstract Parameter[] params() default { };
+    /**
+     * @return Optional parameters passed to the <code>TokenFilterFactory</code>.
+     */
+    public abstract Parameter[] params() default { };
 }

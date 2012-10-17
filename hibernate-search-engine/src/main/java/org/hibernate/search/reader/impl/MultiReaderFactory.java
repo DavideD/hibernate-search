@@ -37,42 +37,42 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
  */
 public class MultiReaderFactory {
-	
-	private static final Log log = LoggerFactory.make();
+    
+    private static final Log log = LoggerFactory.make();
 
-	public static IndexReader openReader(IndexManager... indexManagers) {
-		final int length = indexManagers.length;
-		IndexReader[] readers = new IndexReader[length];
-		ReaderProvider[] managers = new ReaderProvider[length];
-		for (int index = 0; index < length; index++) {
-			ReaderProvider indexReaderManager = indexManagers[index].getReaderProvider();
-			IndexReader openIndexReader = indexReaderManager.openIndexReader();
-			readers[index] = openIndexReader;
-			managers[index] = indexReaderManager;
-		}
-		return ReaderProviderHelper.buildMultiReader( length, readers, managers );
-	}
+    public static IndexReader openReader(IndexManager... indexManagers) {
+        final int length = indexManagers.length;
+        IndexReader[] readers = new IndexReader[length];
+        ReaderProvider[] managers = new ReaderProvider[length];
+        for (int index = 0; index < length; index++) {
+            ReaderProvider indexReaderManager = indexManagers[index].getReaderProvider();
+            IndexReader openIndexReader = indexReaderManager.openIndexReader();
+            readers[index] = openIndexReader;
+            managers[index] = indexReaderManager;
+        }
+        return ReaderProviderHelper.buildMultiReader( length, readers, managers );
+    }
 
-	public static void closeReader(IndexReader multiReader) {
-		if ( multiReader == null ) {
-			return;
-		}
-		IndexReader[] readers;
-		ReaderProvider[] managers;
-		if ( multiReader instanceof CacheableMultiReader ) {
-			CacheableMultiReader castMultiReader = ( CacheableMultiReader ) multiReader;
-			readers = ReaderProviderHelper.getSubReadersFromMultiReader( castMultiReader );
-			managers = castMultiReader.managers;
-		}
-		else {
-			throw new AssertionFailure( "Everything should be wrapped in a CacheableMultiReader" );
-		}
-		log.debugf( "Closing MultiReader: %s", multiReader );
-		for ( int i = 0; i < readers.length; i++ ) {
-			ReaderProvider container = managers[i];
-			container.closeIndexReader( readers[i] ); // might be virtual
-		}
-		log.trace( "IndexReader closed." );
-	}
+    public static void closeReader(IndexReader multiReader) {
+        if ( multiReader == null ) {
+            return;
+        }
+        IndexReader[] readers;
+        ReaderProvider[] managers;
+        if ( multiReader instanceof CacheableMultiReader ) {
+            CacheableMultiReader castMultiReader = ( CacheableMultiReader ) multiReader;
+            readers = ReaderProviderHelper.getSubReadersFromMultiReader( castMultiReader );
+            managers = castMultiReader.managers;
+        }
+        else {
+            throw new AssertionFailure( "Everything should be wrapped in a CacheableMultiReader" );
+        }
+        log.debugf( "Closing MultiReader: %s", multiReader );
+        for ( int i = 0; i < readers.length; i++ ) {
+            ReaderProvider container = managers[i];
+            container.closeIndexReader( readers[i] ); // might be virtual
+        }
+        log.trace( "IndexReader closed." );
+    }
 
 }

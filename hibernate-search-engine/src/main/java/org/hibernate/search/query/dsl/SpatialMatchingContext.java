@@ -24,5 +24,5 @@ package org.hibernate.search.query.dsl;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public interface SpatialMatchingContext /** TODO ?extends Fieldcustomization<SpatialMatchingContext> */ {
-	WithinContext within(double distance, Unit unit);
+    WithinContext within(double distance, Unit unit);
 }

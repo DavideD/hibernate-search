@@ -31,37 +31,37 @@ import org.hibernate.search.bridge.LuceneOptions;
  */
 public class ArrayBridge implements FieldBridge {
 
-	private final FieldBridge bridge;
+    private final FieldBridge bridge;
 
-	/**
-	 * @param bridge
-	 *            the {@link org.hibernate.search.bridge.FieldBridge} used for each entry of the array
-	 */
-	public ArrayBridge(FieldBridge bridge) {
-		this.bridge = bridge;
-	}
+    /**
+     * @param bridge
+     *            the {@link org.hibernate.search.bridge.FieldBridge} used for each entry of the array
+     */
+    public ArrayBridge(FieldBridge bridge) {
+        this.bridge = bridge;
+    }
 
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object, org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
-	 */
-	@Override
-	public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		if ( value != null ) {
-			indexNotNullArray( name, value, document, luceneOptions );
-		}
-	}
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.hibernate.search.bridge.FieldBridge#set(java.lang.String, java.lang.Object, org.apache.lucene.document.Document, org.hibernate.search.bridge.LuceneOptions)
+     */
+    @Override
+    public void set(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        if ( value != null ) {
+            indexNotNullArray( name, value, document, luceneOptions );
+        }
+    }
 
-	void indexNotNullArray(String name, Object value, Document document, LuceneOptions luceneOptions) {
-		Object[] collection = (Object[]) value;
-		for ( Object entry : collection ) {
-			indexEntry( name, entry, document, luceneOptions );
-		}
-	}
+    void indexNotNullArray(String name, Object value, Document document, LuceneOptions luceneOptions) {
+        Object[] collection = (Object[]) value;
+        for ( Object entry : collection ) {
+            indexEntry( name, entry, document, luceneOptions );
+        }
+    }
 
-	private void indexEntry(String fieldName, Object entry, Document document, LuceneOptions luceneOptions) {
-		bridge.set( fieldName, entry, document, luceneOptions );
-	}
+    private void indexEntry(String fieldName, Object entry, Document document, LuceneOptions luceneOptions) {
+        bridge.set( fieldName, entry, document, luceneOptions );
+    }
 
 }

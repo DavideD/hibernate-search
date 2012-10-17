@@ -34,27 +34,27 @@ import org.junit.Test;
  */
 public class SerializationHelperTest {
 
-	@Test
-	public void testIntEncoding() {
-		for ( int i = 0; i < 256; i++ ) {
-			byte byte1 = MessageSerializationHelper.fromIntToByte( i );
-			int int1 = MessageSerializationHelper.fromByteToInt( byte1 );
-			Assert.assertEquals( i, int1 );
-		}
-	}
+    @Test
+    public void testIntEncoding() {
+        for ( int i = 0; i < 256; i++ ) {
+            byte byte1 = MessageSerializationHelper.fromIntToByte( i );
+            int int1 = MessageSerializationHelper.fromByteToInt( byte1 );
+            Assert.assertEquals( i, int1 );
+        }
+    }
 
-	@Test(expected = SearchException.class)
-	public void testIntTooLargeEncoding() {
-		MessageSerializationHelper.fromIntToByte( 256 );
-	}
+    @Test(expected = SearchException.class)
+    public void testIntTooLargeEncoding() {
+        MessageSerializationHelper.fromIntToByte( 256 );
+    }
 
-	@Test
-	public void exampleEncoding() {
-		byte[] someRandom = "Some random string to test payload".getBytes();
-		String indexName = "this is my favourite index";
-		byte[] buffer = MessageSerializationHelper.prependString( indexName, someRandom );
-		Assert.assertEquals( indexName, MessageSerializationHelper.extractIndexName( buffer ) );
-		Assert.assertTrue( Arrays.equals( someRandom, MessageSerializationHelper.extractSerializedQueue( buffer ) ) );
-	}
+    @Test
+    public void exampleEncoding() {
+        byte[] someRandom = "Some random string to test payload".getBytes();
+        String indexName = "this is my favourite index";
+        byte[] buffer = MessageSerializationHelper.prependString( indexName, someRandom );
+        Assert.assertEquals( indexName, MessageSerializationHelper.extractIndexName( buffer ) );
+        Assert.assertTrue( Arrays.equals( someRandom, MessageSerializationHelper.extractSerializedQueue( buffer ) ) );
+    }
 
 }

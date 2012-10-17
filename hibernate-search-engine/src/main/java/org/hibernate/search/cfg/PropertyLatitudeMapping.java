@@ -35,41 +35,41 @@ import org.hibernate.search.bridge.FieldBridge;
  * @author Nicolas Helleringer
  */
 public class PropertyLatitudeMapping {
-	private final SearchMapping mapping;
-	private final EntityDescriptor entity;
-	private final PropertyDescriptor property;
-	private final Map<String, Object> latitude = new HashMap<String, Object>();
+    private final SearchMapping mapping;
+    private final EntityDescriptor entity;
+    private final PropertyDescriptor property;
+    private final Map<String, Object> latitude = new HashMap<String, Object>();
 
-	public PropertyLatitudeMapping(PropertyDescriptor property, EntityDescriptor entity, SearchMapping mapping) {
-		this.mapping = mapping;
-		this.entity = entity;
-		this.property= property;
-		this.property.setLatitude( latitude );
-	}
+    public PropertyLatitudeMapping(PropertyDescriptor property, EntityDescriptor entity, SearchMapping mapping) {
+        this.mapping = mapping;
+        this.entity = entity;
+        this.property= property;
+        this.property.setLatitude( latitude );
+    }
 
-	public PropertyLatitudeMapping name(String fieldName) {
-		latitude.put( "spatialName", fieldName );
-		return this;
-	}
+    public PropertyLatitudeMapping name(String fieldName) {
+        latitude.put( "spatialName", fieldName );
+        return this;
+    }
 
-	public FieldMapping field() {
-		return new FieldMapping( property, entity, mapping );
-	}
+    public FieldMapping field() {
+        return new FieldMapping( property, entity, mapping );
+    }
 
-	public PropertyMapping property(String name, ElementType type) {
-		return new PropertyMapping( name, type, entity, mapping );
-	}
+    public PropertyMapping property(String name, ElementType type) {
+        return new PropertyMapping( name, type, entity, mapping );
+    }
 
-	public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
-		return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
-	}
+    public AnalyzerDefMapping analyzerDef(String name, Class<? extends TokenizerFactory> tokenizerFactory) {
+        return new AnalyzerDefMapping( name, tokenizerFactory, mapping );
+    }
 
-	public EntityMapping entity(Class<?> entityType) {
-		return new EntityMapping( entityType, mapping );
-	}
+    public EntityMapping entity(Class<?> entityType) {
+        return new EntityMapping( entityType, mapping );
+    }
 
-	public PropertyMapping bridge(Class<? extends FieldBridge> fieldBridge) {
-		return new FieldBridgeDirectMapping( property, entity, mapping, fieldBridge );
-	}
+    public PropertyMapping bridge(Class<? extends FieldBridge> fieldBridge) {
+        return new FieldBridgeDirectMapping( property, entity, mapping, fieldBridge );
+    }
 
 }

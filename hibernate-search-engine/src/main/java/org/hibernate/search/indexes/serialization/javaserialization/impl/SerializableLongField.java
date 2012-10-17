@@ -26,14 +26,14 @@ import org.hibernate.search.indexes.serialization.spi.LuceneNumericFieldContext;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableLongField extends SerializableNumericField {
-	private long value;
+    private long value;
 
-	public SerializableLongField(long value, LuceneNumericFieldContext context) {
-		super(context);
-		this.value = value;
-	}
+    public SerializableLongField(long value, LuceneNumericFieldContext context) {
+        super(context);
+        this.value = value;
+    }
 
-	public long getValue() {
-		return value;
-	}
+    public long getValue() {
+        return value;
+    }
 }

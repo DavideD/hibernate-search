@@ -39,54 +39,54 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class TestConstants {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	public static final Analyzer standardAnalyzer = new StandardAnalyzer( TestConstants.getTargetLuceneVersion() );
-	public static final Analyzer stopAnalyzer = new StopAnalyzer( TestConstants.getTargetLuceneVersion() );
-	public static final Analyzer simpleAnalyzer = new SimpleAnalyzer( TestConstants.getTargetLuceneVersion() );
-	public static final Analyzer keywordAnalyzer = new KeywordAnalyzer();
+    public static final Analyzer standardAnalyzer = new StandardAnalyzer( TestConstants.getTargetLuceneVersion() );
+    public static final Analyzer stopAnalyzer = new StopAnalyzer( TestConstants.getTargetLuceneVersion() );
+    public static final Analyzer simpleAnalyzer = new SimpleAnalyzer( TestConstants.getTargetLuceneVersion() );
+    public static final Analyzer keywordAnalyzer = new KeywordAnalyzer();
 
-	private static File targetDir;
-	private static final String indexDirPath;
+    private static File targetDir;
+    private static final String indexDirPath;
 
-	static {
-		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-		// get a URL reference to something we now is part of the classpath (our own classes)
-		String currentTestName = new RuntimeException().getStackTrace()[1].getClassName();
-		int hopsToRoot = currentTestName.split("\\.").length;
-		URL myUrl = contextClassLoader.getResource( currentTestName.replace( '.', '/' ) + ".class" );
-		File myPath = new File( myUrl.getFile() );
-		// navigate back to '/target'
-		targetDir = myPath;
-		for ( int i = 0; i < hopsToRoot + 3; i++ ) { // target/classes == +2, +1 to root module
-			targetDir = targetDir.getParentFile();
-		}
+    static {
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        // get a URL reference to something we now is part of the classpath (our own classes)
+        String currentTestName = new RuntimeException().getStackTrace()[1].getClassName();
+        int hopsToRoot = currentTestName.split("\\.").length;
+        URL myUrl = contextClassLoader.getResource( currentTestName.replace( '.', '/' ) + ".class" );
+        File myPath = new File( myUrl.getFile() );
+        // navigate back to '/target'
+        targetDir = myPath;
+        for ( int i = 0; i < hopsToRoot + 3; i++ ) { // target/classes == +2, +1 to root module
+            targetDir = targetDir.getParentFile();
+        }
 
-		indexDirPath = targetDir.getAbsolutePath() + File.separator + "indextemp";
-		log.debugf( "Using %s as index directory.", indexDirPath );
-	}
+        indexDirPath = targetDir.getAbsolutePath() + File.separator + "indextemp";
+        log.debugf( "Using %s as index directory.", indexDirPath );
+    }
 
-	public static Version getTargetLuceneVersion() {
-		return Version.LUCENE_CURRENT;
-	}
+    public static Version getTargetLuceneVersion() {
+        return Version.LUCENE_CURRENT;
+    }
 
-	/**
-	 * Returns the target directory of the build.
-	 *
-	 * @return the target directory of the build
-	 */
-	public static File getTargetDir() {
-		return targetDir;
-	}
+    /**
+     * Returns the target directory of the build.
+     *
+     * @return the target directory of the build
+     */
+    public static File getTargetDir() {
+        return targetDir;
+    }
 
-	/**
-	 * Return the root directory to store test indexes in. Tests should never use or delete this directly
-	 * but rather nest sub directories in it to avoid interferences across tests.
-	 *
-	 * @return Return the root directory to store test indexes
-	 */
-	public static String getIndexDirectory() {
-		return indexDirPath;
-	}
+    /**
+     * Return the root directory to store test indexes in. Tests should never use or delete this directly
+     * but rather nest sub directories in it to avoid interferences across tests.
+     *
+     * @return Return the root directory to store test indexes
+     */
+    public static String getIndexDirectory() {
+        return indexDirPath;
+    }
 
 }

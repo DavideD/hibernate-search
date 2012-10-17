@@ -29,13 +29,13 @@ package org.hibernate.search.annotations;
  * @author Hardy Ferentschik
  */
 public enum Analyze {
-	/**
-	 * Analyze the field content
-	 */
-	YES,
+    /**
+     * Analyze the field content
+     */
+    YES,
 
-	/**
-	 * Index field content as is (not analyzed)
-	 */
-	NO
+    /**
+     * Index field content as is (not analyzed)
+     */
+    NO
 }

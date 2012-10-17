@@ -36,62 +36,62 @@ import org.hibernate.annotations.common.util.StringHelper;
  */
 public abstract class ReflectionHelper {
 
-	private ReflectionHelper() {
-	}
+    private ReflectionHelper() {
+    }
 
-	/**
-	 * Get attribute name out of member unless overridden by <code>name</code>.
-	 *
-	 * @param member <code>XMember</code> from which to extract the name.
-	 * @param name Override value which will be returned in case it is not empty.
-	 * @return attribute name out of member unless overridden by <code>name</code>.
-	 */
-	public static String getAttributeName(XMember member, String name) {
-		return StringHelper.isNotEmpty( name ) ?
-				name :
-				member.getName(); //explicit field name
-	}
+    /**
+     * Get attribute name out of member unless overridden by <code>name</code>.
+     *
+     * @param member <code>XMember</code> from which to extract the name.
+     * @param name Override value which will be returned in case it is not empty.
+     * @return attribute name out of member unless overridden by <code>name</code>.
+     */
+    public static String getAttributeName(XMember member, String name) {
+        return StringHelper.isNotEmpty( name ) ?
+                name :
+                member.getName(); //explicit field name
+    }
 
-	/**
-	 * Always use this method to set accessibility regardless of the visibility.
-	 */
-	public static void setAccessible(XMember member) {
-		try {
-			// always set accessible to true as it bypass the security model checks
-			// at execution time and is faster.
-			member.setAccessible( true );
-		}
-		catch ( SecurityException se ) {
-			if ( !Modifier.isPublic( member.getModifiers() ) ) {
-				throw se;
-			}
-		}
-	}
+    /**
+     * Always use this method to set accessibility regardless of the visibility.
+     */
+    public static void setAccessible(XMember member) {
+        try {
+            // always set accessible to true as it bypass the security model checks
+            // at execution time and is faster.
+            member.setAccessible( true );
+        }
+        catch ( SecurityException se ) {
+            if ( !Modifier.isPublic( member.getModifiers() ) ) {
+                throw se;
+            }
+        }
+    }
 
-	/**
-	 * Always use this method to set accessibility regardless of the visibility.
-	 */
-	public static void setAccessible(AccessibleObject member) {
-		try {
-			// always set accessible to true as it bypass the security model checks
-			// at execution time and is faster.
-			member.setAccessible( true );
-		}
-		catch ( SecurityException se ) {
-			if ( !Modifier.isPublic( ( (Member) member ).getModifiers() ) ) {
-				throw se;
-			}
-		}
-	}
+    /**
+     * Always use this method to set accessibility regardless of the visibility.
+     */
+    public static void setAccessible(AccessibleObject member) {
+        try {
+            // always set accessible to true as it bypass the security model checks
+            // at execution time and is faster.
+            member.setAccessible( true );
+        }
+        catch ( SecurityException se ) {
+            if ( !Modifier.isPublic( ( (Member) member ).getModifiers() ) ) {
+                throw se;
+            }
+        }
+    }
 
-	public static Object getMemberValue(Object bean, XMember getter) {
-		Object value;
-		try {
-			value = getter.invoke( bean );
-		}
-		catch ( Exception e ) {
-			throw new IllegalStateException( "Could not get property value", e );
-		}
-		return value;
-	}
+    public static Object getMemberValue(Object bean, XMember getter) {
+        Object value;
+        try {
+            value = getter.invoke( bean );
+        }
+        catch ( Exception e ) {
+            throw new IllegalStateException( "Could not get property value", e );
+        }
+        return value;
+    }
 }

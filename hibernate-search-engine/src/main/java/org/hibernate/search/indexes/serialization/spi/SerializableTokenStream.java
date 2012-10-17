@@ -29,13 +29,13 @@ import org.apache.lucene.util.AttributeImpl;
  * @author Emmanuel Bernard <emmanuel@hibernate.org>
  */
 public class SerializableTokenStream implements Serializable {
-	private List<List<AttributeImpl>> stream;
+    private List<List<AttributeImpl>> stream;
 
-	public SerializableTokenStream(List<List<AttributeImpl>> stream) {
-		this.stream = stream;
-	}
+    public SerializableTokenStream(List<List<AttributeImpl>> stream) {
+        this.stream = stream;
+    }
 
-	public List<List<AttributeImpl>> getStream() {
-		return stream;
-	}
+    public List<List<AttributeImpl>> getStream() {
+        return stream;
+    }
 }

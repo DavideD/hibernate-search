@@ -25,12 +25,12 @@ import org.hibernate.search.bridge.StringBridge;
  */
 public class DefaultStringBridge implements StringBridge {
 
-	@Override
-	public String objectToString(Object object) {
-		if ( object == null )
-			return null;
+    @Override
+    public String objectToString(Object object) {
+        if ( object == null )
+            return null;
 
-		return object.toString();
-	}
+        return object.toString();
+    }
 
 }

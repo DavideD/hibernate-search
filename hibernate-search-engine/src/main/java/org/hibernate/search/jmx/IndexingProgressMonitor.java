@@ -37,55 +37,55 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Hardy Ferentschik
  */
 public class IndexingProgressMonitor implements IndexingProgressMonitorMBean, MassIndexerProgressMonitor {
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final AtomicLong documentsDoneCounter = new AtomicLong();
-	private final AtomicLong documentsBuiltCounter = new AtomicLong();
-	private final AtomicLong totalCounter = new AtomicLong();
-	private final AtomicLong entitiesLoadedCounter = new AtomicLong();
+    private final AtomicLong documentsDoneCounter = new AtomicLong();
+    private final AtomicLong documentsBuiltCounter = new AtomicLong();
+    private final AtomicLong totalCounter = new AtomicLong();
+    private final AtomicLong entitiesLoadedCounter = new AtomicLong();
 
-	private final String registeredName;
+    private final String registeredName;
 
-	public IndexingProgressMonitor() {
-		String name = IndexingProgressMonitorMBean.INDEXING_PROGRESS_MONITOR_MBEAN_OBJECT_NAME;
-		if ( JMXRegistrar.isNameRegistered( name ) ) {
-			name = name + "@" + Integer.toHexString( hashCode() ); // make the name unique in case there are multiple mass indexers at the same time
-		}
-		registeredName = JMXRegistrar.registerMBean( this, name );
-	}
+    public IndexingProgressMonitor() {
+        String name = IndexingProgressMonitorMBean.INDEXING_PROGRESS_MONITOR_MBEAN_OBJECT_NAME;
+        if ( JMXRegistrar.isNameRegistered( name ) ) {
+            name = name + "@" + Integer.toHexString( hashCode() ); // make the name unique in case there are multiple mass indexers at the same time
+        }
+        registeredName = JMXRegistrar.registerMBean( this, name );
+    }
 
-	public final void documentsAdded(long increment) {
-		documentsDoneCounter.addAndGet( increment );
-	}
+    public final void documentsAdded(long increment) {
+        documentsDoneCounter.addAndGet( increment );
+    }
 
-	public final void documentsBuilt(int number) {
-		documentsBuiltCounter.addAndGet( number );
-	}
+    public final void documentsBuilt(int number) {
+        documentsBuiltCounter.addAndGet( number );
+    }
 
-	public final void entitiesLoaded(int size) {
-		entitiesLoadedCounter.addAndGet( size );
-	}
+    public final void entitiesLoaded(int size) {
+        entitiesLoadedCounter.addAndGet( size );
+    }
 
-	public final void addToTotalCount(long count) {
-		totalCounter.addAndGet( count );
-	}
+    public final void addToTotalCount(long count) {
+        totalCounter.addAndGet( count );
+    }
 
-	public final void indexingCompleted() {
-		log.indexingCompletedAndMBeanUnregistered( totalCounter.get() );
-		JMXRegistrar.unRegisterMBean( registeredName );
-	}
+    public final void indexingCompleted() {
+        log.indexingCompletedAndMBeanUnregistered( totalCounter.get() );
+        JMXRegistrar.unRegisterMBean( registeredName );
+    }
 
-	public final long getLoadedEntitiesCount() {
-		return entitiesLoadedCounter.get();
-	}
+    public final long getLoadedEntitiesCount() {
+        return entitiesLoadedCounter.get();
+    }
 
-	public final long getDocumentsAddedCount() {
-		return documentsDoneCounter.get();
-	}
+    public final long getDocumentsAddedCount() {
+        return documentsDoneCounter.get();
+    }
 
-	public final long getNumberOfEntitiesToIndex() {
-		return totalCounter.get();
-	}
+    public final long getNumberOfEntitiesToIndex() {
+        return totalCounter.get();
+    }
 }
 
 

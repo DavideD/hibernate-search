@@ -42,39 +42,39 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
 //TODO think about using an Executor instead of starting Threads directly
 public class ConcurrentMergeScheduler extends org.apache.lucene.index.ConcurrentMergeScheduler {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final ErrorHandler errorHandler;
-	private final String indexName;
-	
-	public ConcurrentMergeScheduler(ErrorHandler errorHandler, String indexName) {
-		this.errorHandler = errorHandler;
-		this.indexName = indexName;
-	}
-	
-	@Override
-	protected void handleMergeException(Throwable t) {
-		try {
-			super.handleMergeException( t );
-		}
-		catch (ThreadInterruptedException ie) {
-			Thread.currentThread().interrupt();
-		}
-		catch (Exception ex) {
-			errorHandler.handleException( log.exceptionDuringIndexMergeOperation() , ex );
-		}
-	}
+    private final ErrorHandler errorHandler;
+    private final String indexName;
+    
+    public ConcurrentMergeScheduler(ErrorHandler errorHandler, String indexName) {
+        this.errorHandler = errorHandler;
+        this.indexName = indexName;
+    }
+    
+    @Override
+    protected void handleMergeException(Throwable t) {
+        try {
+            super.handleMergeException( t );
+        }
+        catch (ThreadInterruptedException ie) {
+            Thread.currentThread().interrupt();
+        }
+        catch (Exception ex) {
+            errorHandler.handleException( log.exceptionDuringIndexMergeOperation() , ex );
+        }
+    }
 
-	/*
-	 * Overrides method to customize the thread Name
-	 * @see org.apache.lucene.index.ConcurrentMergeScheduler#getMergeThread(org.apache.lucene.index.IndexWriter, org.apache.lucene.index.MergePolicy.OneMerge)
-	 */
-	protected synchronized MergeThread getMergeThread(IndexWriter writer, MergePolicy.OneMerge merge) throws IOException {
-		final MergeThread thread = new MergeThread( writer, merge );
-		thread.setThreadPriority( getMergeThreadPriority() );
-		thread.setDaemon( true );
-		thread.setName( "Lucene Merge Thread #" + mergeThreadCount++ + " for index " + indexName );
-		return thread;
-	}
+    /*
+     * Overrides method to customize the thread Name
+     * @see org.apache.lucene.index.ConcurrentMergeScheduler#getMergeThread(org.apache.lucene.index.IndexWriter, org.apache.lucene.index.MergePolicy.OneMerge)
+     */
+    protected synchronized MergeThread getMergeThread(IndexWriter writer, MergePolicy.OneMerge merge) throws IOException {
+        final MergeThread thread = new MergeThread( writer, merge );
+        thread.setThreadPriority( getMergeThreadPriority() );
+        thread.setDaemon( true );
+        thread.setName( "Lucene Merge Thread #" + mergeThreadCount++ + " for index " + indexName );
+        return thread;
+    }
 
 }

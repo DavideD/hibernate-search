@@ -51,42 +51,42 @@ import org.hibernate.search.util.impl.ClassLoaderHelper;
  */
 public class DirectoryProviderFactory {
 
-	private static final Map<String, String> defaultProviderClasses;
+    private static final Map<String, String> defaultProviderClasses;
 
-	static {
-		defaultProviderClasses = new HashMap<String, String>( 6 );
-		defaultProviderClasses.put( "", FSDirectoryProvider.class.getName() );
-		defaultProviderClasses.put( "filesystem", FSDirectoryProvider.class.getName() );
-		defaultProviderClasses.put( "filesystem-master", FSMasterDirectoryProvider.class.getName() );
-		defaultProviderClasses.put( "filesystem-slave", FSSlaveDirectoryProvider.class.getName() );
-		defaultProviderClasses.put( "ram", RAMDirectoryProvider.class.getName() );
-		defaultProviderClasses.put( "infinispan", "org.hibernate.search.infinispan.impl.InfinispanDirectoryProvider" );
-	}
+    static {
+        defaultProviderClasses = new HashMap<String, String>( 6 );
+        defaultProviderClasses.put( "", FSDirectoryProvider.class.getName() );
+        defaultProviderClasses.put( "filesystem", FSDirectoryProvider.class.getName() );
+        defaultProviderClasses.put( "filesystem-master", FSMasterDirectoryProvider.class.getName() );
+        defaultProviderClasses.put( "filesystem-slave", FSSlaveDirectoryProvider.class.getName() );
+        defaultProviderClasses.put( "ram", RAMDirectoryProvider.class.getName() );
+        defaultProviderClasses.put( "infinispan", "org.hibernate.search.infinispan.impl.InfinispanDirectoryProvider" );
+    }
 
-	public static DirectoryProvider<?> createDirectoryProvider(String directoryProviderName, Properties indexProps, WorkerBuildContext context) {
-		String className = indexProps.getProperty( "directory_provider", "" );
-		String maybeShortCut = className.toLowerCase();
+    public static DirectoryProvider<?> createDirectoryProvider(String directoryProviderName, Properties indexProps, WorkerBuildContext context) {
+        String className = indexProps.getProperty( "directory_provider", "" );
+        String maybeShortCut = className.toLowerCase();
 
-		DirectoryProvider<?> provider;
-		//try and use the built-in shortcuts before loading the provider as a fully qualified class name 
-		if ( defaultProviderClasses.containsKey( maybeShortCut ) ) {
-			String fullClassName = defaultProviderClasses.get( maybeShortCut );
-			provider = ClassLoaderHelper.instanceFromName( DirectoryProvider.class,
-					fullClassName, DirectoryProviderFactory.class, "directory provider" );
-		}
-		else {
-			provider = ClassLoaderHelper.instanceFromName(
-					DirectoryProvider.class, className,
-					DirectoryProviderFactory.class, "directory provider"
-			);
-		}
-		try {
-			provider.initialize( directoryProviderName, indexProps, context );
-		}
-		catch ( Exception e ) {
-			throw new SearchException( "Unable to initialize directory provider: " + directoryProviderName, e );
-		}
-		return provider;
-	}
+        DirectoryProvider<?> provider;
+        //try and use the built-in shortcuts before loading the provider as a fully qualified class name 
+        if ( defaultProviderClasses.containsKey( maybeShortCut ) ) {
+            String fullClassName = defaultProviderClasses.get( maybeShortCut );
+            provider = ClassLoaderHelper.instanceFromName( DirectoryProvider.class,
+                    fullClassName, DirectoryProviderFactory.class, "directory provider" );
+        }
+        else {
+            provider = ClassLoaderHelper.instanceFromName(
+                    DirectoryProvider.class, className,
+                    DirectoryProviderFactory.class, "directory provider"
+            );
+        }
+        try {
+            provider.initialize( directoryProviderName, indexProps, context );
+        }
+        catch ( Exception e ) {
+            throw new SearchException( "Unable to initialize directory provider: " + directoryProviderName, e );
+        }
+        return provider;
+    }
 
 }

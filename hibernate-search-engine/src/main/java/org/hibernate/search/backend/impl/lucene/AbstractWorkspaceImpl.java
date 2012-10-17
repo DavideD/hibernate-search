@@ -48,80 +48,80 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public abstract class AbstractWorkspaceImpl implements Workspace {
 
-	private static final Log log = LoggerFactory.make();
+    private static final Log log = LoggerFactory.make();
 
-	private final OptimizerStrategy optimizerStrategy;
-	private final Set<Class<?>> entitiesInIndexManager;
-	private final DirectoryBasedIndexManager indexManager;
+    private final OptimizerStrategy optimizerStrategy;
+    private final Set<Class<?>> entitiesInIndexManager;
+    private final DirectoryBasedIndexManager indexManager;
 
-	protected final IndexWriterHolder writerHolder;
-	private boolean indexMetadataIsComplete;
+    protected final IndexWriterHolder writerHolder;
+    private boolean indexMetadataIsComplete;
 
-	/**
-	 * Keeps a count of modification operations done on the index.
-	 */
-	private final AtomicLong operations = new AtomicLong( 0L );
+    /**
+     * Keeps a count of modification operations done on the index.
+     */
+    private final AtomicLong operations = new AtomicLong( 0L );
 
 
-	public AbstractWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties cfg) {
-		this.indexManager = indexManager;
-		this.optimizerStrategy = indexManager.getOptimizerStrategy();
-		this.entitiesInIndexManager = indexManager.getContainedTypes();
-		this.writerHolder = new IndexWriterHolder( context.getErrorHandler(), indexManager );
-		this.indexMetadataIsComplete = CommonPropertiesParse.isIndexMetadataComplete( cfg, context );
-	}
+    public AbstractWorkspaceImpl(DirectoryBasedIndexManager indexManager, WorkerBuildContext context, Properties cfg) {
+        this.indexManager = indexManager;
+        this.optimizerStrategy = indexManager.getOptimizerStrategy();
+        this.entitiesInIndexManager = indexManager.getContainedTypes();
+        this.writerHolder = new IndexWriterHolder( context.getErrorHandler(), indexManager );
+        this.indexMetadataIsComplete = CommonPropertiesParse.isIndexMetadataComplete( cfg, context );
+    }
 
-	@Override
-	public <T> DocumentBuilderIndexedEntity<?> getDocumentBuilder(Class<T> entity) {
-		return indexManager.getIndexBindingForEntity( entity ).getDocumentBuilder();
-	}
+    @Override
+    public <T> DocumentBuilderIndexedEntity<?> getDocumentBuilder(Class<T> entity) {
+        return indexManager.getIndexBindingForEntity( entity ).getDocumentBuilder();
+    }
 
-	@Override
-	public Analyzer getAnalyzer(String name) {
-		return indexManager.getAnalyzer( name );
-	}
+    @Override
+    public Analyzer getAnalyzer(String name) {
+        return indexManager.getAnalyzer( name );
+    }
 
-	@Override
-	public void optimizerPhase() {
-		optimizerStrategy.addOperationWithinTransactionCount( operations.getAndSet( 0L ) );
-		optimizerStrategy.optimize( this );
-	}
+    @Override
+    public void optimizerPhase() {
+        optimizerStrategy.addOperationWithinTransactionCount( operations.getAndSet( 0L ) );
+        optimizerStrategy.optimize( this );
+    }
 
-	@Override
-	public void performOptimization(IndexWriter writer) {
-		optimizerStrategy.performOptimization( writer );
-	}
+    @Override
+    public void performOptimization(IndexWriter writer) {
+        optimizerStrategy.performOptimization( writer );
+    }
 
-	@Override
-	public void incrementModificationCounter(int modCount) {
-		operations.addAndGet( modCount );
-	}
+    @Override
+    public void incrementModificationCounter(int modCount) {
+        operations.addAndGet( modCount );
+    }
 
-	@Override
-	public Set<Class<?>> getEntitiesInIndexManager() {
-		return entitiesInIndexManager;
-	}
+    @Override
+    public Set<Class<?>> getEntitiesInIndexManager() {
+        return entitiesInIndexManager;
+    }
 
-	@Override
-	public abstract void afterTransactionApplied(boolean someFailureHappened, boolean streaming);
+    @Override
+    public abstract void afterTransactionApplied(boolean someFailureHappened, boolean streaming);
 
-	public void shutDownNow() {
-		log.shuttingDownBackend( indexManager.getIndexName() );
-		writerHolder.closeIndexWriter();
-	}
+    public void shutDownNow() {
+        log.shuttingDownBackend( indexManager.getIndexName() );
+        writerHolder.closeIndexWriter();
+    }
 
-	@Override
-	public IndexWriter getIndexWriter() {
-		return writerHolder.getIndexWriter();
-	}
+    @Override
+    public IndexWriter getIndexWriter() {
+        return writerHolder.getIndexWriter();
+    }
 
-	public IndexWriter getIndexWriter(ErrorContextBuilder errorContextBuilder) {
-		return writerHolder.getIndexWriter( errorContextBuilder );
-	}
+    public IndexWriter getIndexWriter(ErrorContextBuilder errorContextBuilder) {
+        return writerHolder.getIndexWriter( errorContextBuilder );
+    }
 
-	@Override
-	public boolean areSingleTermDeletesSafe() {
-		return indexMetadataIsComplete && entitiesInIndexManager.size() == 1;
-	}
+    @Override
+    public boolean areSingleTermDeletesSafe() {
+        return indexMetadataIsComplete && entitiesInIndexManager.size() == 1;
+    }
 
 }
