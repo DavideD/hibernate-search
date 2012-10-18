@@ -20,9 +20,12 @@
  */
 package org.hibernate.search.infinispan.impl;
 
+import org.hibernate.search.infinispan.impl.indexmanager.OwnerDefiningKey;
 import org.hibernate.search.infinispan.impl.routing.CacheManagerMuxer;
 import org.infinispan.config.Configuration;
+import org.infinispan.config.GlobalConfiguration;
 import org.infinispan.factories.ComponentRegistry;
+import org.infinispan.factories.GlobalComponentRegistry;
 import org.infinispan.lifecycle.AbstractModuleLifecycle;
 
 /**
@@ -51,7 +54,15 @@ public class LifecycleManager extends AbstractModuleLifecycle {
 	public void cacheStarted(ComponentRegistry cr, String cacheName) {
 		CommandInitializer initializer = cr.getComponent( CommandInitializer.class );
 		CacheManagerMuxer muxer = cr.getComponent( CacheManagerMuxer.class );
-		initializer.setMuxer( muxer );
+		initializer.setMuxer( cacheName, muxer );
+	}
+
+	@Override
+	public void cacheManagerStarting(GlobalComponentRegistry gcr, GlobalConfiguration globalCfg) {
+		globalCfg.fluent()
+			.serialization()
+				.addAdvancedExternalizer( new OwnerDefiningKey.Externalizer() )
+			.build();
 	}
 
 }

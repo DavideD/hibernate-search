@@ -22,6 +22,7 @@ package org.hibernate.search.infinispan.impl.routing;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.hibernate.search.indexes.spi.IndexManager;
 import org.hibernate.search.infinispan.logging.impl.Log;
@@ -40,20 +41,29 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
 public class CacheManagerMuxer {
 
 	private static final Log log = LoggerFactory.make( Log.class );
+	private static final AtomicInteger idgen = new AtomicInteger();
+	private final int id;
+
+	public CacheManagerMuxer() {
+		id = idgen.incrementAndGet();
+		log.warn( "created Muxer " + id );
+	}
 
 	/**
-	 * Known active IndexManager to be looked up by name. 
+	 * Known active IndexManager to be looked up by indexName.
 	 */
 	private final ConcurrentMap<String,IndexManager> storage = new ConcurrentHashMap<String,IndexManager>();
 
-	public void disableIndexManager(String name) {
-		storage.remove( name );
+	public void disableIndexManager(String indexName) {
+		storage.remove( indexName );
+		log.warn( "disabled " + indexName + " on mux " +id );
 	}
 
-	public void activateIndexManager(String name, IndexManager im) {
-		IndexManager previousInstance = storage.put( name, im );
+	public void activateIndexManager(String indexName, IndexManager im) {
+		IndexManager previousInstance = storage.put( indexName, im );
+		log.warn( "enabled " + indexName + " on mux " +id );
 		if ( previousInstance != null ) {
-			log.replacingRegisteredIndexManager( name );
+			log.replacingRegisteredIndexManager( indexName );
 		}
 	}
 
@@ -62,6 +72,7 @@ public class CacheManagerMuxer {
 	 * @return the matching IndexManager, if it exists and is able to process commands, or <code>null</code> otherwise.
 	 */
 	public IndexManager getActiveIndexManager(String indexName) {
+		log.warn( "lookup " + indexName + " on mux " +id );
 		//Might not exist, caller has to deal with it.
 		return storage.get( indexName );
 	}

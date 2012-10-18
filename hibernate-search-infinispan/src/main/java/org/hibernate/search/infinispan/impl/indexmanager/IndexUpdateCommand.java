@@ -113,7 +113,7 @@ public class IndexUpdateCommand extends BaseRpcCommand implements ReplicableComm
 	//Custom SPI to inject dependencies on command receive, before processing.
 	@Override
 	public void fetchExecutionContext(CommandInitializer commandInitializer) {
-		this.muxer = commandInitializer.getMuxer();
+		this.muxer = commandInitializer.getMuxer( cacheName );
 	}
 
 }
