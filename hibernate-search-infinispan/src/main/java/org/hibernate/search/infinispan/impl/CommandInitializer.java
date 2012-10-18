@@ -20,6 +20,9 @@
  */
 package org.hibernate.search.infinispan.impl;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import org.hibernate.search.infinispan.impl.routing.CacheManagerMuxer;
 import org.infinispan.commands.ReplicableCommand;
 import org.infinispan.commands.module.ModuleCommandInitializer;
@@ -36,7 +39,7 @@ import org.infinispan.commands.module.ModuleCommandInitializer;
  */
 public class CommandInitializer implements ModuleCommandInitializer {
 
-	private CacheManagerMuxer muxer;
+	private ConcurrentMap<String,CacheManagerMuxer> muxers = new ConcurrentHashMap<String,CacheManagerMuxer>();
 
 	@Override
 	public void initializeReplicableCommand(ReplicableCommand command, boolean isRemote) {
@@ -46,12 +49,12 @@ public class CommandInitializer implements ModuleCommandInitializer {
 		queryCommand.fetchExecutionContext( this );
 	}
 
-	public void setMuxer(CacheManagerMuxer muxer) {
-		this.muxer = muxer;
+	public void setMuxer(String cacheName, CacheManagerMuxer muxer) {
+		muxers.put( cacheName, muxer );
 	}
 
-	public CacheManagerMuxer getMuxer() {
-		return this.muxer;
+	public CacheManagerMuxer getMuxer(String cacheName) {
+		return muxers.get( cacheName );
 	}
 
 }

@@ -22,15 +22,21 @@ package org.hibernate.search.infinispan.impl.indexmanager;
 
 import java.util.Properties;
 
-import org.hibernate.search.backend.BackendFactory;
 import org.hibernate.search.backend.spi.BackendQueueProcessor;
+import org.hibernate.search.engine.ServiceManager;
 import org.hibernate.search.indexes.impl.DirectoryBasedIndexManager;
+import org.hibernate.search.infinispan.CacheManagerServiceProvider;
+import org.hibernate.search.infinispan.InfinispanIntegration;
 import org.hibernate.search.infinispan.impl.InfinispanDirectoryProvider;
+import org.hibernate.search.infinispan.impl.routing.CacheManagerMuxer;
 import org.hibernate.search.infinispan.logging.impl.Log;
 import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.store.DirectoryProvider;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
+import org.infinispan.Cache;
+import org.infinispan.factories.ComponentRegistry;
 import org.infinispan.lucene.InfinispanDirectory;
+import org.infinispan.manager.EmbeddedCacheManager;
 
 /**
  * A custom IndexManager to store indexes in the grid itself.
@@ -46,25 +52,48 @@ public class InfinispanIndexManager extends DirectoryBasedIndexManager {
 
 	private InfinispanCommandsBackend remoteMaster;
 
+	private ServiceManager serviceManager;
+
+	private EmbeddedCacheManager cacheManager;
+
+	private CacheManagerMuxer cacheMuxer;
+
+	private String indexName;
+
+	private Cache channeledCache;
+
 	@Override
 	public void initialize(String indexName, Properties cfg, WorkerBuildContext buildContext) {
+		this.indexName = indexName;
+		this.serviceManager = buildContext.getServiceManager();
+		this.cacheManager = serviceManager.requestService( CacheManagerServiceProvider.class, buildContext );
+		final String channeledCacheName = InfinispanIntegration.getMetadataCacheName( cfg );
+		channeledCache = cacheManager.getCache( channeledCacheName );
+		final ComponentRegistry componentsRegistry = channeledCache.getAdvancedCache().getComponentRegistry();
+		this.cacheMuxer = componentsRegistry.getComponent( CacheManagerMuxer.class );
 		super.initialize( indexName, cfg, buildContext );
-		this.remoteMaster.enableIncomingRPCs(); //needs to happen last: opens the gates and let the lions in
+		//needs to happen last: opens the gates and let the lions in:
+		cacheMuxer.activateIndexManager( indexName, this );
 	}
 
 	@Override
 	public void destroy() {
 		super.destroy();
+		cacheMuxer.disableIndexManager( indexName );
+		serviceManager.releaseService( CacheManagerServiceProvider.class );
 	}
 
+	@Override
 	protected BackendQueueProcessor createBackend(String indexName, Properties cfg, WorkerBuildContext buildContext) {
-		//We'll actually create two backend processors and expose them as one wrapping them together:
-		BackendQueueProcessor localMaster = BackendFactory.createBackend( this, buildContext, cfg );
-		remoteMaster = new InfinispanCommandsBackend();
-		remoteMaster.initialize( cfg, buildContext, this );
-		// localMaster is already initialized by the BackendFactory
-		MasterSwitchDelegatingQueueProcessor joinedMaster = new MasterSwitchDelegatingQueueProcessor( localMaster, remoteMaster );
-		return joinedMaster;
+		if ( cacheManager.getTransport() == null ) {
+			//not capable of remoting: just return the standard local-only backend
+			return super.createBackend( indexName, cfg, buildContext );
+		}
+		else {
+			RoutingArbiter arbiter = new RoutingArbiter( this, cfg, indexName, channeledCache );
+			arbiter.initialize( cfg, buildContext, this );
+			return arbiter;
+		}
 	}
 
 	protected DirectoryProvider<InfinispanDirectory> createDirectoryProvider(
@@ -81,6 +110,10 @@ public class InfinispanIndexManager extends DirectoryBasedIndexManager {
 
 	public InfinispanCommandsBackend getRemoteMaster() {
 		return remoteMaster;
+	}
+
+	public EmbeddedCacheManager getCacheManager() {
+		return this.cacheManager;
 	}
 
 }
