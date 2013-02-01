@@ -23,34 +23,38 @@
  */
 package org.hibernate.search.test.batchindexing;
 
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import junit.framework.Assert;
+
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.Lock;
 import org.apache.lucene.store.LockFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Projections;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
+import org.hibernate.search.MassIndexer;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.engine.spi.SearchFactoryImplementor;
+import org.hibernate.search.impl.MassIndexerImpl;
 import org.hibernate.search.indexes.impl.DirectoryBasedIndexManager;
 import org.hibernate.search.test.util.FullTextSessionBuilder;
 import org.hibernate.search.test.util.textbuilder.SentenceInventor;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
-
-import static org.junit.Assert.assertEquals;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Tests the fullTextSession.createIndexer() API for basic functionality.
@@ -154,6 +158,13 @@ public class IndexingGeneratedCorpusTest {
 		verifyResultNumbers(); //..same numbers again
 		verifyIndexIsLocked( false, Dvd.class ); //non exclusive index configured
 		verifyIndexIsLocked( true, Book.class ); //exclusive index enabled
+	}
+
+	@Test
+	public void testCreationOfTheDefaultMassIndexer() throws Exception {
+		FullTextSession fullTextSession = builder.openFullTextSession();
+		MassIndexer indexer = fullTextSession.createIndexer( Object.class );
+		assertThat( indexer, is( MassIndexerImpl.class ) );
 	}
 
 	private void reindexAll() throws InterruptedException {
