@@ -25,6 +25,7 @@
         <module name="IllegalInstantiation"/>
 
         <!-- Miscellaneous other checks. -->
+        <module name="GenericWhitespace" />
         <module name="PackageAnnotation"/>
         <module name="CovariantEquals"/>
     </module>
