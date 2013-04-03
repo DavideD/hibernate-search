@@ -211,6 +211,11 @@ public class CommandReplicationTest {
 					return null;
 				}
 
+				@Override
+				public String describeSerializer() {
+					return "mock serializer used in tests";
+				}
+
 			};
 		}
 

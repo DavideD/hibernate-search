@@ -66,10 +66,10 @@ public class LiveRunningTest {
 	public void liveRun() {
 		try {
 			for ( int i = 0; i < TEST_RUNS; i++ ) {
-			writeOnMaster();
-			adjustSlavesNumber(i);
-			assertViews();
-		}
+				writeOnMaster();
+				adjustSlavesNumber(i);
+				assertViews();
+			}
 		}
 		finally {
 			master.close();
