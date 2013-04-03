@@ -41,7 +41,7 @@ import org.infinispan.lifecycle.AbstractModuleLifecycle;
  */
 public class LifecycleManager extends AbstractModuleLifecycle {
 
-	private static final Log log = LoggerFactory.make(Log.class);
+	private static final Log log = LoggerFactory.make( Log.class );
 
 	/**
 	 * Registers the CacheManagerMuxer in the cache registry before it gets started
