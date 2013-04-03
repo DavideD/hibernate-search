@@ -58,7 +58,7 @@ public class BaseLiveClusterTest {
 
 	private static final int TEST_RUNS = 66;
 	private static final int MAX_NODES = 7;
-	private static final boolean WAIT_CLUSTER_FORMATION = false;
+	private static final boolean WAIT_CLUSTER_FORMATION = true;
 
 	protected static HashSet<Class<?>> entityTypes;
 
@@ -94,7 +94,9 @@ public class BaseLiveClusterTest {
 	}
 
 	private void assertView(FullTextSessionBuilder node) {
-		assertEquals( nodes.size() , clusterSize( node, SimpleEmail.class ) );
+		if ( WAIT_CLUSTER_FORMATION ) {
+			assertEquals( nodes.size() , clusterSize( node, SimpleEmail.class ) );
+		}
 		FullTextSession session = node.openFullTextSession();
 		try {
 			FullTextQuery fullTextQuery = session.createFullTextQuery( new MatchAllDocsQuery() );
