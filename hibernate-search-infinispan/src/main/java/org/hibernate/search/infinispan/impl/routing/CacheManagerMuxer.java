@@ -43,9 +43,11 @@ public class CacheManagerMuxer {
 	private static final Log log = LoggerFactory.make( Log.class );
 	private static final AtomicInteger idgen = new AtomicInteger();
 	private final int id;
+	private final String cacheName;
 
-	public CacheManagerMuxer() {
-		id = idgen.incrementAndGet();
+	public CacheManagerMuxer(String cacheName) {
+		this.cacheName = cacheName;
+		this.id = idgen.incrementAndGet();
 		log.warn( "created Muxer " + id );
 	}
 

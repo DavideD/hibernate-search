@@ -51,7 +51,7 @@ public class LifecycleManager extends AbstractModuleLifecycle {
 	 */
 	@Override
 	public void cacheStarting(ComponentRegistry cr, Configuration configuration, String cacheName) {
-		CacheManagerMuxer muxer = new CacheManagerMuxer();
+		CacheManagerMuxer muxer = new CacheManagerMuxer( cacheName );
 		cr.registerComponent( muxer, CacheManagerMuxer.class );
 	}
 

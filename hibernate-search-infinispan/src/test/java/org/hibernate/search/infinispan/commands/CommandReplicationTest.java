@@ -78,13 +78,13 @@ public class CommandReplicationTest {
 
 	@Test
 	public void verifyCommandSend() {
-		byte[] buffer = new byte[] { 1, 2, 36 };
+		final byte[] buffer = new byte[] { 1, 2, 36 };
 		IndexUpdateCommand command = new IndexUpdateCommand( SOME_CACHE_NAME );
 		command.setMessage( buffer );
 		command.setIndexName( SOME_INDEX_NAME );
 		Collection<Address> recipients = Collections.singleton( node2.getService().getAddress() );
 
-		CacheManagerMuxer muxerNode2 = extractComponent( node2, CacheManagerMuxer.class );
+		CacheManagerMuxer muxerNode2 = extractComponent( node2, CacheManagerMuxer.class, SOME_CACHE_NAME );
 		Assert.assertNotNull( muxerNode2 );
 
 		muxerNode2.activateIndexManager( SOME_INDEX_NAME, new MockIndexManager() );
@@ -102,9 +102,9 @@ public class CommandReplicationTest {
 		TestingUtil.blockUntilViewsReceived( 5000L, node1.getService(), node2.getService() );
 	}
 
-	private static <T> T extractComponent(CacheManagerServiceProvider node, Class<T> componentType) {
+	private static <T> T extractComponent(CacheManagerServiceProvider node, Class<T> componentType, String cacheName) {
 		EmbeddedCacheManager cacheManager = node.getService();
-		ComponentRegistry cr = cacheManager.getCache().getAdvancedCache().getComponentRegistry();
+		ComponentRegistry cr = cacheManager.getCache( cacheName ).getAdvancedCache().getComponentRegistry();
 		return cr.getComponent( componentType );
 	}
 

@@ -56,8 +56,10 @@ import org.junit.Test;
 @TestForIssue(jiraKey = "HSEARCH-882")
 public class BaseLiveClusterTest {
 
-	private static final int TEST_RUNS = 33;
-	private static final int MAX_NODES = 8;
+	private static final int TEST_RUNS = 66;
+	private static final int MAX_NODES = 7;
+	private static final boolean WAIT_CLUSTER_FORMATION = false;
+
 	protected static HashSet<Class<?>> entityTypes;
 
 	private final List<FullTextSessionBuilder> nodes = new LinkedList<FullTextSessionBuilder>();
@@ -129,7 +131,9 @@ public class BaseLiveClusterTest {
 				killSomeNode();
 			}
 		}
-		waitForAllJoinsCompleted();
+		if ( WAIT_CLUSTER_FORMATION ) {
+			waitForAllJoinsCompleted();
+		}
 	}
 
 	private void addNewNode() {
