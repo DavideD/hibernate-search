@@ -86,9 +86,9 @@ public class RoutingArbiter implements BackendQueueProcessor {
 		if ( ! newMembers.contains( lastSeenMasterNode ) ) {
 			log.warn( "Previous master " + lastSeenMasterNode + " is dead: electing new master among " + newMembers );
 			//failover needed
-			OwnerDefiningKey key = new OwnerDefiningKey( indexName );
+			final OwnerDefiningKey key = new OwnerDefiningKey( indexName );
 			channeledCache.startBatch();
-			boolean selfElected;
+			final boolean selfElected;
 			try {
 				selfElected = channeledCache.replace( key, lastSeenMasterNode, localAddress );
 			}
@@ -100,7 +100,7 @@ public class RoutingArbiter implements BackendQueueProcessor {
 				makeLocalMaster();
 			}
 			else {
-				Address registeredMaster = (Address) channeledCache.get( key );
+				final Address registeredMaster = (Address) channeledCache.get( key );
 				log.warn( "Other node elected: " + registeredMaster + " !");
 				makeMaster( registeredMaster );
 			}
