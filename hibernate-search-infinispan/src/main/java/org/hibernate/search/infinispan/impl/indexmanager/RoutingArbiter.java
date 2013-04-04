@@ -25,7 +25,14 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.locks.Lock;
 
+import javax.transaction.HeuristicMixedException;
+import javax.transaction.HeuristicRollbackException;
+import javax.transaction.NotSupportedException;
+import javax.transaction.RollbackException;
+import javax.transaction.SystemException;
+
 import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.store.Directory;
 import org.hibernate.search.backend.BackendFactory;
 import org.hibernate.search.backend.IndexingMonitor;
 import org.hibernate.search.backend.LuceneWork;
@@ -42,6 +49,7 @@ import org.infinispan.notifications.Listener;
 import org.infinispan.notifications.cachemanagerlistener.annotation.ViewChanged;
 import org.infinispan.notifications.cachemanagerlistener.event.ViewChangedEvent;
 import org.infinispan.remoting.transport.Address;
+import org.infinispan.remoting.transport.jgroups.SuspectException;
 
 /**
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
@@ -55,6 +63,7 @@ public class RoutingArbiter implements BackendQueueProcessor {
 	private final InfinispanIndexManager infinispanIndexManager;
 	private final Address localAddress;
 	private final AdvancedCache channeledCache;
+	private final int maxRetryAttempts;
 
 	private WorkerBuildContext context;
 
@@ -66,9 +75,10 @@ public class RoutingArbiter implements BackendQueueProcessor {
 	private Properties cfg;
 
 	public RoutingArbiter(InfinispanIndexManager infinispanIndexManager,
-			Properties cfg, String indexName, Cache channeledCache) {
+			Properties cfg, String indexName, Cache channeledCache, int maxRetryAttempts) {
 		this.infinispanIndexManager = infinispanIndexManager;
 		this.indexName = indexName;
+		this.maxRetryAttempts = maxRetryAttempts;
 		this.channeledCache = channeledCache.getAdvancedCache();
 		EmbeddedCacheManager cacheManager = infinispanIndexManager.getCacheManager();
 		this.localAddress = cacheManager.getTransport().getAddress();
@@ -78,22 +88,46 @@ public class RoutingArbiter implements BackendQueueProcessor {
 	public void onViewChange(ViewChangedEvent event) {
 		if ( ! localProcessor ) {
 			//See if we need to failover to ourselves
-			failoverCheck( event.getNewMembers() );
+			try {
+				failoverCheck( event.getNewMembers() );
+			}
+			catch ( SecurityException e ) {
+				//FIXME implement me
+			}
+			catch ( IllegalStateException e ) {
+				//FIXME implement me
+			}
+			catch ( NotSupportedException e ) {
+				//FIXME implement me
+			}
+			catch ( SystemException e ) {
+				//FIXME implement me
+			}
+			catch ( RollbackException e ) {
+				//FIXME implement me
+			}
+			catch ( HeuristicMixedException e ) {
+				//FIXME implement me
+			}
+			catch ( HeuristicRollbackException e ) {
+				//FIXME implement me
+			}
 		}
 	}
 
-	private synchronized void failoverCheck(List<Address> newMembers) {
+	private synchronized void failoverCheck(List<Address> newMembers) throws NotSupportedException, SystemException, SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
 		if ( ! newMembers.contains( lastSeenMasterNode ) ) {
 			log.warn( "Previous master " + lastSeenMasterNode + " is dead: electing new master among " + newMembers );
 			//failover needed
 			final OwnerDefiningKey key = new OwnerDefiningKey( indexName );
-			channeledCache.startBatch();
 			final boolean selfElected;
+			channeledCache.getTransactionManager().begin();
 			try {
+				channeledCache.lock( key );
 				selfElected = channeledCache.replace( key, lastSeenMasterNode, localAddress );
 			}
 			finally {
-				channeledCache.endBatch( true );
+				channeledCache.getTransactionManager().commit();
 			}
 			if ( selfElected ) {
 				log.warn( "Self elected node " + localAddress + " !");
@@ -128,10 +162,13 @@ public class RoutingArbiter implements BackendQueueProcessor {
 	}
 
 	private void forceIndexUnlock() {
-		log.forcingReleaseIndexWriterLock();
-		DirectoryProvider directoryProvider = infinispanIndexManager.getDirectoryProvider();
+		final DirectoryProvider directoryProvider = infinispanIndexManager.getDirectoryProvider();
+		final Directory directory = directoryProvider.getDirectory();
 		try {
-			IndexWriter.unlock( directoryProvider.getDirectory() );
+			if ( IndexWriter.isLocked( directory ) ) {
+				log.forcingReleaseIndexWriterLock();
+				IndexWriter.unlock( directory );
+			}
 		}
 		catch ( IOException e ) {
 			log.unexpectedErrorInLuceneBackend( e );
@@ -172,8 +209,30 @@ public class RoutingArbiter implements BackendQueueProcessor {
 	}
 
 	@Override
-	public void applyWork(List<LuceneWork> workList, IndexingMonitor monitor) {
-		currentBackend.applyWork( workList, monitor );
+	public void applyWork(final List<LuceneWork> workList, final IndexingMonitor monitor) {
+		applyWorkRetry(workList, monitor, 0);
+	}
+
+	private void applyWorkRetry(final List<LuceneWork> workList, final IndexingMonitor monitor, final int retry) {
+		final BackendQueueProcessor backend = currentBackend;
+		try {
+			backend.applyWork( workList, monitor );
+		}
+		catch (SuspectException se) {
+			if ( retry == maxRetryAttempts ) {
+				throw log.tooManySuspectExceptionsOnWorkRemoting( se, maxRetryAttempts );
+			}
+			else {
+				try {
+					Thread.sleep( 200 );
+				}
+				catch ( InterruptedException e ) {
+					Thread.currentThread().interrupt();
+					throw log.interruptedDuringRemoting();
+				}
+				applyWorkRetry( workList, monitor, retry + 1 );
+			}
+		}
 	}
 
 	@Override

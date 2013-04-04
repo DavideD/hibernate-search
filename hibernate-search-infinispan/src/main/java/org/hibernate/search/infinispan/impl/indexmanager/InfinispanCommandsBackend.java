@@ -30,7 +30,6 @@ import org.hibernate.search.backend.IndexingMonitor;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.spi.BackendQueueProcessor;
 import org.hibernate.search.indexes.impl.DirectoryBasedIndexManager;
-import org.hibernate.search.indexes.serialization.spi.LuceneWorkSerializer;
 import org.hibernate.search.infinispan.logging.impl.Log;
 import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
@@ -60,14 +59,14 @@ public class InfinispanCommandsBackend implements BackendQueueProcessor {
 	private DirectoryBasedIndexManager indexManager;
 
 	private final Address masterNode;
-	private final Collection<Address> recipients;
+	private final Collection<Address> masterAddressSingleton;
 	private final Cache channeledCache;
 
 
 	public InfinispanCommandsBackend(Address masterNode, Cache channeledCache) {
 		this.masterNode = masterNode;
 		this.channeledCache = channeledCache;
-		this.recipients = Collections.singleton( masterNode );
+		this.masterAddressSingleton = Collections.singleton( masterNode );
 	}
 
 	@Override
@@ -95,7 +94,7 @@ public class InfinispanCommandsBackend implements BackendQueueProcessor {
 	}
 
 	private void sendCommand(ReplicableCommand command, List<LuceneWork> workList) {
-		rpcManager.invokeRemotely( recipients, command, true );
+		rpcManager.invokeRemotely( masterAddressSingleton, command, true );
 		log.workListRemotedTo( workList, masterNode );
 	}
 

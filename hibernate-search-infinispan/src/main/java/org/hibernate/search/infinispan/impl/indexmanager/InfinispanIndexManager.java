@@ -92,7 +92,7 @@ public class InfinispanIndexManager extends DirectoryBasedIndexManager {
 			return super.createBackend( indexName, cfg, buildContext );
 		}
 		else {
-			RoutingArbiter arbiter = new RoutingArbiter( this, cfg, indexName, channeledCache );
+			RoutingArbiter arbiter = new RoutingArbiter( this, cfg, indexName, channeledCache, 15 );
 			arbiter.initialize( cfg, buildContext, this );
 			return arbiter;
 		}

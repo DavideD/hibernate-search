@@ -28,6 +28,7 @@ import javax.naming.NamingException;
 
 import org.hibernate.search.SearchException;
 import org.infinispan.remoting.transport.Address;
+import org.infinispan.remoting.transport.jgroups.SuspectException;
 import org.jboss.logging.Cause;
 import org.jboss.logging.LogMessage;
 import org.jboss.logging.Message;
@@ -81,5 +82,11 @@ public interface Log extends org.hibernate.search.util.logging.impl.Log {
 
 	@Message(id = 100064, value = "Cache named '%s' needs to be configured with either transactions or batching enabled")
 	SearchException batchRequiredOnCache(String cacheName);
+
+	@Message(id = 100065, value = "Exceeded allowed retry attempts '%1$d' on remoting of an indexing command. Critical network issues?")
+	SearchException tooManySuspectExceptionsOnWorkRemoting(@Cause SuspectException se, int maxRetryAttempts);
+
+	@Message(id = 100066, value = "Remote indexing operations cancelled: thread interrupted.")
+	SearchException interruptedDuringRemoting();
 
 }
