@@ -79,4 +79,7 @@ public interface Log extends org.hibernate.search.util.logging.impl.Log {
 			+ " not yet fully started or unknown. Index might be out of sync!")
 	void messageForUnknownIndexManager(String indexName);
 
+	@Message(id = 100064, value = "Cache named '%s' needs to be configured with either transactions or batching enabled")
+	SearchException batchRequiredOnCache(String cacheName);
+
 }

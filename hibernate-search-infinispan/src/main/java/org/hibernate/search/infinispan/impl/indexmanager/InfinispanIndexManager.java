@@ -34,6 +34,7 @@ import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.store.DirectoryProvider;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 import org.infinispan.Cache;
+import org.infinispan.configuration.cache.Configuration;
 import org.infinispan.factories.ComponentRegistry;
 import org.infinispan.lucene.InfinispanDirectory;
 import org.infinispan.manager.EmbeddedCacheManager;
@@ -69,6 +70,7 @@ public class InfinispanIndexManager extends DirectoryBasedIndexManager {
 		this.cacheManager = serviceManager.requestService( CacheManagerServiceProvider.class, buildContext );
 		final String channeledCacheName = InfinispanIntegration.getMetadataCacheName( cfg );
 		channeledCache = cacheManager.getCache( channeledCacheName );
+		checkTransactionsEnabled( channeledCache );
 		final ComponentRegistry componentsRegistry = channeledCache.getAdvancedCache().getComponentRegistry();
 		this.cacheMuxer = componentsRegistry.getComponent( CacheManagerMuxer.class );
 		super.initialize( indexName, cfg, buildContext );
@@ -114,6 +116,15 @@ public class InfinispanIndexManager extends DirectoryBasedIndexManager {
 
 	public EmbeddedCacheManager getCacheManager() {
 		return this.cacheManager;
+	}
+
+	private static void checkTransactionsEnabled(Cache cache) {
+		Configuration cacheConfiguration = cache.getCacheConfiguration();
+		boolean batchingEnabled = cacheConfiguration.invocationBatching().enabled();
+		boolean transactional = cacheConfiguration.transaction().transactionMode().isTransactional();
+		if ( ! transactional && ! batchingEnabled ) {
+			throw log.batchRequiredOnCache( cache.getName() );
+		}
 	}
 
 }

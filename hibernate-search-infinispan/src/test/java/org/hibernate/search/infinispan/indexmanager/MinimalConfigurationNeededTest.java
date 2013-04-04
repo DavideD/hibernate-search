@@ -38,7 +38,8 @@ import org.junit.Test;
  * - To verify just a single property is enough to get going with Infinispan
  * - Is testing the default Infinispan configuration which we include in the jar
  * 
- * So it's a good idea to not tune this particular test to avoid stating the networking stack.
+ * So this test is actually going to start the networking stack as we want
+ * to verify the default configuration.
  * 
  * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
  */

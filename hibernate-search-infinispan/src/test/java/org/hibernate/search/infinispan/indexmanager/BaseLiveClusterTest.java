@@ -44,9 +44,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * Start several nodes using the custom IndexManager and verify
- * communication by doing indexing and query operations on
- * each node.
+ * Start several nodes using the custom Infinispan Directory and verify
+ * communication by doing indexing and query operations on each node.
+ *
+ * This test disables exclusive mode and nodes are not killed during write
+ * operations, so locks cleanup is not covered in this configuration.
+ *
+ * Each node is writing directly to the index: there is no forwarding of
+ * write operations; this works fine as they write on turns so never
+ * generate contention on the index lock.
+ *
+ * This configuration doesn't make sense in practice: the intention is
+ * to verify the test infrastructure and then to be extended to run on
+ * nodes with a more interesting configurations.
  *
  * Use these options to verify this test from your IDE:
  * -Djava.net.preferIPv4Stack=true -Djgroups.bind_addr=127.0.0.1 -XX:MaxPermSize=256m
@@ -191,6 +201,7 @@ public class BaseLiveClusterTest {
 	}
 
 	protected FullTextSessionBuilder createNewNode() {
+		// disable exclusive mode to allow graceful failover:
 		return createClusterNode( entityTypes, false );
 	}
 
