@@ -66,8 +66,30 @@ import org.junit.Test;
 @TestForIssue(jiraKey = "HSEARCH-882")
 public class BaseLiveClusterTest {
 
+	/**
+	 * This is a stress test and provides a level
+	 * of confidence proportional to the amount of
+	 * iterations performed.
+	 */
 	private static final int TEST_RUNS = 66;
+
+	/**
+	 * We scale from one node to this constant, then we start
+	 * scaling back by shutting down nodes. Value should be
+	 * large enough to test a reasonably sized cluster: there
+	 * is no point in testing large clusters but at least
+	 * more than DIST num owners should be used to catch
+	 * all possible cluster configurations.
+	 */
 	private static final int MAX_NODES = 7;
+
+	/**
+	 * At each iteration between the cluster reconfiguration
+	 * and the read/write operations we can wait for the cluster
+	 * to be strictly verified from the point of view of each
+	 * node. Waiting isn't needed with Infinispan but makes
+	 * testing easier.
+	 */
 	private static final boolean WAIT_CLUSTER_FORMATION = true;
 
 	protected static HashSet<Class<?>> entityTypes;
@@ -182,7 +204,7 @@ public class BaseLiveClusterTest {
 	}
 
 	private void waitForAllJoinsCompleted() {
-		int expectedSize = nodes.size();
+		final int expectedSize = nodes.size();
 		for ( FullTextSessionBuilder slave : nodes ) {
 			waitMembersCount( slave, SimpleEmail.class, expectedSize );
 		}

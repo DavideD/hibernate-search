@@ -116,15 +116,30 @@ public class RoutingArbiter implements BackendQueueProcessor {
 	}
 
 	private synchronized void failoverCheck(List<Address> newMembers) throws NotSupportedException, SystemException, SecurityException, IllegalStateException, RollbackException, HeuristicMixedException, HeuristicRollbackException {
-		if ( ! newMembers.contains( lastSeenMasterNode ) ) {
-			log.warn( "Previous master " + lastSeenMasterNode + " is dead: electing new master among " + newMembers );
+		if ( lastSeenMasterNode == null || ! newMembers.contains( lastSeenMasterNode ) ) {
+			if ( lastSeenMasterNode != null ) {
+				log.warn( "Previous master " + lastSeenMasterNode + " is dead: electing new master among " + newMembers );
+			}
 			//failover needed
 			final OwnerDefiningKey key = new OwnerDefiningKey( indexName );
 			final boolean selfElected;
 			channeledCache.getTransactionManager().begin();
 			try {
 				channeledCache.lock( key );
-				selfElected = channeledCache.replace( key, lastSeenMasterNode, localAddress );
+				Object object = channeledCache.get( key );
+				if ( object == null ) {
+					channeledCache.put( key, localAddress );
+					selfElected = true;
+				}
+				else {
+					if ( object.equals( lastSeenMasterNode ) ) {
+						channeledCache.put( key, localAddress );
+						selfElected = true;
+					}
+					else {
+						selfElected = false;
+					}
+				}
 			}
 			finally {
 				channeledCache.getTransactionManager().commit();
