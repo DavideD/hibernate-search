@@ -40,6 +40,9 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  */
 public class AvroSerializationProvider implements SerializationProvider {
 
+	public static byte MAJOR_VERSION = (byte) ( -128 + 1 );
+	public static byte MINOR_VERSION = (byte) ( -128 + 0 );
+
 	private static final Log log = LoggerFactory.make();
 	private static String V1_PATH = "org/hibernate/search/remote/codex/avro/v1_0/";
 	private static final String AVRO_SCHEMA_FILE_SUFFIX = ".avro";
@@ -48,8 +51,6 @@ public class AvroSerializationProvider implements SerializationProvider {
 	private Map<String, String> schemas = new HashMap<String, String>();
 	private Protocol protocol;
 
-	public static byte MAJOR_VERSION = (byte) ( -128 + 1 );
-	public static byte MINOR_VERSION = (byte) ( -128 + 0 );
 
 	public static int getMajorVersion() {
 		return MAJOR_VERSION + 128; //rebase to 0

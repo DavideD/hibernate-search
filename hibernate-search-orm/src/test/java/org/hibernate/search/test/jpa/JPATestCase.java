@@ -26,7 +26,8 @@ package org.hibernate.search.test.jpa;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.ArrayList;import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.io.InputStream;
 import java.io.IOException;
 import javax.persistence.EntityManagerFactory;
@@ -68,7 +69,7 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 	public abstract Class[] getAnnotatedClasses();
 
 	public String[] getEjb3DD() {
-		return new String[]{};
+		return new String[] {};
 	}
 
 	public Map<Class, String> getCachedClasses() {
@@ -86,14 +87,14 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 			try {
 				props.load( stream );
 			}
-			catch (Exception e) {
+			catch ( Exception e ) {
 				throw new RuntimeException( "could not load hibernate.properties" );
 			}
 			finally {
 				try {
 					stream.close();
 				}
-				catch (IOException ioe) {
+				catch ( IOException ioe ) {
 				}
 			}
 		}
@@ -108,16 +109,10 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 		classes.addAll( Arrays.asList( getAnnotatedClasses() ) );
 		config.put( AvailableSettings.LOADED_CLASSES, classes );
 		for ( Map.Entry<Class, String> entry : getCachedClasses().entrySet() ) {
-			config.put(
-					AvailableSettings.CLASS_CACHE_PREFIX + "." + entry.getKey().getName(),
-					entry.getValue()
-			);
+			config.put( AvailableSettings.CLASS_CACHE_PREFIX + "." + entry.getKey().getName(), entry.getValue() );
 		}
 		for ( Map.Entry<String, String> entry : getCachedCollections().entrySet() ) {
-			config.put(
-					AvailableSettings.COLLECTION_CACHE_PREFIX + "." + entry.getKey(),
-					entry.getValue()
-			);
+			config.put( AvailableSettings.COLLECTION_CACHE_PREFIX + "." + entry.getKey(), entry.getValue() );
 		}
 		if ( getEjb3DD().length > 0 ) {
 			ArrayList<String> dds = new ArrayList<String>();
@@ -125,7 +120,7 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 			config.put( AvailableSettings.XML_FILE_NAMES, dds );
 		}
 
-		//Search config
+		// Search config
 		config.put( "hibernate.search.default.directory_provider", "ram" );
 		config.put( org.hibernate.search.Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
 		config.put( AvailableSettings.ENTITY_MANAGER_FACTORY_NAME, "Test" + getClass() );
@@ -143,4 +138,3 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 	}
 
 }
-
