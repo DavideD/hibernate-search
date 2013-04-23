@@ -163,8 +163,9 @@ public class TikaBridgeTest {
 	@Test
 	public void testInvalidPath() throws Exception {
 		try {
-		bridgeUnderTest.set( testFieldName, "/foo", testDocument, options );
-		} catch ( SearchException e ) {
+			bridgeUnderTest.set( testFieldName, "/foo", testDocument, options );
+		}
+		catch ( SearchException e ) {
 			assertTrue( "Wrong error type", e.getMessage().startsWith( "HSEARCH000152" ) );
 		}
 	}
