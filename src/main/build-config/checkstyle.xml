@@ -97,4 +97,9 @@
         <property name="message" value="White spaces at the end of line" />
     </module>
 
+    <module name="SuppressionCommentFilter">
+        <property name="offCommentFormat" value="CHECKSTYLE DISABLE" />
+        <property name="onCommentFormat" value="CHECKSTYLE ENABLE" />
+    </module>
+
 </module>
