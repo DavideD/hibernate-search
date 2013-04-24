@@ -21,7 +21,6 @@
 package org.hibernate.search.indexes.impl;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
@@ -193,7 +192,7 @@ public class IndexManagerHolder {
 																			  IndexShardingStrategy shardingStrategy,
 																			  Similarity similarityInstance,
 																			  EntityIndexingInterceptor<U> interceptor) {
-		EntityIndexingInterceptor<? super T> safeInterceptor = (EntityIndexingInterceptor<? super T> ) interceptor;
+		EntityIndexingInterceptor<? super T> safeInterceptor = (EntityIndexingInterceptor<? super T>) interceptor;
 		return new MutableEntityIndexBinding<T>( shardingStrategy, similarityInstance, providers, safeInterceptor );
 	}
 

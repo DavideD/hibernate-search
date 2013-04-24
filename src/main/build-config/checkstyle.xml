@@ -33,12 +33,12 @@
             <property name="message" value="Correct header not found" />
         </module-->
 
-        <!-- Use tabs -->
+        <!-- Use tabs
         <module name="RegexpSinglelineJava">
             <property name="format" value="^\t* +\t*\S" />
             <property name="message" value="Line has leading space characters; indentation should be performed with tabs only." />
             <property name="ignoreComments" value="true" />
-        </module>
+        </module> -->
         
 
         <!-- Checks for imports -->
@@ -59,14 +59,14 @@
         <module name="PackageAnnotation" />
         <module name="CovariantEquals" />
         <module name="ModifiedControlVariable" />
-        <module name="NeedBraces" />
+        <!-- <module name="NeedBraces" /> -->
         <module name="OneStatementPerLine" />
         <module name="EmptyStatement" />
         <module name="DefaultComesLast" />
-        <module name="WhitespaceAround" />
+        <!-- <module name="WhitespaceAround" /> -->
         <module name="TypecastParenPad" />
-        <module name="DeclarationOrder" />
-        <module name="RedundantModifier"/>
+        <!-- <module name="DeclarationOrder" /> -->
+        <!-- <module name="RedundantModifier"/> -->
 
         <module name="MethodParamPad">
             <property name="option" value="nospace" />
@@ -77,9 +77,9 @@
             <property name="option" value="eol" />
         </module>
 
-        <module name="RightCurly">
+        <!-- <module name="RightCurly">
             <property name="option" value="alone" />
-        </module>
+        </module> -->
 
         <module name="ParenPad">
             <property name="tokens" value="CTOR_CALL, METHOD_CALL, SUPER_CTOR_CALL" />

@@ -308,7 +308,7 @@ public class SearchFactoryBuilder {
 
 	@SuppressWarnings( "unchecked" )
 	private <T> MutableEntityIndexBinding<T> buildTypeSafeMutableEntityBinder(Class<T> clazz, EntityIndexBinder entityMapping, Similarity entitySimilarity) {
-		EntityIndexingInterceptor<? super T> interceptor = (EntityIndexingInterceptor<? super T> ) entityMapping.getEntityIndexingInterceptor();
+		EntityIndexingInterceptor<? super T> interceptor = (EntityIndexingInterceptor<? super T>) entityMapping.getEntityIndexingInterceptor();
 		MutableEntityIndexBinding<T> newMapping = new MutableEntityIndexBinding<T>(
 				entityMapping.getSelectionStrategy(),
 				entitySimilarity,
