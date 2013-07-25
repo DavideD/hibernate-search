@@ -57,7 +57,7 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 
 	@Before
 	public void setUp() {
-		factory = new HibernatePersistence().createEntityManagerFactory( getConfig() );
+		factory = new HibernatePersistence().createEntityManagerFactory( "JPATestCase", getConfig() );
 	}
 
 	@After
