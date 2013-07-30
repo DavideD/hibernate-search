@@ -23,6 +23,7 @@ package org.hibernate.search.test.integration.jbossjta;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.SharedCacheMode;
@@ -31,14 +32,8 @@ import javax.persistence.spi.PersistenceUnitInfo;
 import javax.persistence.spi.PersistenceUnitTransactionType;
 import javax.sql.DataSource;
 
-import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple;
 import org.apache.lucene.search.Query;
 import org.h2.jdbcx.JdbcDataSource;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import org.hibernate.ConnectionReleaseMode;
 import org.hibernate.cfg.Environment;
 import org.hibernate.dialect.H2Dialect;
@@ -48,9 +43,14 @@ import org.hibernate.search.jpa.Search;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.test.TestConstants;
 import org.hibernate.search.test.integration.jbossjta.infra.JBossTADataSourceBuilder;
-import org.hibernate.search.test.integration.jbossjta.infra.JBossTSStandaloneTransactionManagerLookup;
 import org.hibernate.search.test.integration.jbossjta.infra.PersistenceUnitInfoBuilder;
 import org.hibernate.search.util.impl.FileHelper;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.arjuna.ats.internal.jta.transaction.arjunacore.TransactionManagerImple;
 
 /**
  * @author Emmanuel Bernard

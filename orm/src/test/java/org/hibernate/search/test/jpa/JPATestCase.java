@@ -31,7 +31,6 @@ import java.io.InputStream;
 import java.io.IOException;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-
 import org.hibernate.cfg.Environment;
 import org.hibernate.ejb.AvailableSettings;
 import org.hibernate.search.test.TestConstants;
@@ -128,6 +127,8 @@ public abstract class JPATestCase extends junit.framework.TestCase {
 		config.put( "hibernate.search.default.directory_provider", "ram" );
 		config.put( org.hibernate.search.Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
 		config.put( AvailableSettings.ENTITY_MANAGER_FACTORY_NAME, "Test" + getClass() );
+		config.put( Environment.JTA_PLATFORM, JBossTSStandaloneTransactionManagerLookup.class.getName() )
+
 		configure( config );
 
 		return config;

@@ -23,13 +23,13 @@
  */
 package org.hibernate.search.test.jpa;
 
-import org.hibernate.search.jpa.Search;
-import org.hibernate.search.jpa.FullTextEntityManager;
-import org.hibernate.search.test.TestConstants;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.queryParser.QueryParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.queryParser.QueryParser;
-import org.apache.lucene.index.Term;
+import org.hibernate.search.jpa.FullTextEntityManager;
+import org.hibernate.search.jpa.Search;
+import org.hibernate.search.test.TestConstants;
 
 /**
  * @author Emmanuel Bernard
