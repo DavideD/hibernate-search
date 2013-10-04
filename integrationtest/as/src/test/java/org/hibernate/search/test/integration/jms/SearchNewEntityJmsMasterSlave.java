@@ -117,28 +117,64 @@ public abstract class SearchNewEntityJmsMasterSlave {
 	@Test
 	@InSequence(4)
 	@OperateOnDeployment("slave-1")
-	public void searchNewMembersAfterSynchronizationOnSlave1() throws Exception {
+	public void searchMemberOnSlave1InsertedBySlave1() throws Exception {
 		assertSearchResult( "Davide D'Alto", search( "Davide" ) );
-		assertSearchResult( "Peter O'Tall", search( "Peter" ) );
-		assertSearchResult( "Richard Mayhew", search( "Richard" ) );
 	}
 
 	@Test
 	@InSequence(5)
-	@OperateOnDeployment("slave-2")
-	public void searchNewMembersAfterSynchronizationOnSlave2() throws Exception {
-		assertSearchResult( "Davide D'Alto", search( "Davide" ) );
-		assertSearchResult( "Peter O'Tall", search( "Peter" ) );
+	@OperateOnDeployment("slave-1")
+	public void searchMemberOnSlave1InsertedByMaster() throws Exception {
 		assertSearchResult( "Richard Mayhew", search( "Richard" ) );
 	}
 
 	@Test
 	@InSequence(6)
-	@OperateOnDeployment("master")
-	public void searchNewMembersAfterSynchronizationOnMaster() throws Exception {
-		assertSearchResult( "Davide D'Alto", search( "Davide" ) );
+	@OperateOnDeployment("slave-1")
+	public void searchMemberOnSlave1InsertedBySlave2() throws Exception {
 		assertSearchResult( "Peter O'Tall", search( "Peter" ) );
+	}
+
+	@Test
+	@InSequence(7)
+	@OperateOnDeployment("slave-2")
+	public void searchMemberOnSlave2InsertedBySlave1() throws Exception {
+		assertSearchResult( "Davide D'Alto", search( "Davide" ) );
+	}
+
+	@Test
+	@InSequence(8)
+	@OperateOnDeployment("slave-2")
+	public void searchMemberOnSlave2InsertedByMaster() throws Exception {
 		assertSearchResult( "Richard Mayhew", search( "Richard" ) );
+	}
+
+	@Test
+	@InSequence(9)
+	@OperateOnDeployment("slave-2")
+	public void searchMemberOnSlave2InsertedBySlave2() throws Exception {
+		assertSearchResult( "Peter O'Tall", search( "Peter" ) );
+	}
+
+	@Test
+	@InSequence(10)
+	@OperateOnDeployment("master")
+	public void searchMemberOnMasterInsertedBySlave1() throws Exception {
+		assertSearchResult( "Davide D'Alto", search( "Davide" ) );
+	}
+
+	@Test
+	@InSequence(11)
+	@OperateOnDeployment("master")
+	public void searchMemberOnMasterInsertedByMaster() throws Exception {
+		assertSearchResult( "Richard Mayhew", search( "Richard" ) );
+	}
+
+	@Test
+	@InSequence(12)
+	@OperateOnDeployment("master")
+	public void searchMemberOnMasterInsertedBySlave2() throws Exception {
+		assertSearchResult( "Peter O'Tall", search( "Peter" ) );
 	}
 
 	private void assertSearchResult(String expectedResult, List<RegisteredMember> results) {
