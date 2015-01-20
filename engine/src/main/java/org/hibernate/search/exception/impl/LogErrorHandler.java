@@ -19,7 +19,7 @@ import org.hibernate.search.util.logging.impl.Log;
  * @author Sanne Grinovero
  * @since 3.2
  */
-public class LogErrorHandler implements ErrorHandler {
+public class LogErrorHandler extends ErrorHandlerBaseImpl implements ErrorHandler {
 
 	private static final Log log = LoggerFactory.make();
 

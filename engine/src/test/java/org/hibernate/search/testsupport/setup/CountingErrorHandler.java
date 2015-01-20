@@ -8,6 +8,7 @@ package org.hibernate.search.testsupport.setup;
 
 import org.hibernate.search.exception.ErrorContext;
 import org.hibernate.search.exception.ErrorHandler;
+import org.hibernate.search.exception.impl.ErrorHandlerBaseImpl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.Map;
  *
  * @author gustavonalle
  */
-public class CountingErrorHandler implements ErrorHandler {
+public class CountingErrorHandler extends ErrorHandlerBaseImpl implements ErrorHandler {
 
 	private Map<Class<? extends Throwable>, Integer> stats = new HashMap<>();
 
