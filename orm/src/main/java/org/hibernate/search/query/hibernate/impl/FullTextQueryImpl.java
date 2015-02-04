@@ -32,6 +32,7 @@ import org.hibernate.search.filter.FullTextFilter;
 import org.hibernate.search.hcore.util.impl.ContextHelper;
 import org.hibernate.search.query.DatabaseRetrievalMethod;
 import org.hibernate.search.query.ObjectLookupMethod;
+import org.hibernate.search.query.engine.impl.GroupingManager;
 import org.hibernate.search.query.engine.spi.DocumentExtractor;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.engine.spi.FacetManager;
@@ -327,6 +328,11 @@ public class FullTextQueryImpl extends AbstractQueryImpl implements FullTextQuer
 		return hSearchQuery.getFacetManager();
 	}
 
+	@Override
+	public GroupingManager getGroupingManager() {
+		return hSearchQuery.getGroupingManager();
+	}
+	
 	@Override
 	public FullTextQuery setTimeout(int timeout) {
 		return setTimeout( timeout, TimeUnit.SECONDS );
