@@ -253,7 +253,7 @@ public class HSQueryImpl implements HSQuery, Serializable {
 	public GroupingManager getGroupingManager() {
 		return groupingManager;
 	}
-	
+
 	@Override
 	public Query getLuceneQuery() {
 		return luceneQuery;
@@ -499,7 +499,7 @@ public class HSQueryImpl implements HSQuery, Serializable {
 		}
 		facetManager.setFacetResults( queryHits.getFacets() );
 		groupingManager.setGroupingResult( queryHits.getGroupingResult() );
-		
+
 		return queryHits;
 	}
 
