@@ -51,8 +51,8 @@ public class ConnectedGroupingParameterContext implements GroupingParameterConte
 	}
 
 	@Override
-	public GroupingParameterContext calculateTotalGroupCount(boolean calculateTotalGroupCount) {
-		context.setCalculateTotalGroupCount( calculateTotalGroupCount );
+	public GroupingParameterContext disableTotalGroupCount() {
+		context.setCalculateTotalGroupCount( false );
 		return this;
 	}
 

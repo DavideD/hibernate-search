@@ -6,8 +6,6 @@
  */
 package org.hibernate.search.query.engine.spi;
 
-import java.io.IOException;
-
 import org.hibernate.search.query.grouping.GroupingRequest;
 import org.hibernate.search.query.grouping.GroupingResult;
 
@@ -23,24 +21,11 @@ public interface GroupingManager {
 	 *
 	 * @param grouping
 	 */
-	void group(GroupingRequest grouping);
-
-	/**
-	 * @return The grouping request
-	 */
-	GroupingRequest getGrouping();
-
-	/**
-	 * Provide the grouped search result.
-	 *
-	 * @param groupingResult
-	 * @throws IOException
-	 */
-	void setGroupingResult(GroupingResult groupingResult) throws IOException;
+	GroupingManager enableGrouping(GroupingRequest grouping);
 
 	/**
 	 * @return The grouped search result.
 	 */
-	GroupingResult getGroupingResult() throws IOException;
+	GroupingResult getGroupingResult();
 
 }

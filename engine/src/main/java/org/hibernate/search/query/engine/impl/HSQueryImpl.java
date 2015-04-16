@@ -104,7 +104,7 @@ public class HSQueryImpl implements HSQuery, Serializable {
 	private Set<String> idFieldNames;
 	private boolean useFieldCacheOnClassTypes = false;
 	private transient FacetManagerImpl facetManager;
-	private transient GroupingManager groupingManager;
+	private transient GroupingManagerImpl groupingManager;
 	private transient TimeoutExceptionFactory timeoutExceptionFactory;
 	private Coordinates spatialSearchCenter = null;
 	private String spatialFieldName = null;
@@ -452,7 +452,7 @@ public class HSQueryImpl implements HSQuery, Serializable {
 					sort,
 					getTimeoutManagerImpl(),
 					facetManager.getFacetRequests(),
-					groupingManager.getGrouping(),
+					groupingManager.getGroupingRequest(),
 					useFieldCacheOnTypes(),
 					getAppropriateIdFieldCollectorFactory(),
 					this.timeoutExceptionFactory,
@@ -484,7 +484,7 @@ public class HSQueryImpl implements HSQuery, Serializable {
 					n,
 					getTimeoutManagerImpl(),
 					facetManager.getFacetRequests(),
-					groupingManager.getGrouping(),
+					groupingManager.getGroupingRequest(),
 					useFieldCacheOnTypes(),
 					getAppropriateIdFieldCollectorFactory(),
 					this.timeoutExceptionFactory,

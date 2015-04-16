@@ -6,10 +6,9 @@
  */
 package org.hibernate.search.query.grouping;
 
-import java.io.IOException;
 import java.util.List;
 
-import org.hibernate.search.query.engine.spi.DocumentExtractor;
+import org.apache.lucene.search.ScoreDoc;
 import org.hibernate.search.query.engine.spi.EntityInfo;
 
 /**
@@ -29,17 +28,12 @@ public interface Group {
 	 */
 	List<EntityInfo> getHits();
 
+	void setHits(List<EntityInfo> hits);
+
 	/**
 	 * @return The value which is used for grouping.
 	 */
 	String getValue();
 
-	/**
-	 * Extract the entity infos from the found documents.
-	 *
-	 * @param extractor The document extractor.
-	 * @throws IOException
-	 */
-	void init(DocumentExtractor extractor) throws IOException;
-
+	ScoreDoc[] getScoreDocs();
 }

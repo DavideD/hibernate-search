@@ -7,20 +7,27 @@
 package org.hibernate.search.query.engine.impl;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.engine.spi.DocumentExtractor;
+import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.engine.spi.GroupingManager;
+import org.hibernate.search.query.grouping.Group;
 import org.hibernate.search.query.grouping.GroupingRequest;
 import org.hibernate.search.query.grouping.GroupingResult;
 
 /**
- * The manager used for all grouping related operation.
+ * Default {@link org.hibernate.search.query.engine.spi.GroupingManager} implementation.
  *
  * @author Sascha Grebe
  */
 public class GroupingManagerImpl implements GroupingManager {
 
-	private GroupingRequest grouping;
+	private GroupingRequest groupingRequest;
 
 	private GroupingResult groupingResult;
 
@@ -33,46 +40,71 @@ public class GroupingManagerImpl implements GroupingManager {
 		this.query = query;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.hibernate.search.query.engine.impl.GroupingManager#group(org.hibernate.search.query.grouping.GroupingRequest)
-	 */
 	@Override
-	public void group(GroupingRequest grouping) {
-		this.grouping = grouping;
+	public GroupingManager enableGrouping(GroupingRequest grouping) {
+		this.groupingRequest = grouping;
+		return this;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.hibernate.search.query.engine.impl.GroupingManager#getGrouping()
-	 */
-	@Override
-	public GroupingRequest getGrouping() {
-		return grouping;
+	public GroupingRequest getGroupingRequest() {
+		return groupingRequest;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * org.hibernate.search.query.engine.impl.GroupingManager#setGroupingResult(org.hibernate.search.query.grouping.
-	 * GroupingResult)
-	 */
-	@Override
-	public void setGroupingResult(GroupingResult groupingResult) throws IOException {
+	public void setGroupingResult(GroupingResult groupingResult) {
 		this.groupingResult = groupingResult;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.hibernate.search.query.engine.impl.GroupingManager#getGroupingResult()
-	 */
 	@Override
-	public GroupingResult getGroupingResult() throws IOException {
-		DocumentExtractor queryDocumentExtractor = query.queryDocumentExtractor();
-		this.groupingResult.init( queryDocumentExtractor );
-		queryDocumentExtractor.close();
-
+	public GroupingResult getGroupingResult() {
+		if ( groupingResult != null ) {
+			DocumentExtractor extractor = query.queryDocumentExtractor();
+			try {
+				return updateGroupingResult( extractor );
+			}
+			finally {
+				extractor.close();
+			}
+		}
 		return groupingResult;
 	}
+
+	private GroupingResult updateGroupingResult(DocumentExtractor extractor) {
+		List<Group> groups = groupingResult.getGroups();
+		for ( Group group : groups ) {
+			List<EntityInfo> hits = exctractHits( extractor, group );
+			group.setHits( hits );
+		}
+		return groupingResult;
+	}
+
+	private List<EntityInfo> exctractHits(DocumentExtractor extractor, Group group) {
+		try {
+			List<EntityInfo> hits = new ArrayList<EntityInfo>( group.getTotalHits() );
+			for ( ScoreDoc nextScoreDoc : group.getScoreDocs() ) {
+				final EntityInfo info = extractEntityInfo( extractor, nextScoreDoc );
+				hits.add( info );
+			}
+			return hits;
+		}
+		catch (IOException e) {
+			throw new SearchException( "Unable to extract document from index", e );
+		}
+	}
+
+	// FIXME I don't think this is the right way to extract the entity infos
+	private EntityInfo extractEntityInfo(DocumentExtractor extractor, ScoreDoc nextScoreDoc) throws IOException {
+		final int index = index( extractor.getTopDocs(), nextScoreDoc );
+		final EntityInfo info = extractor.extract( index );
+		return info;
+	}
+
+	private int index(TopDocs topDocs, ScoreDoc scoreDoc) {
+		for ( int i = 0; i < topDocs.scoreDocs.length; i++ ) {
+			if ( topDocs.scoreDocs[i].doc == scoreDoc.doc ) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
 }

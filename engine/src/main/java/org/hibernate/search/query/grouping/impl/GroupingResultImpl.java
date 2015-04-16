@@ -6,20 +6,20 @@
  */
 package org.hibernate.search.query.grouping.impl;
 
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.hibernate.search.query.engine.spi.DocumentExtractor;
 import org.hibernate.search.query.grouping.Group;
 import org.hibernate.search.query.grouping.GroupingResult;
 
 /**
+ * Default {@link GroupingResult} implementation
+ *
  * @author Sascha Grebe
  */
 public class GroupingResultImpl implements GroupingResult {
 
-	private List<Group> groups = new LinkedList<>();
+	private final List<Group> groups = new LinkedList<>();
 
 	private Integer totalGroupCount;
 
@@ -64,10 +64,17 @@ public class GroupingResultImpl implements GroupingResult {
 	}
 
 	@Override
-	public void init(DocumentExtractor extractor) throws IOException {
-		for ( Group nextGroup : groups ) {
-			nextGroup.init( extractor );
-		}
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append( "[groups=" );
+		builder.append( groups );
+		builder.append( ", totalGroupCount=" );
+		builder.append( totalGroupCount );
+		builder.append( ", totalGroupedHitCount=" );
+		builder.append( totalGroupedHitCount );
+		builder.append( ", totalHitCount=" );
+		builder.append( totalHitCount );
+		builder.append( "]" );
+		return builder.toString();
 	}
-
 }

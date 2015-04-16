@@ -305,14 +305,8 @@ public class QueryHits {
 				groupingResult.setTotalHitCount( topGroups.totalHitCount );
 
 				// extract usefull information from top groups
-				for ( GroupDocs<BytesRef> nextGroup : topGroups.groups ) {
-					final GroupImpl group = new GroupImpl();
-					for ( int i = 0; i < nextGroup.scoreDocs.length; i++ ) {
-						group.setScoreDocs( nextGroup.scoreDocs );
-					}
-					group.setTotalHits( nextGroup.totalHits );
-					group.setValue( nextGroup.groupValue.utf8ToString() );
-
+				for ( GroupDocs<BytesRef> groupDocs : topGroups.groups ) {
+					final GroupImpl group = new GroupImpl( groupDocs.groupValue.utf8ToString(), groupDocs.totalHits, groupDocs.scoreDocs );
 					groupingResult.addGroup( group );
 				}
 			}
