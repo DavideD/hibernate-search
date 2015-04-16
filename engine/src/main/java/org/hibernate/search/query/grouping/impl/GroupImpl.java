@@ -4,7 +4,7 @@
  * License: GNU Lesser General Public License (LGPL), version 2.1 or later
  * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
  */
-package org.hibernate.search.query.grouping;
+package org.hibernate.search.query.grouping.impl;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -14,11 +14,12 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.hibernate.search.query.engine.spi.DocumentExtractor;
 import org.hibernate.search.query.engine.spi.EntityInfo;
+import org.hibernate.search.query.grouping.Group;
 
 /**
  * @author Sascha Grebe
  */
-public class SimpleGroup implements Group {
+public class GroupImpl implements Group {
 
 	private int totalHits = 0;
 

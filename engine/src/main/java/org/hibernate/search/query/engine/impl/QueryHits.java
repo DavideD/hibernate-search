@@ -44,8 +44,8 @@ import org.hibernate.search.query.engine.spi.TimeoutManager;
 import org.hibernate.search.query.facet.Facet;
 import org.hibernate.search.query.grouping.GroupingRequest;
 import org.hibernate.search.query.grouping.GroupingResult;
-import org.hibernate.search.query.grouping.SimpleGroup;
-import org.hibernate.search.query.grouping.SimpleGroupingResult;
+import org.hibernate.search.query.grouping.impl.GroupImpl;
+import org.hibernate.search.query.grouping.impl.GroupingResultImpl;
 import org.hibernate.search.spatial.Coordinates;
 import org.hibernate.search.spatial.impl.DistanceCollector;
 
@@ -295,7 +295,7 @@ public class QueryHits {
 	}
 
 	public GroupingResult getGroupingResult() throws IOException {
-		final SimpleGroupingResult groupingResult = new SimpleGroupingResult();
+		final GroupingResultImpl groupingResult = new GroupingResultImpl();
 		if ( groupingCollector != null ) {
 			final TopGroups<BytesRef> topGroups = getTopGroups();
 			if ( topGroups != null ) {
@@ -306,7 +306,7 @@ public class QueryHits {
 
 				// extract usefull information from top groups
 				for ( GroupDocs<BytesRef> nextGroup : topGroups.groups ) {
-					final SimpleGroup group = new SimpleGroup();
+					final GroupImpl group = new GroupImpl();
 					for ( int i = 0; i < nextGroup.scoreDocs.length; i++ ) {
 						group.setScoreDocs( nextGroup.scoreDocs );
 					}
