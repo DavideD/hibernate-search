@@ -32,7 +32,7 @@ public class SimpleGroupingTest extends AbstractGroupingTest {
 						.topGroupCount( 10 )
 						.createGroupingRequest();
 
-		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupingResult();
+		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupHits();
 
 		assertEquals( "Wrong number of total groups", 5, groups.getTotalGroupCount().intValue() );
 	}
@@ -45,7 +45,7 @@ public class SimpleGroupingTest extends AbstractGroupingTest {
 						.topGroupCount( 1 )
 						.createGroupingRequest();
 
-		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupingResult();
+		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupHits();
 
 		assertEquals( "Wrong number of total groups", 5, groups.getTotalGroupCount().intValue() );
 		assertEquals( "Wrong number of returned groups", 1, groups.getGroups().size() );
@@ -60,7 +60,7 @@ public class SimpleGroupingTest extends AbstractGroupingTest {
 						.maxDocsPerGroup( 1 )
 						.createGroupingRequest();
 
-		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupingResult();
+		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupHits();
 
 		assertEquals( "Wrong number of total groups", 5, groups.getTotalGroupCount().intValue() );
 		// returns the sum of docs in group no matter how many loaded
@@ -76,7 +76,7 @@ public class SimpleGroupingTest extends AbstractGroupingTest {
 						.groupOffset( 3 )
 						.createGroupingRequest();
 
-		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupingResult();
+		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupHits();
 
 		// returns the sum of docs in group no matter how many loaded
 		assertEquals( "Wrong number of total hits in groups", 4, groups.getTotalGroupedHitCount() );
@@ -91,7 +91,7 @@ public class SimpleGroupingTest extends AbstractGroupingTest {
 						.disableTotalGroupCount()
 						.createGroupingRequest();
 
-		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupingResult();
+		final GroupingResult groups = queryHonda().getGroupingManager().enableGrouping( request ).getGroupHits();
 
 		assertNull( "Wrong number of total hits in groups", groups.getTotalGroupCount() );
 	}

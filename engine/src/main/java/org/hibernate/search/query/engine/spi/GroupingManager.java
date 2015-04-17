@@ -6,8 +6,11 @@
  */
 package org.hibernate.search.query.engine.spi;
 
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.search.query.grouping.Group;
 import org.hibernate.search.query.grouping.GroupingRequest;
-import org.hibernate.search.query.grouping.GroupingResult;
 
 /**
  * The manager used for all grouping related operation.
@@ -26,6 +29,7 @@ public interface GroupingManager {
 	/**
 	 * @return The grouped search result.
 	 */
-	GroupingResult getGroupingResult();
+	Map<Group, List<EntityInfo>> getGroupHits();
 
+	List<Group> getGroups();
 }

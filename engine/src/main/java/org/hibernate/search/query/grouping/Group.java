@@ -6,10 +6,7 @@
  */
 package org.hibernate.search.query.grouping;
 
-import java.util.List;
-
 import org.apache.lucene.search.ScoreDoc;
-import org.hibernate.search.query.engine.spi.EntityInfo;
 
 /**
  * Contains the values of a single group.
@@ -22,13 +19,6 @@ public interface Group {
 	 * @return The total number of elements in the group.
 	 */
 	int getTotalHits();
-
-	/**
-	 * @return The matching entity infos.
-	 */
-	List<EntityInfo> getHits();
-
-	void setHits(List<EntityInfo> hits);
 
 	/**
 	 * @return The value which is used for grouping.

@@ -6,11 +6,7 @@
  */
 package org.hibernate.search.query.grouping.impl;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.lucene.search.ScoreDoc;
-import org.hibernate.search.query.engine.spi.EntityInfo;
 import org.hibernate.search.query.grouping.Group;
 
 /**
@@ -23,8 +19,6 @@ public class GroupImpl implements Group {
 	private final String value;
 
 	private final ScoreDoc[] scoreDocs;
-
-	private List<EntityInfo> hits = new LinkedList<>();
 
 	public GroupImpl(String value, int totalHits, ScoreDoc[] scoreDocs) {
 		this.totalHits = totalHits;
@@ -48,13 +42,32 @@ public class GroupImpl implements Group {
 	}
 
 	@Override
-	public List<EntityInfo> getHits() {
-		return hits;
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + totalHits;
+		result = prime * result + ( ( value == null ) ? 0 : value.hashCode() );
+		return result;
 	}
 
 	@Override
-	public void setHits(List<EntityInfo> hits) {
-		this.hits = hits;
+	public boolean equals(Object obj) {
+		if ( this == obj )
+			return true;
+		if ( obj == null )
+			return false;
+		if ( getClass() != obj.getClass() )
+			return false;
+		GroupImpl other = (GroupImpl) obj;
+		if ( totalHits != other.totalHits )
+			return false;
+		if ( value == null ) {
+			if ( other.value != null )
+				return false;
+		}
+		else if ( !value.equals( other.value ) )
+			return false;
+		return true;
 	}
 
 	@Override

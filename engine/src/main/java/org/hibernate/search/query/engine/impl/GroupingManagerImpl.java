@@ -8,7 +8,10 @@ package org.hibernate.search.query.engine.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
@@ -55,26 +58,31 @@ public class GroupingManagerImpl implements GroupingManager {
 	}
 
 	@Override
-	public GroupingResult getGroupingResult() {
-		if ( groupingResult != null ) {
-			DocumentExtractor extractor = query.queryDocumentExtractor();
-			try {
-				return updateGroupingResult( extractor );
-			}
-			finally {
-				extractor.close();
-			}
+	public Map<Group, List<EntityInfo>> getGroupHits() {
+		DocumentExtractor extractor = query.queryDocumentExtractor();
+		try {
+			return createGroupHits( extractor );
 		}
-		return groupingResult;
+		finally {
+			extractor.close();
+		}
 	}
 
-	private GroupingResult updateGroupingResult(DocumentExtractor extractor) {
-		List<Group> groups = groupingResult.getGroups();
-		for ( Group group : groups ) {
-			List<EntityInfo> hits = exctractHits( extractor, group );
-			group.setHits( hits );
+	@Override
+	public List<Group> getGroups() {
+		return groupingResult.getGroups();
+	}
+
+	private Map<Group, List<EntityInfo>> createGroupHits(DocumentExtractor extractor) {
+		if ( groupingResult != null ) {
+			Map<Group, List<EntityInfo>> groupHits = new HashMap<Group, List<EntityInfo>>( groupingResult.getTotalGroupedHitCount() );
+			for ( Group group : groupingResult.getGroups() ) {
+				List<EntityInfo> hits = exctractHits( extractor, group );
+				groupHits.put( group, hits );
+			}
+			return groupHits;
 		}
-		return groupingResult;
+		return Collections.emptyMap();
 	}
 
 	private List<EntityInfo> exctractHits(DocumentExtractor extractor, Group group) {
