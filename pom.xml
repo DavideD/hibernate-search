@@ -164,7 +164,7 @@
 
         <!-- Integration tests -->
         <arquillianVersion>1.1.2.Final</arquillianVersion>
-        <shrinkwrapResolverVersion>2.0.0</shrinkwrapResolverVersion>
+        <shrinkwrapResolverVersion>2.1.1</shrinkwrapResolverVersion>
         <wildflyVersion>9.0.0.CR1</wildflyVersion>
 
         <!-- character encoding -->
