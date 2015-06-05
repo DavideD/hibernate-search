@@ -218,6 +218,7 @@
                         <hibernate.search.module.slot.version>${hibernate.search.module.slot}</hibernate.search.module.slot.version>
                         <dependency.version.Lucene>${luceneVersion}</dependency.version.Lucene>
                         <dependency.version.HibernateCommonsAnnotations>${hibernateCommonsAnnotationVersion}</dependency.version.HibernateCommonsAnnotations>
+                        <dependency.version.Tika>${tikaVersion}</dependency.version.Tika>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

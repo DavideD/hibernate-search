@@ -81,6 +81,10 @@ public class VersionTestHelper {
 		archive.add( VersionTestHelper.moduleDependencyManifest(), "META-INF/MANIFEST.MF" );
 	}
 
+	public static String getDependencyVersionTika() {
+		return System.getProperty( "dependency.version.Tika" );
+	}
+
 	public static String getDependencyVersionLucene() {
 		return System.getProperty( "dependency.version.Lucene" );
 	}
