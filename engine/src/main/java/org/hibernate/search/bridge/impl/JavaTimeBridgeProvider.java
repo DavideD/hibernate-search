@@ -129,7 +129,7 @@ class JavaTimeBridgeProvider implements BridgeProvider {
 		}
 		catch (org.hibernate.search.engine.service.classloading.spi.ClassLoadingException e) {
 			LOG.javaTimeBridgeWontBeAdded( className );
-			return false;
+			return true;
 		}
 	}
 
