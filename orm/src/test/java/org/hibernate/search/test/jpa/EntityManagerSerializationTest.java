@@ -13,9 +13,9 @@ import org.junit.Test;
 
 import org.hibernate.search.jpa.FullTextEntityManager;
 import org.hibernate.search.jpa.Search;
-import org.hibernate.search.test.SerializationTestHelper;
 import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.testsupport.TestForIssue;
+import org.hibernate.search.testsupport.serialization.SerializationTestHelper;
 
 import static org.junit.Assert.assertEquals;
 
@@ -69,11 +69,7 @@ public class EntityManagerSerializationTest extends JPATestCase {
 		em.getTransaction().begin();
 
 		// execute a non matching query
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"title",
-				TestConstants.stopAnalyzer
-		);
+		QueryParser parser = new QueryParser( "title", TestConstants.stopAnalyzer );
 		Query query = NumericRangeQuery.newIntRange( "saltQty", 0, 0, true, true );
 		assertEquals( 0, em.createFullTextQuery( query ).getResultList().size() );
 

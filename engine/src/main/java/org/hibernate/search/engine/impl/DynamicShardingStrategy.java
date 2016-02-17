@@ -21,7 +21,7 @@ import org.hibernate.search.store.ShardIdentifierProvider;
 
 /**
  * @author Hardy Ferentschik
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 class DynamicShardingStrategy implements IndexShardingStrategy {
 	private final ShardIdentifierProvider shardIdentifierProvider;
@@ -61,7 +61,7 @@ class DynamicShardingStrategy implements IndexShardingStrategy {
 
 	@Override
 	public IndexManager[] getIndexManagersForDeletion(Class<?> entity, Serializable id, String idInString) {
-		Set<String> shardIdentifiers = shardIdentifierProvider.getAllShardIdentifiers();
+		Set<String> shardIdentifiers = shardIdentifierProvider.getShardIdentifiersForDeletion( entity, id, idInString );
 		return getIndexManagersFromShards( shardIdentifiers );
 	}
 

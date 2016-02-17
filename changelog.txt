@@ -1,6 +1,354 @@
 Hibernate Search Changelog
 ==========================
 
+Version 5.6.0.Alpha1 (16-2-2016)
+------------------------
+
+** Bug
+    * [HSEARCH-1461] - Query Statistics object is reset every time the SearchFactory is reconfigured via SearchFactoryIntegrator.addClasses(..) method.
+    * [HSEARCH-2010] - Error message incorrectly references @SortField instead of @SortableField
+    * [HSEARCH-2021] - No way to make fields Sortable inside of custom FieldBridge
+    * [HSEARCH-2023] - Race conditions between shutdown of ScheduledCommitPolicy and close of IndexWriter
+    * [HSEARCH-2030] - DSL range/below on a string field creates a TermRangeQuery with lower bound equal to the null token
+    * [HSEARCH-2033] - Testsuite fails on Windows
+    * [HSEARCH-2037] - Multiple "must not" query clauses produce zero results
+    * [HSEARCH-2047] - Remove tab character from null value token in ArrayBridgeTestEntity
+    * [HSEARCH-2056] - Allow default field name to be used for @Id property also if @DocumentId is given at another property
+    * [HSEARCH-2069] - SortableField on id field will make initialization crash if the entity is @IndexedEmbedded in another
+    * [HSEARCH-2070] - Range queries on embedded Date fields won't return the expected results
+    * [HSEARCH-2073] - LuceneHSQuery fails to deserialize
+    * [HSEARCH-2074] - @ContainedIn triggers too much works when there is not "depth" on the corresponding @IndexedEmbedded
+    * [HSEARCH-2075] - ShardIdentifierProvider should allow customization of shards for deletion
+    * [HSEARCH-2082] - Documentation refers to @SortField when it should be @SortableField
+    * [HSEARCH-2085] - Typo in hibernate-search-engine logger
+    * [HSEARCH-2086] - Long and Date range faceting doesn't honor hasZeroCountsIncluded
+
+** New Feature
+    * [HSEARCH-1188] - Prototype capability to delegate both indexing and search to an Elasticsearch service
+    * [HSEARCH-1867] - Change TypeMetadata#getEmbeddedTypeMetadata() to return a set instead of list
+    * [HSEARCH-2012] - Expose a method to close the IndexWriter (lock) of a specific IndexManager
+    * [HSEARCH-2034] - Allow the QueryBuilder DSL to disable scoring for must clauses
+    * [HSEARCH-2043] - Provide option to raise an exception in case uncovered sorts are detected
+    * [HSEARCH-2048] - Generalize MetadataProvidingFieldBridge contract to return types and names of created fields
+
+** Task
+    * [HSEARCH-2013] - Upgrade tests to WildFly 10.0.0.CR2
+    * [HSEARCH-2015] - Upgrade Narayana to 5.2.5.Final
+    * [HSEARCH-2016] - Upgrade JGroups to 3.6.6.Final
+    * [HSEARCH-2017] - Upgrade Hibernate ORM to 5.0.2.Final
+    * [HSEARCH-2018] - Upgrade Apache Lucene to 5.3.1
+    * [HSEARCH-2026] - Upgrade to Byteman 3.0.2
+    * [HSEARCH-2027] - Upgrade to Hibernate ORM 5.0.3.Final
+    * [HSEARCH-2028] - Update documentation regarding the indexing of e-mail addresses
+    * [HSEARCH-2039] - Allow to run tests from "orm" module in the context of another module
+    * [HSEARCH-2041] - Upgrade to WildFly 10.0.0.CR4
+    * [HSEARCH-2051] - Introduce JMH based performance tests for the engine component
+    * [HSEARCH-2053] - Upgrade to Hibernate Commons Annotations 5.0.1.Final
+    * [HSEARCH-2054] - Upgrade to Hibernate ORM 5.0.4.Final
+    * [HSEARCH-2059] - Upgrade to Hibernate ORM 5.0.5.Final and align related dependencies
+    * [HSEARCH-2076] - Upgrade to Hibernate ORM 5.0.6 & other WildFly 10.0.0.CR5 upgrades
+    * [HSEARCH-2079] - Improve OSGi header generation with properties and review some stale definitions
+    * [HSEARCH-2083] - Upgrade to Apache Lucene 5.4.1
+    * [HSEARCH-2084] - Upgrade to WildFly 10.0.0.Final
+    * [HSEARCH-2089] - Ensure the performance tests do not use the WildFly embedded version of Search
+
+** Improvement
+    * [HSEARCH-1282] - @EmbeddedId should be detected and treated like @Id
+    * [HSEARCH-1964] - Review documentation chapter on combining queries with boolean operators
+    * [HSEARCH-2007] - Add Clirr plug-in configuration for creating API change report
+    * [HSEARCH-2025] - remove OpenBitSet from documentation
+    * [HSEARCH-2029] - Hibernate Search does not reuse JavaReflectionManager from Hibernate.
+    * [HSEARCH-2035] - Avoiding dependency to Lucene's Query type in TimeoutManagerImpl
+    * [HSEARCH-2036] - Extract base class with commonly used code from HSQueryImpl
+    * [HSEARCH-2038] - Performance: avoid scoring on operations which don't need scores to be computed
+    * [HSEARCH-2042] - Don't uninvert index when sorting by doc id or score
+    * [HSEARCH-2044] - Make spatial fields sortable by distance without index uninverting
+    * [HSEARCH-2050] - Avoid allocation cost of FacetConfig during creation of Document
+    * [HSEARCH-2052] - Avoid allocating an empty array on hot vararg invocation on ReflectionHelper
+    * [HSEARCH-2078] - Upgrade to Apache Lucene 5.4.0
+
+** Patch
+    * [HSEARCH-2090] - Using the wrong header in the distribution/pom.xml
+
+
+Version 5.5.0.Final (15-9-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1870] - The DSL should support keyword queries on numerically indexed Date fields
+    * [HSEARCH-1955] - ScheduledCommitPolicy helper threads not handling exceptions
+    * [HSEARCH-1987] - @NumericField doesn't work as expected when several fields are present
+    * [HSEARCH-1992] - Validation of valid sorting options to skip index uninverting needs to ensure consistent mapping across all entities of each involved index
+    * [HSEARCH-1999] - AbstractDocumentBuilder.isDirty() returns false for indexed fields if Hibernate property name does not correspond to the Java field name
+    * [HSEARCH-2000] - Ignore sortable fields when contained indirectly within embedded to-many association
+    * [HSEARCH-2002] - Have the Infinispan Directory maven redirect point to the right version
+    * [HSEARCH-2003] - numericField() in the DSL should take field name into account
+    * [HSEARCH-2004] - Queries in unit tests should be inside a transaction
+
+** New Feature
+    * [HSEARCH-1993] - Allow to define sortable fields through configuration DSL
+
+** Task
+    * [HSEARCH-1933] - Review javadoc warnings
+    * [HSEARCH-1966] - Some javadoc mistakes are causing background build errors
+    * [HSEARCH-1983] - Have the integration tests verify which Hibernate Search version they are using
+
+** Improvement
+    * [HSEARCH-1997] - NumericFieldUtils to avoid checking for Java8 time classes multiple times
+
+** Deprecation
+    * [HSEARCH-2005] - Deprecate ContainedInMapping#numericField()
+
+
+Version 5.5.0.CR1 (8-9-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1956] - Exception on sorting on NumericField and indexNullAs
+    * [HSEARCH-1960] - TypeMetadata and QueryValidator fail to recognize an Id being encoded as Numeric
+    * [HSEARCH-1968] - NPE on Faceting queries which represent and empty result
+    * [HSEARCH-1973] - ConnectedMultiFieldsTermQueryBuilder must unwrap a NullEncodingTwoWayFieldBridge before checking for NumericFieldBridge
+    * [HSEARCH-1981] - QueryBuilder should not tokenize the null-token when searching for null
+
+** New Feature
+    * [HSEARCH-1491] - Support queries on Numeric fields by value "null"
+    * [HSEARCH-1947] - Create custom bridges for Java 8 Date and Time classes
+    * [HSEARCH-1984] - Provide means of configuring fields to sort on
+
+** Task
+    * [HSEARCH-1946] - Make sure the performance tests do cleanup the filesystem indexes
+    * [HSEARCH-1954] - Require JDK 8 for building
+    * [HSEARCH-1959] - Add JavaDoc to ExtendedSearchIntegrator#getIndexedTypesPolymorphic()
+    * [HSEARCH-1962] - Verify if the indexwriter.max_thread_states configuration property still applies
+    * [HSEARCH-1963] - Make sure we point users to an Infinispan version for integration which supports Lucene 5
+    * [HSEARCH-1965] - Remove dead code from DocumentExtractorImpl
+    * [HSEARCH-1972] - Upgrade to Hibernate ORM 5.0.0.Final
+    * [HSEARCH-1978] - Fix example in projection documentation
+    * [HSEARCH-1979] - Upgrade to WildFly 10.0.0.Beta2
+    * [HSEARCH-1980] - Upgrade to JGroups 3.6.4.Final
+    * [HSEARCH-1998] - Upgrade to Hibernate ORM 5.0.1.Final
+
+** Improvement
+    * [HSEARCH-1989] - Let maven build support maven-color
+
+
+Version 5.5.0.Alpha1 (7-8-2015)
+------------------------
+
+** Improvement
+    * [HSEARCH-1849] - Upgrade to Apache Lucene 5.2.1
+    * [HSEARCH-1952] - ScheduledCommitPolicy might open unnecessary IndexWriter instances
+
+** Task
+    * [HSEARCH-1949] - FSDirectoryTest is leaking file handles when run on Windows
+    * [HSEARCH-1950] - Integration tests should not hardcode the module slot
+    * [HSEARCH-1953] - Javadoc should be built by linking to the one from Hibernate ORM 5.0
+
+
+Version 5.4.0.CR2 (4-8-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1708] - Using DistanceSortField does not verify the field parameter passed to the constructor
+    * [HSEARCH-1918] - Spatial Search with distance projection is not returning all results
+    * [HSEARCH-1936] - Avro Serializer does not preserve value of field's term vector when it is set to YES
+    * [HSEARCH-1941] - Passing a null to Search.getFullTextSession causes a confusing error message
+    * [HSEARCH-1945] - Resolution of index storage paths with "." creates inconsistent directory trees
+
+** Task
+    * [HSEARCH-1909] - Rename logging category for the FullText-Query category
+    * [HSEARCH-1932] - Re-enable the performance tests
+    * [HSEARCH-1934] - Replace the Infinispan integration module with a Maven Relocation
+    * [HSEARCH-1938] - Integrate build tool to verify against usage of tricky JDK methods
+    * [HSEARCH-1939] - Upgrade to Hibernate ORM 5.0.0.CR3
+    * [HSEARCH-1940] - Use Maven Relocation to deprecate the old hibernate-search artifactId
+    * [HSEARCH-1944] - Enable profiles for testing on MariaDB and PostgreSQL
+    * [HSEARCH-1948] - Missing tools.jar make the performance integration tests fail on JDK9
+
+
+Version 5.4.0.CR1 (13-7-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1681] - Index optimisation should commit to publish the performed optimisation
+    * [HSEARCH-1868] - References to getSearchFactory in AbstractJMSHibernateSearchController documentation are outdated
+    * [HSEARCH-1896] - Documentation: duplicate <dependency> tag in example
+    * [HSEARCH-1897] - Download URLs for Hibernate 5 needs using a new pattern
+    * [HSEARCH-1913] - Integration test helper ConcertManager#saveConcerts will need a larger timeout
+    * [HSEARCH-1924] - JBoss Logging upgrade needs explicit dependencies in our sub-modules
+
+** Deprecation
+    * [HSEARCH-1914] - Deprecate the @CacheFromIndex annotation and FieldCache based projections
+
+** Improvement
+    * [HSEARCH-1474] - MassIndexer needs to avoid being timed out by the TransactionManager
+    * [HSEARCH-1812] - Documentation doesn't clearly explain how one obtains the existing SearchIntegrator
+    * [HSEARCH-1882] - Log Hibernate Search queries in a specific category
+    * [HSEARCH-1891] - Span transaction per id list in batch indexing engine
+    * [HSEARCH-1901] - Built-in TikaBridge repeatedly initializes the default parser
+    * [HSEARCH-1919] - Don't use FieldCache in SortTest
+    * [HSEARCH-1922] - JMS backend should set the JMS message header JMSXGroupID
+
+** New Feature
+    * [HSEARCH-668] - Provide a setting to bring under the same transaction the DB operation and the JMS queue
+    * [HSEARCH-1878] - Add google analytics to the HTML documentation
+    * [HSEARCH-1907] - Include the JGroups backend in the modules distribution
+
+** Task
+    * [HSEARCH-1783] - Reproduce transaction timeouts during mass indexing
+    * [HSEARCH-1815] - Clarify the need to depend on an implementation of SerializationProvider
+    * [HSEARCH-1854] - ScheduledCommitPolicyTest fails on JDK9
+    * [HSEARCH-1875] - Upgrade to JBoss Byteman 3.0.0
+    * [HSEARCH-1893] - Enable again the distribution of custom JBoss Modules
+    * [HSEARCH-1903] - Avoid starting multiple unnecessary WildFly servers to run integration tests
+    * [HSEARCH-1904] - Include the jdeps Maven plugin in the build to allow creating JRE9 profile reports
+    * [HSEARCH-1905] - Disable the WildFly integration tests when running on JDK9
+    * [HSEARCH-1906] - Enable the WildFly integration tests even on Java 9
+    * [HSEARCH-1908] - Avoid the need to dynamically override the Analyzer to fieldname mapping
+    * [HSEARCH-1910] - Upgrade Spatial Query related implementations to avoid using Lucene's deprecated FieldCache
+    * [HSEARCH-1912] - Excluding superfluous dependencies from shrinkwrapped integration tests
+    * [HSEARCH-1916] - Use Path instead of File in the various test helpers
+    * [HSEARCH-1920] - Document the new 'enlist_in_transaction' setting
+    * [HSEARCH-1923] - Upgrade to Hibernate Commons Annotations 5.0.0.Final
+    * [HSEARCH-1926] - Checkstyle not running on the OSGi test modules
+    * [HSEARCH-1928] - Upgrade to Hibernate ORM 5.0.0.CR2
+    * [HSEARCH-1930] - Upgrade to WildFly 9.0.0.Final and align configuration files
+    * [HSEARCH-1931] - Upgrade integration tests to WildFly 10.0.0.Alpha5 to use provided Hibernate 5 modules
+
+
+Version 5.4.0.Alpha1 (5-6-2015)
+------------------------
+
+** Task
+    * [HSEARCH-1874] - Upgrade to Hibernate ORM 5.0.0.CR1
+
+
+Version 5.3.0.CR1 (1-6-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1880] - Unresolved slot for Infinispan in hibernate-search-engine module
+
+** Improvement
+    * [HSEARCH-1877] - Gracefully handle null values in TikaBridge
+    * [HSEARCH-1883] - Allow an optional dependency of the JBoss Modules to Apache Tika
+    * [HSEARCH-1884] - Upgrade to Hibernate ORM 4.3.10.Final
+
+
+Version 5.3.0.Beta2 (19-5-2015)
+------------------------
+
+** New Feature
+    * [HSEARCH-1866] - Revert changes to signatures of methods in TypeMetadata and PropertyMetadata
+
+** Task
+    * [HSEARCH-1864] - Module slot not following version name
+    * [HSEARCH-1873] - Upgrade integration tests and modules to target WildFly 9
+
+
+Version 5.3.0.Beta1 (6-5-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-900] - Faceting with manytoone relationship give wrong faceting count
+
+** Improvement
+    * [HSEARCH-812] - Possibiltiy to set boolean type (SHOULD/MUST) when selecting multiple facets
+    * [HSEARCH-1848] - Replace the Infinispan Directory provider with the one distributed by the Infinispan project
+
+** Task
+    * [HSEARCH-809] - Make use of the new faceting API offered by Lucene
+
+
+Version 5.2.0.Final (6-5-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1855] - Javadoc on MassIndexer mentioning that cancel is not supported
+
+** Task
+    * [HSEARCH-1600] - Re-enable disabled test HibernateSearchSessionFactoryObserverTest
+    * [HSEARCH-1856] - Missing paragraph separation in the multi-tenancy chapter of reference documentation
+    * [HSEARCH-1858] - Upgrade to Hibernate ORM 4.3.9.Final
+    * [HSEARCH-1863] - Upgrade to Infinispan 7.2.0.Final
+
+
+Version 5.2.0.Beta1 (16-4-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-1684] - ResultTransformer ignores transformList on tuples
+    * [HSEARCH-1793] - CriteriaObjectInitializer causes too many object loads in cross hierarchy queries
+    * [HSEARCH-1804] - Boost on IndexedEmbedded properties
+    * [HSEARCH-1811] - Wildcard with multiple fields
+    * [HSEARCH-1824] - Hot-restarting a mutable SearchFactory has it "forget" the previously defined FilterDef and Analyzers
+    * [HSEARCH-1825] - NullEncodingTwoWayFieldBridge doesn't set the null marker when used as a FieldBridge
+    * [HSEARCH-1836] - Avoid NPE in NullEncodingTwoWayFieldBridge for non existing fields
+
+** Improvement
+    * [HSEARCH-655] - Implements the FuturTask.cancel function in the MassIndexer
+    * [HSEARCH-1356] - Refactor WorkVisitor to match more the expectations on a Visitor pattern
+    * [HSEARCH-1762] - Improve javadocs of builtin bridges
+    * [HSEARCH-1831] - Correcting various typos in the documentation
+    * [HSEARCH-1850] - Avoid extending Startable and Stoppable interfaces as part of a Service contract
+
+** New Feature
+    * [HSEARCH-1765] - Add support for deleting by Query
+    * [HSEARCH-1792] - Support multi-tenancy
+    * [HSEARCH-1837] - Allow Integrators to customize default directory providers for shortcuts
+
+** Task
+    * [HSEARCH-1773] - org.hibernate.search.backend.impl.WorkVisitor not exported by engine osgi bundle
+    * [HSEARCH-1835] - Fix typo in javadoc of @Spatial
+    * [HSEARCH-1841] - Refactor DeleteByQuerySupport
+    * [HSEARCH-1843] - Bump hibernate search module slot name to "5.2"
+    * [HSEARCH-1845] - Upgrade to Pax Exam 4.4.0 to improve port allocation during tests
+
+
+Version 5.1.0.Final (3-3-2015)
+------------------------
+
+** Bug
+    * [HSEARCH-818] - Cacheable instance filters are created multiple times before being cached
+    * [HSEARCH-1649] - MassIndexer not compatible with ORM multitenancy
+    * [HSEARCH-1774] - Osgi Paxexam tests passing even if bundle not resolved
+    * [HSEARCH-1775] - Osgi resolution error on hibernate-search-infinispan bundle
+    * [HSEARCH-1786] - Projection on properties from embedded types returns String rather than the mapped type
+    * [HSEARCH-1791] - QueryBuilder produces a NumericRange query for id fields
+    * [HSEARCH-1796] - SearchNewEntityJmsMasterSlaveUsingInfinispanAs2ndCacheAndModulesIT fails on OS X
+
+** Deprecation
+    * [HSEARCH-1785] - Deprecate annotation org.hibernate.search.annotations.Key
+
+** Improvement
+    * [HSEARCH-633] - Allow definition of annotations at package-level in package-info.java
+    * [HSEARCH-997] - Add short and byte numeric bridges
+    * [HSEARCH-1663] - Packages not exported from osgi bundles
+    * [HSEARCH-1763] - Inherit @FullTextFilterDef from superclass
+    * [HSEARCH-1767] - Multiple entity types sharing the index shouldn't necessarily prevent single-term deletions
+    * [HSEARCH-1778] - Add reference to migration notes to reference guide
+    * [HSEARCH-1780] - Update link to Luke in documentation
+    * [HSEARCH-1801] - Rename Asciidoc files from chxx to topic name for more documentation flexibility
+
+** New Feature
+    * [HSEARCH-295] - Generate the "right" FilterKey instance even on parameterized filters
+    * [HSEARCH-1624] - Injection of an instance of ErrorHandler
+    * [HSEARCH-1698] - Async backends using Infinispan should enable Directory option writeFileListAsynchronously
+    * [HSEARCH-1764] - Programmatically defining includeEmbeddedObjectId for embedded entities
+    * [HSEARCH-1795] - Allow for the serialization of DocValues as part of the LuceneWork serialization
+
+** Task
+    * [HSEARCH-1324] - Create integration tests using  a combination of JBoss Modules, Infinispan and JMS
+    * [HSEARCH-1784] - Introduce CheckStyle rule to ban usage of java.lang.AssertionError
+    * [HSEARCH-1798] - Create integration test with WildFly that deploys an EAR with Hibernate Search
+    * [HSEARCH-1805] - Removing Serializable from LuceneWork
+    * [HSEARCH-1806] - Deleting implementation of serialization protocol using native Java serialization
+    * [HSEARCH-1819] - Upgrade to Apache Lucene 4.10.4
+    * [HSEARCH-1820] - Upgrade to Infinispan 7.1.1.Final and JGroups 3.6.2.Final
+    * [HSEARCH-1821] - Require Maven 3.2.3 minimum to run the builds
+    * [HSEARCH-1822] - The OSGi example features.xml is missing exports for org.tartarus to enable snowball analyzers
+
+
 Version 5.0.1.Final (9-1-2015)
 ------------------------
 

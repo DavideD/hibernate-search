@@ -18,9 +18,9 @@ import org.hibernate.search.backend.LuceneWork;
  *
  * Especially useful to test functionality while the index is updated asynchronously.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
-public class GatedLuceneBackend extends LeakingLuceneBackend {
+public class GatedLuceneBackend extends LeakingBackendQueueProcessor {
 
 	public static final AtomicBoolean open = new AtomicBoolean( true );
 

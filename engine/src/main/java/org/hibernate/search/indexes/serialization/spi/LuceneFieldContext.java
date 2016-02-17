@@ -11,17 +11,21 @@ import java.io.Serializable;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
-import org.apache.lucene.index.FieldInfo.IndexOptions;
+import org.apache.lucene.index.DocValuesType;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.util.BytesRef;
 import org.hibernate.search.exception.AssertionFailure;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.indexes.serialization.impl.CopyTokenStream;
 import org.hibernate.search.indexes.serialization.impl.SerializationHelper;
+import org.hibernate.search.util.logging.impl.Log;
+import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard &lt;emmanuel@hibernate.org&gt;
  */
 public final class LuceneFieldContext {
+	private static Log log = LoggerFactory.make();
 
 	private final Field field;
 	private final FieldType fieldType;
@@ -40,7 +44,7 @@ public final class LuceneFieldContext {
 	}
 
 	public SerializableIndex getIndex() {
-		Field.Index index = Field.Index.toIndex( fieldType.indexed(), fieldType.tokenized(), fieldType.omitNorms() );
+		Field.Index index = Field.Index.toIndex( fieldType.indexOptions() != IndexOptions.NONE , fieldType.tokenized(), fieldType.omitNorms() );
 		switch ( index ) {
 			case ANALYZED:
 				return SerializableIndex.ANALYZED;
@@ -75,6 +79,34 @@ public final class LuceneFieldContext {
 		}
 	}
 
+	public SerializableDocValuesType getDocValuesType() {
+		DocValuesType docValuesType = field.fieldType().docValuesType();
+		switch ( docValuesType ) {
+			// data is a long value
+			case NUMERIC: {
+				return SerializableDocValuesType.NUMERIC;
+			}
+			case SORTED_NUMERIC: {
+				return SerializableDocValuesType.SORTED_NUMERIC;
+			}
+
+			// data is ByteRef
+			case BINARY: {
+				return SerializableDocValuesType.BINARY;
+			}
+			case SORTED: {
+				return SerializableDocValuesType.SORTED;
+			}
+			case SORTED_SET: {
+				return SerializableDocValuesType.SORTED_SET;
+			}
+			default: {
+				// in case Lucene is going to add more in coming releases
+				throw log.unknownDocValuesTypeType( docValuesType.toString() );
+			}
+		}
+	}
+
 	public float getBoost() {
 		return field.boost();
 	}
@@ -84,7 +116,7 @@ public final class LuceneFieldContext {
 	}
 
 	public boolean isOmitTermFreqAndPositions() {
-		return fieldType.indexOptions() == IndexOptions.DOCS_ONLY;
+		return fieldType.indexOptions() == IndexOptions.DOCS;
 	}
 
 	public String getStringValue() {

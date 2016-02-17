@@ -9,6 +9,7 @@ package org.hibernate.search;
 import java.io.Serializable;
 
 import org.hibernate.Session;
+import org.hibernate.search.query.engine.spi.QueryDescriptor;
 
 /**
  * Extends the Hibernate {@link Session} with fulltext search and indexing capabilities.
@@ -32,6 +33,11 @@ public interface FullTextSession extends Session {
 	FullTextQuery createFullTextQuery(org.apache.lucene.search.Query luceneQuery, Class<?>... entities);
 
 	/**
+	 * Creates a fulltext query from the given query descriptor.
+	 */
+	FullTextQuery createFullTextQuery(QueryDescriptor descriptor, Class<?>... entities);
+
+	/**
 	 * Force the (re)indexing of a given <b>managed</b> object.
 	 * Indexation is batched per transaction: if a transaction is active, the operation
 	 * will not affect the index at least until commit.
@@ -39,6 +45,7 @@ public interface FullTextSession extends Session {
 	 * Any {@link org.hibernate.search.indexes.interceptor.EntityIndexingInterceptor} registered on the entity will be ignored:
 	 * this method forces an index operation.
 	 *
+	 * @param <T> the type of the entity to index
 	 * @param entity The entity to index - must not be <code>null</code>.
 	 *
 	 * @throws IllegalArgumentException if entity is null or not an @Indexed entity
@@ -58,6 +65,7 @@ public interface FullTextSession extends Session {
 	 * Any {@link org.hibernate.search.indexes.interceptor.EntityIndexingInterceptor} registered on the entity will be ignored:
 	 * this method forces a purge operation.
 	 *
+	 * @param <T> the type of the entity to purge
 	 * @param entityType The type of the entity to delete.
 	 * @param id The id of the entity to delete.
 	 *
@@ -70,6 +78,7 @@ public interface FullTextSession extends Session {
 	 *
 	 * Any {@link org.hibernate.search.indexes.interceptor.EntityIndexingInterceptor} registered on the entity type will be ignored.
 	 *
+	 * @param <T> the type of the entity to purge
 	 * @param entityType The class of the entities to remove.
 	 *
 	 * @throws IllegalArgumentException if entityType is <code>null</code> or not a class or superclass annotated with <code>@Indexed</code>.

@@ -18,8 +18,8 @@ import org.hibernate.search.exception.AssertionFailure;
 import org.hibernate.search.bridge.spi.ConversionContext;
 import org.hibernate.search.bridge.util.impl.ContextualExceptionBridgeHelper;
 import org.hibernate.search.bridge.util.impl.NumericFieldUtils;
+import org.hibernate.search.engine.metadata.impl.DocumentFieldMetadata;
 import org.hibernate.search.engine.spi.DocumentBuilderIndexedEntity;
-import org.hibernate.search.metadata.FieldDescriptor;
 import org.hibernate.search.query.dsl.RangeTerminationExcludable;
 
 /**
@@ -79,9 +79,10 @@ public class ConnectedMultiFieldsRangeQueryBuilder implements RangeTerminationEx
 		final Query perFieldQuery;
 		final String fieldName = fieldContext.getField();
 
-		FieldDescriptor fieldDescriptor = queryContext.getFactory().getIndexedTypeDescriptor( queryContext.getEntityType() ).getIndexedField( fieldName );
-		if ( fieldDescriptor != null ) {
-			if ( FieldDescriptor.Type.NUMERIC.equals( fieldDescriptor.getType() ) ) {
+		final DocumentBuilderIndexedEntity documentBuilder = Helper.getDocumentBuilder( queryContext );
+		DocumentFieldMetadata fieldMetadata = documentBuilder.getTypeMetadata().getDocumentFieldMetadataFor( fieldName );
+		if ( fieldMetadata != null ) {
+			if ( fieldMetadata.isNumeric() ) {
 				perFieldQuery = createNumericRangeQuery( fieldName, rangeContext );
 			}
 			else {
@@ -113,15 +114,17 @@ public class ConnectedMultiFieldsRangeQueryBuilder implements RangeTerminationEx
 
 	private static Query createKeywordRangeQuery(String fieldName, RangeQueryContext rangeContext, QueryBuildingContext queryContext, ConversionContext conversionContext, FieldContext fieldContext) {
 		final Analyzer queryAnalyzer = queryContext.getQueryAnalyzer();
-		final Object fromObject = rangeContext.getFrom();
-		final Object toObject = rangeContext.getTo();
 		final DocumentBuilderIndexedEntity documentBuilder = Helper.getDocumentBuilder( queryContext );
-		final String fromString = fieldContext.objectToString( documentBuilder, fromObject, conversionContext );
+		final String fromString = rangeContext.hasFrom() ?
+				fieldContext.objectToString( documentBuilder, rangeContext.getFrom(), conversionContext ) :
+				null;
 		final String lowerTerm = fromString == null ?
 				null :
 				Helper.getAnalyzedTerm( fieldName, fromString, "from", queryAnalyzer, fieldContext );
 
-		final String toString = fieldContext.objectToString( documentBuilder, toObject, conversionContext );
+		final String toString = rangeContext.hasTo() ?
+				fieldContext.objectToString( documentBuilder, rangeContext.getTo(), conversionContext ) :
+				null;
 		final String upperTerm = toString == null ?
 				null :
 				Helper.getAnalyzedTerm( fieldName, toString, "to", queryAnalyzer, fieldContext );

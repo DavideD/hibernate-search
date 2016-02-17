@@ -6,34 +6,34 @@
  */
 package org.hibernate.search.test.spatial;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.lucene.search.Sort;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import org.hibernate.Transaction;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
+import org.hibernate.search.annotations.Spatial;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.Unit;
 import org.hibernate.search.spatial.DistanceSortField;
 import org.hibernate.search.test.SearchTestBase;
 import org.hibernate.search.testsupport.TestForIssue;
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * Hibernate Search spatial : unit tests on indexing POIs in with Grid and Grid+Distance
  *
- * @author Nicolas Helleringer &lt;nicolas.helleringer@novacodex.net&gt;
+ * @author Nicolas Helleringer
  * @author Hardy Ferentschik
  */
 public class SpatialIndexingTest extends SearchTestBase {
@@ -65,7 +65,7 @@ public class SpatialIndexingTest extends SearchTestBase {
 		fullTextSession.save( new MissingSpatialPOI( 1, "Distance to 24,32 : 0", 24.0d, 32.0d, "" ) );
 
 		// Event
-		SimpleDateFormat dateFormat = new SimpleDateFormat( "d M yyyy" );
+		SimpleDateFormat dateFormat = new SimpleDateFormat( "d M yyyy", Locale.ROOT );
 		Date date = dateFormat.parse( "10 9 1976" );
 		fullTextSession.save( new Event( 1, "Test", 24.0d, 32.0d, date ) );
 
@@ -79,7 +79,7 @@ public class SpatialIndexingTest extends SearchTestBase {
 		fullTextSession.save( new UserEx( 1, 24.0d, 32.0d, 11.9d, 27.4d ) );
 
 		// RangeEvent
-		dateFormat = new SimpleDateFormat( "d M yyyy" );
+		dateFormat = new SimpleDateFormat( "d M yyyy", Locale.ROOT );
 		date = dateFormat.parse( "10 9 1976" );
 		fullTextSession.save( new RangeEvent( 1, "Test", 24.0d, 32.0d, date ) );
 
@@ -98,6 +98,10 @@ public class SpatialIndexingTest extends SearchTestBase {
 
 		// GetterUser
 		fullTextSession.save( new GetterUser( 1, 24.0d, 32.0d ) );
+
+		//DoubleIndexedPOIs
+		fullTextSession.save( new DoubleIndexedPOI( 1, "Davide D'Alto", 37.780392d, -122.513898d, "Hibernate team member"));
+		fullTextSession.save( new DoubleIndexedPOI( 2, "Peter O'Tall", 40.723165d, -73.987439d, "" ));
 
 		tx.commit();
 	}
@@ -175,9 +179,33 @@ public class SpatialIndexingTest extends SearchTestBase {
 	}
 
 	@Test
-	@Ignore
 	@TestForIssue(jiraKey = "HSEARCH-1708")
-	public void testNonGeoDistanceSort() throws Exception {
+	public void testNonGeoDistanceSortOnNonSpatialField() throws Exception {
+		double centerLatitude = 24.0d;
+		double centerLongitude = 32.0d;
+
+		final QueryBuilder builder = fullTextSession.getSearchFactory()
+				.buildQueryBuilder().forEntity( NonGeoPOI.class ).get();
+
+		org.apache.lucene.search.Query luceneQuery = builder.all().createQuery();
+
+		FullTextQuery hibQuery = fullTextSession.createFullTextQuery( luceneQuery, NonGeoPOI.class );
+		Sort distanceSort = new Sort( new DistanceSortField( centerLatitude, centerLongitude, "name" ) );
+		hibQuery.setSort( distanceSort );
+		hibQuery.setProjection( FullTextQuery.THIS, FullTextQuery.SPATIAL_DISTANCE );
+		hibQuery.setSpatialParameters( centerLatitude, centerLongitude, "location" );
+		try {
+			hibQuery.list();
+			fail( "Sorting on a field that it is not a coordinate should fail" );
+		}
+		catch (SearchException e) {
+			assertTrue( "Wrong error message: " + e.getMessage(), e.getMessage().startsWith( "HSEARCH000282: " ) );
+		}
+	}
+
+	@Test
+	@TestForIssue(jiraKey = "HSEARCH-1708")
+	public void testNonGeoDistanceSortOnMissingField() throws Exception {
 		double centerLatitude = 24.0d;
 		double centerLongitude = 32.0d;
 
@@ -191,9 +219,13 @@ public class SpatialIndexingTest extends SearchTestBase {
 		hibQuery.setSort( distanceSort );
 		hibQuery.setProjection( FullTextQuery.THIS, FullTextQuery.SPATIAL_DISTANCE );
 		hibQuery.setSpatialParameters( centerLatitude, centerLongitude, "location" );
-
-		// TODO - unclear what this should to. See HSEARCH-1708. ATM the calculated distance is the same for all points.
-		hibQuery.list();
+		try {
+			hibQuery.list();
+			fail( "Sorting on a field not indexed should fail" );
+		}
+		catch (SearchException e) {
+			assertTrue( "Wrong error message: " + e.getMessage(), e.getMessage().startsWith( "HSEARCH000283: " ) );
+		}
 	}
 
 	@Test
@@ -490,8 +522,45 @@ public class SpatialIndexingTest extends SearchTestBase {
 		Assert.assertEquals( 1, results2.size() );
 	}
 
+	@Test
+	public void test180MeridianCross() throws Exception {
+
+		double centerLatitude = 37.769645d;
+		double centerLongitude = -122.446428d;
+
+		final QueryBuilder builder = fullTextSession.getSearchFactory().buildQueryBuilder().forEntity( DoubleIndexedPOI.class ).get();
+
+		//Tests with FieldBridge
+		org.apache.lucene.search.Query luceneQuery = builder.spatial().onField( "location" )
+				.within( 5000, Unit.KM ).ofLatitude( centerLatitude ).andLongitude( centerLongitude ).createQuery();
+
+		FullTextQuery hibQuery = fullTextSession.createFullTextQuery( luceneQuery, DoubleIndexedPOI.class );
+		hibQuery.setProjection( FullTextQuery.THIS, FullTextQuery.SPATIAL_DISTANCE );
+		hibQuery.setSpatialParameters( centerLatitude, centerLongitude, "location" );
+		List results = hibQuery.list();
+		Assert.assertEquals( 2, results.size() );
+		Object[] firstResult = (Object[]) results.get( 0 );
+		Object[] secondResult = (Object[]) results.get( 1 );
+		Assert.assertEquals( 6.0492d, (Double) firstResult[1], 0.0001 );
+		Assert.assertEquals( 4132.8166d, (Double) secondResult[1], 0.0001 );
+
+		//Tests with @Longitude+@Latitude
+		luceneQuery = builder.spatial()
+				.within( 5000, Unit.KM ).ofLatitude( centerLatitude ).andLongitude( centerLongitude ).createQuery();
+
+		hibQuery = fullTextSession.createFullTextQuery( luceneQuery, DoubleIndexedPOI.class );
+		hibQuery.setProjection( FullTextQuery.THIS, FullTextQuery.SPATIAL_DISTANCE );
+		hibQuery.setSpatialParameters( centerLatitude, centerLongitude, Spatial.COORDINATES_DEFAULT_FIELD );
+		results = hibQuery.list();
+		Assert.assertEquals( 2, results.size() );
+		firstResult = (Object[]) results.get( 0 );
+		secondResult = (Object[]) results.get( 1 );
+		Assert.assertEquals( 6.0492d, (Double) firstResult[1], 0.0001 );
+		Assert.assertEquals( 4132.8166d, (Double) secondResult[1], 0.0001 );
+	}
+
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] {
 				POI.class,
 				Event.class,
@@ -504,7 +573,8 @@ public class SpatialIndexingTest extends SearchTestBase {
 				Restaurant.class,
 				NonGeoPOI.class,
 				GetterUser.class,
-				MissingSpatialPOI.class
+				MissingSpatialPOI.class,
+				DoubleIndexedPOI.class
 		};
 	}
 

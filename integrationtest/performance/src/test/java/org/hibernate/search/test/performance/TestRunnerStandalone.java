@@ -8,6 +8,7 @@ package org.hibernate.search.test.performance;
 
 import static org.hibernate.search.test.performance.util.Util.setDefaultProperty;
 
+import java.io.IOException;
 import java.util.Properties;
 
 import org.hibernate.SessionFactory;
@@ -21,7 +22,6 @@ import org.junit.Test;
 /**
  * @author Tomas Hradec
  */
-@SuppressWarnings("deprecation")
 public class TestRunnerStandalone {
 
 	private final TestScenario scenario = TestScenarioFactory.create();
@@ -38,7 +38,6 @@ public class TestRunnerStandalone {
 		Properties properties = scenario.getHibernateProperties();
 		setDefaultProperty( properties, "hibernate.dialect", "org.hibernate.dialect.H2Dialect" );
 		setDefaultProperty( properties, "hibernate.connection.provider_class", "org.hibernate.hikaricp.internal.HikariCPConnectionProvider" );
-		setDefaultProperty( properties, "hibernate.hikari.minimumPoolSize", "5" );
 		setDefaultProperty( properties, "hibernate.hikari.maximumPoolSize", "20" );
 		setDefaultProperty( properties, "hibernate.hikari.dataSourceClassName", "org.h2.jdbcx.JdbcDataSource" );
 		setDefaultProperty( properties, "hibernate.hikari.dataSource.url", "jdbc:h2:mem:db1;DB_CLOSE_DELAY=-1;MULTI_THREADED=1" );
@@ -49,7 +48,7 @@ public class TestRunnerStandalone {
 	}
 
 	@Test
-	public void runPerformanceTest() {
+	public void runPerformanceTest() throws IOException {
 		SessionFactory sf = getSessionFactory();
 		try {
 			scenario.run( sf );

@@ -7,15 +7,15 @@
 package org.hibernate.search.test.directoryProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.lucene.queryparser.classic.QueryParser;
-
+import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.HibernateException;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -67,7 +67,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		// assert that the slave index is empty
 		FullTextSession fullTextSession = Search.getFullTextSession( getSlaveSession() );
 		Transaction tx = fullTextSession.beginTransaction();
-		QueryParser parser = new QueryParser( getTargetLuceneVersion(), "id", TestConstants.stopAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 		List result = fullTextSession.createFullTextQuery( parser.parse( "location:texas" ) ).list();
 		assertEquals( "No copy yet, fresh index expected", 0, result.size() );
 		tx.commit();
@@ -155,9 +155,9 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		return getSessionFactories()[1].openSession();
 	}
 
-	static File prepareDirectories(String testId) {
+	static File prepareDirectories(String testId) throws IOException {
 
-		String superRootPath = TestConstants.getIndexDirectory( FSSlaveAndMasterDPTest.class );
+		String superRootPath = TestConstants.getIndexDirectory( TestConstants.getTempTestDataDir() );
 		File root = new File( superRootPath, testId );
 
 		if ( root.exists() ) {
@@ -203,7 +203,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 		cleanupDirectories( root );
 	}
 
-	static void cleanupDirectories( File root ) {
+	static void cleanupDirectories( File root ) throws IOException {
 		log.debugf( "Deleting test directory %s ", root.getAbsolutePath() );
 		FileHelper.delete( root );
 	}
@@ -214,7 +214,7 @@ public class FSSlaveAndMasterDPTest extends MultipleSFTestCase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				SnowStorm.class
 		};

@@ -6,15 +6,13 @@
  */
 package org.hibernate.search.util.impl;
 
-import java.io.Reader;
-
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordTokenizer;
 
 /**
  * Analyzer that applies no operation whatsoever to the flux
  * This is useful for queries operating on non tokenized fields.
- * <p/>
+ * <p>
  * TODO there is probably a way to make that much more efficient by
  * reimplementing TokenStream to take the Reader and pass through the flux as a single token
  *
@@ -32,8 +30,9 @@ public final class PassThroughAnalyzer extends Analyzer {
 	}
 
 	@Override
-	protected TokenStreamComponents createComponents(String fieldName, Reader reader) {
-		return new TokenStreamComponents( new KeywordTokenizer( reader ) );
+	protected TokenStreamComponents createComponents(String fieldName) {
+		return new TokenStreamComponents( new KeywordTokenizer() );
 	}
 
 }
+

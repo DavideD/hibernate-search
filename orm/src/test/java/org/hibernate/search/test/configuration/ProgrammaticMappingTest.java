@@ -10,11 +10,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.document.DateTools;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -23,20 +27,19 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Sort;
+import org.apache.lucene.search.SortField;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.junit.Test;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
-import org.hibernate.search.engine.ProjectionConstants;
 import org.hibernate.search.Search;
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.backend.spi.WorkType;
 import org.hibernate.search.cfg.Environment;
+import org.hibernate.search.engine.ProjectionConstants;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.query.dsl.Unit;
 import org.hibernate.search.spatial.SpatialQueryBuilder;
@@ -46,7 +49,9 @@ import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.testsupport.setup.TransactionContextForTest;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
+import org.junit.Test;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -73,7 +78,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "" + address.getAddressId() );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery );
 		assertEquals( "documentId does not work properly", 1, query.getResultSize() );
@@ -96,7 +101,8 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 	@Test
 	public void testNumeric() throws Exception {
 		Item item = new Item();
-		item.setPrice( 34.54d );
+		item.setId( 1 );
+		item.setPrice( (short) 3454 );
 
 		FullTextSession s = Search.getFullTextSession( openSession() );
 		Transaction tx = s.beginTransaction();
@@ -106,14 +112,77 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		NumericRangeQuery<Double> q = NumericRangeQuery.newDoubleRange( "price", 34.5d, 34.6d, true, true );
+		Query q = s.getSearchFactory().buildQueryBuilder().forEntity( Item.class ).get().all().createQuery();
 		FullTextQuery query = s.createFullTextQuery( q, Item.class );
+
+		@SuppressWarnings("unchecked")
+		List<Object[]> result = query.setProjection( ProjectionConstants.DOCUMENT, ProjectionConstants.THIS )
+				.list();
+
 		assertEquals( "Numeric field via programmatic config", 1, query.getResultSize() );
 
-		s.delete( query.list().get( 0 ) );
+		Object[] row = result.iterator().next();
+		Document document = (Document) row[0];
+
+		IndexableField priceNumeric = document.getField( "price" );
+		assertThat( priceNumeric.numericValue() ).isEqualTo( 3454 );
+
+		IndexableField priceString = document.getField( "price_string" );
+		assertThat( priceString.numericValue() ).isNull();
+		assertThat( priceString.stringValue() ).isEqualTo( "3454" );
+
+		s.delete( row[1] );
+
 		tx.commit();
 		s.close();
+	}
 
+	@Test
+	public void testSortableField() throws Exception {
+		FullTextSession s = Search.getFullTextSession( openSession() );
+		Transaction tx = s.beginTransaction();
+
+		Item item1 = new Item();
+		item1.setId( 3 );
+		item1.setPrice( (short) 3454 );
+		s.persist( item1 );
+
+		Item item2 = new Item();
+		item2.setId( 2 );
+		item2.setPrice( (short) 3354 );
+		s.persist( item2 );
+
+		Item item3 = new Item();
+		item3.setId( 1 );
+		item3.setPrice( (short) 3554 );
+		s.persist( item3 );
+
+		tx.commit();
+		s.clear();
+
+		tx = s.beginTransaction();
+
+		Query q = s.getSearchFactory().buildQueryBuilder().forEntity( Item.class ).get().all().createQuery();
+		FullTextQuery query = s.createFullTextQuery( q, Item.class );
+		query.setSort( new Sort( new SortField( "price", SortField.Type.DOUBLE ) ) );
+
+		List<?> results = query.list();
+		assertThat( results ).onProperty( "price" )
+			.describedAs( "Sortable field via programmatic config" )
+			.containsExactly( (short) 3354, (short) 3454, (short) 3554 );
+
+		query.setSort( new Sort( new SortField( "id", SortField.Type.STRING ) ) );
+
+		results = query.list();
+		assertThat( results ).onProperty( "id" )
+			.describedAs( "Sortable field via programmatic config" )
+			.containsExactly( 1, 2, 3 );
+
+		s.delete( results.get( 0 ) );
+		s.delete( results.get( 1 ) );
+		s.delete( results.get( 2 ) );
+		tx.commit();
+		s.close();
 	}
 
 	@Test
@@ -131,7 +200,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "street1_ngram:pea" );
 
 		final FullTextQuery query = s.createFullTextQuery( luceneQuery );
@@ -157,7 +226,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "street1:peac" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery );
 		assertEquals( "PrefixQuery should not be on", 0, query.getResultSize() );
@@ -192,7 +261,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "street1:peachtree OR idx_street2:peachtree" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery ).setProjection( FullTextQuery.THIS, FullTextQuery.SCORE );
 		assertEquals( "expecting two results", 2, query.getResultSize() );
@@ -254,8 +323,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		Address address = new Address();
 		address.setStreet1( "Peachtree Rd NE" );
 		address.setStreet2( "Peachtnot Rd NE" );
-		Calendar c = GregorianCalendar.getInstance();
-		c.setTimeZone( TimeZone.getTimeZone( "GMT" ) ); //for the sake of tests
+		Calendar c = GregorianCalendar.getInstance( TimeZone.getTimeZone( "GMT" ), Locale.ROOT ); //for the sake of tests
 		c.set( 2009, Calendar.NOVEMBER, 15);
 
 		Date date = new Date( c.getTimeInMillis() );
@@ -316,8 +384,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		Address address = new Address();
 		address.setStreet1( "Peachtree Rd NE" );
 		address.setStreet2( "Peachtnot Rd NE" );
-		Calendar calendar = GregorianCalendar.getInstance();
-		calendar.setTimeZone( TimeZone.getTimeZone( "GMT" ) ); //for the sake of tests
+		Calendar calendar = GregorianCalendar.getInstance( TimeZone.getTimeZone( "GMT" ), Locale.ROOT ); //for the sake of tests
 		calendar.set( 2009, Calendar.NOVEMBER, 15 );
 
 		address.setLastUpdated( calendar );
@@ -383,7 +450,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		Transaction transaction = fullTextSession.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "providedidentry.name", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "providedidentry.name", TestConstants.standardAnalyzer );
 		Query luceneQuery = parser.parse( "Goat" );
 
 		//we cannot use FTQuery because @ProvidedId does not provide the getter id and Hibernate Hsearch Query extension
@@ -408,8 +475,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		address.setStreet1( "Peachtree Rd NE" );
 		address.setStreet2( "Peachtnot Rd NE" );
 		address.setOwner( "test" );
-		Calendar c = GregorianCalendar.getInstance();
-		c.setTimeZone( TimeZone.getTimeZone( "GMT" ) ); //for the sake of tests
+		Calendar c = GregorianCalendar.getInstance( TimeZone.getTimeZone( "GMT" ), Locale.ROOT ); //for the sake of tests
 		c.set( 2009, Calendar.NOVEMBER, 15);
 
 		address.setLastUpdated( c );
@@ -428,7 +494,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "street1:Peachtnot" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery ).setProjection( FullTextQuery.THIS, FullTextQuery.SCORE );
 		query.enableFullTextFilter( "security" ).setParameter( "ownerName", "test" );
@@ -452,6 +518,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		ProductCatalog productCatalog = new ProductCatalog();
 		productCatalog.setName( "Cars" );
 		Item item = new Item();
+		item.setId( 1 );
 		item.setDescription( "Ferrari" );
 		item.setProductCatalog( productCatalog );
 		productCatalog.addItem( item );
@@ -464,7 +531,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "items.description:Ferrari" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery ).setProjection( FullTextQuery.THIS, FullTextQuery.SCORE );
 		assertEquals( "expecting 1 results", 1, query.getResultSize() );
@@ -487,6 +554,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		ProductCatalog productCatalog = new ProductCatalog();
 		productCatalog.setName( "Cars" );
 		Item item = new Item();
+		item.setId( 1 );
 		item.setDescription( "test" );
 		item.setProductCatalog( productCatalog );
 		productCatalog.addItem( item );
@@ -499,7 +567,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "items.description:test" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery ).setProjection( FullTextQuery.THIS, FullTextQuery.SCORE );
 		assertEquals( "expecting 1 results", 1, query.getResultSize() );
@@ -507,7 +575,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		Item loaded = (Item) s.get( Item.class, item.getId() );
+		Item loaded = s.get( Item.class, item.getId() );
 		loaded.setDescription( "Ferrari" );
 
 		s.update( loaded );
@@ -515,12 +583,12 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		luceneQuery = parser.parse( "items.description:test" );
 		query = s.createFullTextQuery( luceneQuery ).setProjection( FullTextQuery.THIS, FullTextQuery.SCORE );
 		assertEquals( "expecting 0 results", 0, query.getResultSize() );
 
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		luceneQuery = parser.parse( "items.description:Ferrari" );
 		query = s.createFullTextQuery( luceneQuery ).setProjection( FullTextQuery.THIS, FullTextQuery.SCORE );
 		assertEquals( "expecting 1 results", 1, query.getResultSize() );
@@ -556,7 +624,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		// Departments entity after being massaged by passing it
 		// through the EquipmentType class. This field is in
 		// the Lucene document but not in the Department entity itself.
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "equipment", new SimpleAnalyzer( TestConstants.getTargetLuceneVersion() ) );
+		QueryParser parser = new QueryParser( "equipment", new SimpleAnalyzer() );
 
 		// Check the second ClassBridge annotation
 		Query query = parser.parse( "equiptype:Cisco" );
@@ -576,7 +644,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		assertTrue( "problem with field cross-ups", result.size() == 0 );
 
 		// Non-ClassBridge field.
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "branchHead", new SimpleAnalyzer( TestConstants.getTargetLuceneVersion() ) );
+		parser = new QueryParser( "branchHead", new SimpleAnalyzer() );
 		query = parser.parse( "branchHead:Kent Lewin" );
 		hibQuery = session.createFullTextQuery( query, Departments.class );
 		result = hibQuery.list();
@@ -585,7 +653,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 		assertEquals( "incorrect entity returned", "Kent Lewin", ( result.get( 0 ) ).getBranchHead() );
 
 		// Check other ClassBridge annotation.
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "branchnetwork", new SimpleAnalyzer( TestConstants.getTargetLuceneVersion() ) );
+		parser = new QueryParser( "branchnetwork", new SimpleAnalyzer() );
 		query = parser.parse( "branchnetwork:st. george 1D" );
 		hibQuery = session.createFullTextQuery( query, Departments.class );
 		result = hibQuery.list();
@@ -792,7 +860,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "orderLineName:Sequoia" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery );
 		assertEquals( "Bridge not used", 1, query.getResultSize() );
@@ -839,7 +907,7 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 	}
 
 	private int nbrOfMatchingResults(String field, String token, FullTextSession s) throws ParseException {
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), field, TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( field, TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( token );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery );
 		return query.getResultSize();
@@ -894,13 +962,12 @@ public class ProgrammaticMappingTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.getProperties().put( Environment.MODEL_MAPPING, ProgrammaticSearchMappingFactory.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( Environment.MODEL_MAPPING, ProgrammaticSearchMappingFactory.class.getName() );
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] {
 				Address.class,
 				Country.class,

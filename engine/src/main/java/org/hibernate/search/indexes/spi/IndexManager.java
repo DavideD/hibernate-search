@@ -28,7 +28,7 @@ import org.hibernate.search.spi.WorkerBuildContext;
  * manager (and hence index) differently. A concrete implementation can also decide to only support a specific mode
  * of operation. It can ignore some configuration properties or expect additional properties.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public interface IndexManager {
 
@@ -74,6 +74,7 @@ public interface IndexManager {
 	 * @param indexName the unique name of the index (manager). Can be used to retrieve a {@code IndexManager} instance
 	 * via the search factory and {@link org.hibernate.search.indexes.impl.IndexManagerHolder}.
 	 * @param properties the configuration properties
+	 * @param similarity defines the component of Lucene scoring
 	 * @param context context information needed to initialize this index manager
 	 */
 	void initialize(String indexName, Properties properties, Similarity similarity, WorkerBuildContext context);
@@ -123,5 +124,10 @@ public interface IndexManager {
 	 * @return the Serializer implementation used for this IndexManager
 	 */
 	LuceneWorkSerializer getSerializer();
+
+	/**
+	 * Close the underlying index writer, releasing the index lock.
+	 */
+	void closeIndexWriter();
 
 }

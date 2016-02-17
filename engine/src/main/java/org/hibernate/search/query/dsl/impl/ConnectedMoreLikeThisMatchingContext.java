@@ -16,7 +16,7 @@ import static org.hibernate.search.query.dsl.impl.ConnectedMoreLikeThisQueryBuil
 import static org.hibernate.search.query.dsl.impl.ConnectedMoreLikeThisQueryBuilder.INPUT_TYPE.ID;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public class ConnectedMoreLikeThisMatchingContext implements MoreLikeThisOpenedMatchingContext, MoreLikeThisTerminalMatchingContext {
 	private final QueryBuildingContext queryContext;
@@ -28,7 +28,7 @@ public class ConnectedMoreLikeThisMatchingContext implements MoreLikeThisOpenedM
 		this.queryCustomizer = queryCustomizer;
 		this.queryContext = queryContext;
 		this.moreLikeThisContext = moreLikeThisContext;
-		this.fieldsContext = new FieldsContext( fieldNames );
+		this.fieldsContext = new FieldsContext( fieldNames, queryContext );
 	}
 
 	@Override

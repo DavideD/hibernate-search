@@ -9,6 +9,7 @@ package org.hibernate.search.test.query;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
@@ -20,9 +21,13 @@ import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.EncodingType;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Fields;
+import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.NumericField;
 import org.hibernate.search.annotations.Resolution;
+import org.hibernate.search.annotations.SortableField;
+import org.hibernate.search.annotations.SortableFields;
 import org.hibernate.search.annotations.Store;
 
 /**
@@ -78,6 +83,16 @@ public class Book {
 
 	@Id
 	@DocumentId
+	@Field(
+		name = "id_forIntegerSort",
+		store = Store.NO,
+		index = Index.NO
+	)
+	@NumericField
+	@SortableFields({
+			@SortableField(forField = "id"),
+			@SortableField(forField = "id_forIntegerSort")
+	})
 	public Integer getId() {
 		return id;
 	}
@@ -90,6 +105,7 @@ public class Book {
 			@Field(store = Store.YES),
 			@Field(name = "summary_forSort", analyze = Analyze.NO, store = Store.YES)
 	})
+	@SortableField(forField = "summary_forSort")
 	public String getSummary() {
 		return summary;
 	}
@@ -98,6 +114,7 @@ public class Book {
 		this.summary = summary;
 	}
 
+	@SortableField
 	@Field(analyze = Analyze.NO, store = Store.YES)
 	@DateBridge(resolution = Resolution.SECOND, encoding = EncodingType.STRING)
 	public Date getPublicationDate() {

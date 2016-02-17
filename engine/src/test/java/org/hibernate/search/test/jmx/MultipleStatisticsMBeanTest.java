@@ -6,8 +6,10 @@
  */
 package org.hibernate.search.test.jmx;
 
-import java.io.File;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
@@ -24,7 +26,6 @@ import org.hibernate.search.jmx.StatisticsInfoMBean;
 import org.hibernate.search.jmx.impl.JMXRegistrar;
 import org.hibernate.search.spi.SearchIntegratorBuilder;
 import org.hibernate.search.spi.SearchIntegrator;
-import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.testsupport.TestForIssue;
 
 import static org.junit.Assert.assertEquals;
@@ -36,20 +37,23 @@ import static org.junit.Assert.fail;
  */
 @TestForIssue(jiraKey = "HSEARCH-1026")
 public class MultipleStatisticsMBeanTest {
-	private static File simpleJndiDir;
+	private static Path simpleJndiDir;
 	private static MBeanServer mbeanServer;
 
 	@BeforeClass
 	public static void beforeClass() {
-		File targetDir = TestConstants.getTargetDir( MultipleStatisticsMBeanTest.class );
-		simpleJndiDir = new File( targetDir, "simpleJndi" );
-		simpleJndiDir.mkdir();
+		simpleJndiDir = SimpleJNDIHelper.makeTestingJndiDirectory( MultipleStatisticsMBeanTest.class );
 		mbeanServer = ManagementFactory.getPlatformMBeanServer();
 	}
 
 	@AfterClass
 	public static void afterClass() {
-		simpleJndiDir.delete();
+		try {
+			Files.delete( simpleJndiDir );
+		}
+		catch (IOException e) {
+			throw new RuntimeException( e );
+		}
 	}
 
 	@Test
@@ -102,7 +106,6 @@ public class MultipleStatisticsMBeanTest {
 		String objectName = JMXRegistrar.buildMBeanName( StatisticsInfoMBean.STATISTICS_MBEAN_OBJECT_NAME, suffix );
 		ObjectName statisticsBeanObjectName = new ObjectName( objectName );
 
-
 		ObjectInstance mBean = null;
 		try {
 			mBean = mbeanServer.getObjectInstance( statisticsBeanObjectName );
@@ -115,11 +118,9 @@ public class MultipleStatisticsMBeanTest {
 
 	private SearchIntegrator createSearchIntegratorUsingJndiPrefix(String suffix) {
 		SearchConfigurationForTest configuration = new SearchConfigurationForTest()
-				.addProperty( "hibernate.session_factory_name", "java:comp/SessionFactory" )
-				.addProperty( "hibernate.jndi.class", "org.osjava.sj.SimpleContextFactory" )
-				.addProperty( "hibernate.jndi.org.osjava.sj.root", simpleJndiDir.getAbsolutePath() )
-				.addProperty( "hibernate.jndi.org.osjava.sj.jndi.shared", "true" )
-				.addProperty( Environment.JMX_ENABLED, "true" );
+				.addProperty( Environment.JMX_ENABLED, "true" )
+				.addProperty( "hibernate.session_factory_name", "java:comp/SessionFactory" );
+		SimpleJNDIHelper.enableSimpleJndi( configuration, simpleJndiDir );
 
 		if ( suffix != null ) {
 			configuration.addProperty( Environment.JMX_BEAN_SUFFIX, suffix );

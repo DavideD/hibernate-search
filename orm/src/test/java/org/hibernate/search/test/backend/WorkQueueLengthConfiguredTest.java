@@ -7,6 +7,8 @@
 
 package org.hibernate.search.test.backend;
 
+import java.util.Map;
+
 import org.hibernate.search.backend.impl.lucene.LuceneBackendQueueProcessor;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
 import org.hibernate.search.indexes.spi.DirectoryBasedIndexManager;
@@ -21,12 +23,12 @@ import static org.junit.Assert.assertEquals;
  * Verifies the is <code>max_queue_length</code> parameter for Lucene backend is read.
  * (see HSEARCH-520)
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class WorkQueueLengthConfiguredTest extends SearchTestBase {
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { Clock.class };
 	}
 
@@ -42,9 +44,8 @@ public class WorkQueueLengthConfiguredTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default.max_queue_length", "5" );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default.max_queue_length", "5" );
 	}
 
 }

@@ -18,13 +18,16 @@ import org.hibernate.search.exception.AssertionFailure;
 import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.PurgeAllLuceneWork;
+import org.hibernate.search.backend.spi.DeleteByQueryLuceneWork;
+import org.hibernate.search.backend.spi.DeleteByQueryWork;
+import org.hibernate.search.backend.spi.DeletionQuery;
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.backend.spi.WorkType;
 import org.hibernate.search.bridge.spi.ConversionContext;
 import org.hibernate.search.bridge.util.impl.ContextualExceptionBridgeHelper;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.spi.AbstractDocumentBuilder;
-import org.hibernate.search.engine.spi.DepthValidator;
+import org.hibernate.search.engine.spi.ContainedInRecursionContext;
 import org.hibernate.search.engine.spi.DocumentBuilderContainedEntity;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
 import org.hibernate.search.indexes.interceptor.EntityIndexingInterceptor;
@@ -40,6 +43,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  *
  * @author Sanne Grinovero
  * @author Hardy Ferentschik
+ * @author Martin Braun
  * @since 3.3
  */
 @SuppressWarnings( { "rawtypes", "unchecked" })
@@ -72,7 +76,7 @@ public class WorkPlan {
 	public void addWork(Work work) {
 		approximateWorkQueueSize++;
 		Class<?> entityClass = instanceInitializer.getClassFromWork( work );
-		PerClassWork classWork = getClassWork( entityClass );
+		PerClassWork classWork = getClassWork( work.getTenantIdentifier(), entityClass );
 		classWork.addWork( work );
 	}
 
@@ -96,14 +100,15 @@ public class WorkPlan {
 	}
 
 	/**
+	 * @param tenantId the tenant identifier
 	 * @param entityClass The entity class for which to retrieve the work
 	 *
 	 * @return returns (and creates if needed) the {@code PerClassWork} from the {@link #byClass} map.
 	 */
-	private PerClassWork getClassWork(Class<?> entityClass) {
+	private PerClassWork getClassWork(String tenantId, Class<?> entityClass) {
 		PerClassWork classWork = byClass.get( entityClass );
 		if ( classWork == null ) {
-			classWork = new PerClassWork( entityClass );
+			classWork = new PerClassWork( tenantId, entityClass );
 			byClass.put( entityClass, classWork );
 		}
 		return classWork;
@@ -130,12 +135,15 @@ public class WorkPlan {
 	/**
 	 * Used for recursive processing of containedIn
 	 *
+	 * @param <T> the type of the entity
 	 * @param value the entity to be processed
+	 * @param context the validator for the depth constraints
+	 * @param tenantId the tenant identifier. It can be null.
 	 */
-	public <T> void recurseContainedIn(T value, DepthValidator depth) {
+	public <T> void recurseContainedIn(T value, ContainedInRecursionContext context, String tenantId) {
 		Class<T> entityClass = instanceInitializer.getClass( value );
-		PerClassWork classWork = getClassWork( entityClass );
-		classWork.recurseContainedIn( value, depth );
+		PerClassWork classWork = getClassWork( tenantId, entityClass );
+		classWork.recurseContainedIn( value, context );
 	}
 
 	/**
@@ -169,10 +177,14 @@ public class WorkPlan {
 		 */
 		private boolean purgeAll = false;
 
+		private List<DeletionQuery> deletionQueries = new ArrayList<>();
+
 		/**
 		 * The type of all classes being managed
 		 */
 		private final Class<?> entityClass;
+
+		private final String tenantId;
 
 		/**
 		 * The DocumentBuilder relative to the type being managed
@@ -187,10 +199,11 @@ public class WorkPlan {
 		/**
 		 * @param clazz The type of entities being managed by this instance
 		 */
-		PerClassWork(Class<?> clazz) {
+		PerClassWork(String tenantId, Class<?> clazz) {
 			this.entityClass = clazz;
 			this.documentBuilder = getEntityBuilder( extendedIntegrator, clazz );
 			this.containedInOnly = documentBuilder instanceof DocumentBuilderContainedEntity;
+			this.tenantId = tenantId;
 		}
 
 		/**
@@ -202,7 +215,12 @@ public class WorkPlan {
 		public void addWork(Work work) {
 			if ( work.getType() == WorkType.PURGE_ALL ) {
 				entityById.clear();
+				this.deletionQueries.clear();
 				purgeAll = true;
+			}
+			else if ( work.getType() == WorkType.DELETE_BY_QUERY ) {
+				DeleteByQueryWork delWork = (DeleteByQueryWork) work;
+				this.deletionQueries.add( delWork.getDeleteByQuery() );
 			}
 			else {
 				Serializable id = extractProperId( work );
@@ -253,12 +271,16 @@ public class WorkPlan {
 			final Set<Entry<Serializable, PerEntityWork>> entityInstances = entityById.entrySet();
 			ConversionContext conversionContext = new ContextualExceptionBridgeHelper();
 			if ( purgeAll ) {
-				luceneQueue.add( new PurgeAllLuceneWork( entityClass ) );
+				luceneQueue.add( new PurgeAllLuceneWork( tenantId, entityClass ) );
+			}
+			for ( DeletionQuery delQuery : this.deletionQueries ) {
+				luceneQueue.add( new DeleteByQueryLuceneWork( tenantId, entityClass, delQuery ) );
 			}
 			for ( Entry<Serializable, PerEntityWork> entry : entityInstances ) {
 				Serializable indexingId = entry.getKey();
 				PerEntityWork perEntityWork = entry.getValue();
-				perEntityWork.enqueueLuceneWork( entityClass, indexingId, documentBuilder, luceneQueue, conversionContext );
+				String tenantIdentifier = perEntityWork.getTenantIdentifier();
+				perEntityWork.enqueueLuceneWork( tenantIdentifier, entityClass, indexingId, documentBuilder, luceneQueue, conversionContext );
 			}
 		}
 
@@ -284,7 +306,7 @@ public class WorkPlan {
 		 *
 		 * @param value the instance to be processed
 		 */
-		void recurseContainedIn(Object value, DepthValidator depth) {
+		void recurseContainedIn(Object value, ContainedInRecursionContext context) {
 			if ( documentBuilder.requiresProvidedId() ) {
 				log.containedInPointsToProvidedId( instanceInitializer.getClass( value ) );
 			}
@@ -307,7 +329,7 @@ public class WorkPlan {
 							//we are planning an update by default
 							case UPDATE:
 							case APPLY_DEFAULT:
-								entityWork = new PerEntityWork( value );
+								entityWork = new PerEntityWork( tenantId, value );
 								entityById.put( extractedId, entityWork );
 								break;
 							case SKIP:
@@ -315,7 +337,7 @@ public class WorkPlan {
 								break;
 							case REMOVE:
 								log.forceRemoveOnIndexOperationViaInterception( entityClass, WorkType.UPDATE );
-								Work work = new Work(value, extractedId, WorkType.DELETE);
+								Work work = new Work( tenantId, value, extractedId, WorkType.DELETE );
 								entityWork = new PerEntityWork( work );
 								entityById.put( extractedId, entityWork );
 								break;
@@ -323,14 +345,14 @@ public class WorkPlan {
 								throw new AssertionFailure( "Unknown action type: " + operation );
 						}
 						// recursion starts
-						documentBuilder.appendContainedInWorkForInstance( value, WorkPlan.this, depth );
+						documentBuilder.appendContainedInWorkForInstance( value, WorkPlan.this, context );
 					}
 					// else nothing to do as it's being processed already
 				}
 				else {
 					// this branch for @ContainedIn recursive work of non-indexed entities
 					// as they don't have an indexingId
-					documentBuilder.appendContainedInWorkForInstance( value, WorkPlan.this, depth );
+					documentBuilder.appendContainedInWorkForInstance( value, WorkPlan.this, context );
 				}
 			}
 		}
@@ -340,6 +362,10 @@ public class WorkPlan {
 					entityClass
 			);
 			return indexBindingForEntity != null ? indexBindingForEntity.getEntityIndexingInterceptor() : null;
+		}
+
+		public String getTenantId() {
+			return tenantId;
 		}
 	}
 
@@ -370,18 +396,21 @@ public class WorkPlan {
 		 */
 		private boolean containedInProcessed = false;
 
+		private final String tenantId;
+
 		/**
 		 * Constructor to force an update of the entity even without
 		 * having a specific Work instance for it.
 		 *
 		 * @param entity the instance which needs to be updated in the index
 		 */
-		private PerEntityWork(Object entity) {
+		private PerEntityWork(String tenantId, Object entity) {
 			// for updates only
 			this.entity = entity;
 			this.delete = true;
 			this.add = true;
 			this.containedInProcessed = true;
+			this.tenantId = tenantId;
 		}
 
 		/**
@@ -392,6 +421,7 @@ public class WorkPlan {
 		 */
 		private PerEntityWork(Work work) {
 			entity = work.getEntity();
+			tenantId = work.getTenantIdentifier();
 			WorkType type = work.getType();
 			// sets the initial state:
 			switch ( type ) {
@@ -414,6 +444,9 @@ public class WorkPlan {
 				case PURGE_ALL:
 					// not breaking intentionally: PURGE_ALL should not reach this
 					// class
+				case DELETE_BY_QUERY:
+					// not breaking intentionally: DELETE_BY_QUERY should not reach
+					// this class
 				default:
 					throw new SearchException( "unexpected state:" + type );
 			}
@@ -467,6 +500,7 @@ public class WorkPlan {
 					// nothing to do, as something else was done
 					break;
 				case PURGE_ALL:
+				case DELETE_BY_QUERY:
 				default:
 					throw new SearchException( "unexpected state:" + type );
 			}
@@ -475,15 +509,16 @@ public class WorkPlan {
 		/**
 		 * Adds the needed LuceneWork to the queue for this entity instance
 		 *
+		 * @param tenantIdentifier the tenant identifier
 		 * @param entityClass the type
 		 * @param indexingId identifier of the instance
 		 * @param entityBuilder the DocumentBuilder for this type
 		 * @param luceneQueue the queue collecting all changes
 		 */
-		public void enqueueLuceneWork(Class entityClass, Serializable indexingId, AbstractDocumentBuilder entityBuilder,
+		public void enqueueLuceneWork(String tenantIdentifier, Class entityClass, Serializable indexingId, AbstractDocumentBuilder entityBuilder,
 				List<LuceneWork> luceneQueue, ConversionContext conversionContext) {
 			if ( add || delete ) {
-				entityBuilder.addWorkToQueue( entityClass, entity, indexingId, delete, add, luceneQueue, conversionContext );
+				entityBuilder.addWorkToQueue( tenantIdentifier, entityClass, entity, indexingId, delete, add, luceneQueue, conversionContext );
 			}
 		}
 
@@ -500,9 +535,13 @@ public class WorkPlan {
 			if ( entity != null && !containedInProcessed ) {
 				containedInProcessed = true;
 				if ( add || delete ) {
-					entityBuilder.appendContainedInWorkForInstance( entity, workplan, null );
+					entityBuilder.appendContainedInWorkForInstance( entity, workplan, null, getTenantIdentifier() );
 				}
 			}
+		}
+
+		public String getTenantIdentifier() {
+			return tenantId;
 		}
 	}
 

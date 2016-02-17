@@ -10,9 +10,10 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.UUID;
 
@@ -25,11 +26,9 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
+import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
@@ -40,6 +39,7 @@ import org.hibernate.search.bridge.builtin.StringEncodingCalendarBridge;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.test.SearchTestBase;
 import org.hibernate.search.testsupport.TestConstants;
+import org.hibernate.testing.SkipForDialect;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -79,7 +79,7 @@ public class BridgeTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		Query query;
 		List result;
 
@@ -156,7 +156,7 @@ public class BridgeTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.simpleAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.simpleAnalyzer );
 		Query query;
 		List result;
 
@@ -174,9 +174,9 @@ public class BridgeTest extends SearchTestBase {
 	}
 
 	@Test
+	@SkipForDialect(PostgreSQL81Dialect.class)//PosgreSQL doesn't allow storing null with these column types
 	public void testDateBridge() throws Exception {
-		Calendar c = GregorianCalendar.getInstance();
-		c.setTimeZone( TimeZone.getTimeZone( "GMT" ) ); //for the sake of tests
+		Calendar c = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ), Locale.ROOT ); //for the sake of tests
 		c.set( 2000, Calendar.DECEMBER, 15, 3, 43, 2 );
 		c.set( Calendar.MILLISECOND, 5 );
 		Date date = new Date( c.getTimeInMillis() );
@@ -261,8 +261,7 @@ public class BridgeTest extends SearchTestBase {
 	@Test
 	public void testCalendarBridge() throws Exception {
 		Cloud cloud = new Cloud();
-		Calendar calendar = GregorianCalendar.getInstance();
-		calendar.setTimeZone( TimeZone.getTimeZone( "GMT" ) ); //for the sake of tests
+		Calendar calendar = Calendar.getInstance( TimeZone.getTimeZone( "GMT" ), Locale.ROOT ); //for the sake of tests
 		calendar.set( 2000, 11, 15, 3, 43, 2 );
 		calendar.set( Calendar.MILLISECOND, 5 );
 
@@ -471,7 +470,7 @@ public class BridgeTest extends SearchTestBase {
 
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Cloud.class,
 				IncorrectSet.class,
@@ -482,8 +481,7 @@ public class BridgeTest extends SearchTestBase {
 
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( Environment.ANALYZER_CLASS, SimpleAnalyzer.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( Environment.ANALYZER_CLASS, SimpleAnalyzer.class.getName() );
 	}
 }

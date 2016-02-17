@@ -9,19 +9,16 @@ package org.hibernate.search.test.shards;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.store.FSDirectory;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -35,6 +32,7 @@ import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.service.spi.ServiceManager;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
 import org.hibernate.search.hcore.impl.HibernateSessionFactoryService;
+import org.hibernate.search.indexes.spi.IndexManager;
 import org.hibernate.search.spi.BuildContext;
 import org.hibernate.search.store.ShardIdentifierProviderTemplate;
 import org.hibernate.search.test.SearchTestBase;
@@ -43,7 +41,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public class DynamicShardingTest extends SearchTestBase {
 
@@ -86,8 +84,8 @@ public class DynamicShardingTest extends SearchTestBase {
 		insertAnimals( bear );
 		assertThat( entityIndexBinding.getIndexManagers() ).hasSize( 2 );
 
-		assertNumberOfEntitiesInIndex( "Animal.Mammal", 2 );
-		assertNumberOfEntitiesInIndex( "Animal.Insect", 1 );
+		assertEquals( 2, getNumberOfDocumentsInIndex( "Animal.Mammal" ) );
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal.Insect" ) );
 	}
 
 	@Test
@@ -97,11 +95,7 @@ public class DynamicShardingTest extends SearchTestBase {
 		Session session = openSession();
 		Transaction tx = session.beginTransaction();
 		FullTextSession fts = Search.getFullTextSession( session );
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"id",
-				TestConstants.stopAnalyzer
-		);
+		QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 
 		List results = fts.createFullTextQuery( parser.parse( "name:bear OR name:elephant OR name:spider" ) ).list();
 		assertEquals( "Either double insert, single update, or query fails with shards", 3, results.size() );
@@ -118,59 +112,58 @@ public class DynamicShardingTest extends SearchTestBase {
 
 		assertThat( entityIndexBinding.getIndexManagers() ).hasSize( 2 );
 
-		ExtendedSearchIntegrator integrator = getIndependentNewSearchIntegrator();
-		entityIndexBinding = integrator.getIndexBindings().get( Animal.class );
+		assertThat( getIndexManagersAfterReopening() ).hasSize( 2 );
+	}
 
-		assertThat( entityIndexBinding.getIndexManagers() ).hasSize( 2 );
+	@Test
+	public void testDeletion() throws Exception {
+		insertAnimals( elephant, spider, bear );
+
+		assertEquals( 2, getNumberOfDocumentsInIndex( "Animal.Mammal" ) );
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal.Insect" ) );
+
+		deleteAnimal( elephant );
+
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal.Mammal" ) );
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal.Insect" ) );
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-
-		cfg.setProperty( "hibernate.search.Animal.sharding_strategy", AnimalShardIdentifierProvider.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.Animal.sharding_strategy", AnimalShardIdentifierProvider.class.getName() );
 
 		// use filesystem based directory provider to be able to assert against index
-		cfg.setProperty( "hibernate.search.default.directory_provider", "filesystem" );
-		File sub = getBaseIndexDir();
-		cfg.setProperty( "hibernate.search.default.indexBase", sub.getAbsolutePath() );
+		cfg.put( "hibernate.search.default.directory_provider", "filesystem" );
+		Path sub = getBaseIndexDir();
+		cfg.put( "hibernate.search.default.indexBase", sub.toAbsolutePath().toString() );
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] {
 				Animal.class
 		};
 	}
 
-	private void assertNumberOfEntitiesInIndex(String indexName, int expectedCount) throws IOException {
-		FSDirectory fsDirectory = FSDirectory.open( new File( getBaseIndexDir(), indexName ) );
-		try {
-			IndexReader reader = DirectoryReader.open( fsDirectory );
-			try {
-				int actualCount = reader.numDocs();
-				assertEquals( "Unexpected document count", expectedCount, actualCount );
-			}
-			finally {
-				reader.close();
-			}
-		}
-		finally {
-			fsDirectory.close();
-		}
-	}
-
 	private void insertAnimals(Animal... animals) {
-		Session session = openSession();
-		Transaction tx = session.beginTransaction();
-		for ( Animal animal : animals ) {
-			session.persist( animal );
+		try ( Session session = openSession() ) {
+			Transaction tx = session.beginTransaction();
+			for ( Animal animal : animals ) {
+				session.persist( animal );
+			}
+			tx.commit();
 		}
-		tx.commit();
-		session.clear();
 	}
 
-	private ExtendedSearchIntegrator getIndependentNewSearchIntegrator() {
+	private void deleteAnimal(Animal animal) {
+		try (Session session = openSession()) {
+			Transaction tx = session.beginTransaction();
+			session.delete( animal );
+			tx.commit();
+		}
+	}
+
+	private IndexManager[] getIndexManagersAfterReopening() {
 		// build a new independent SessionFactory to verify that the shards are available at restart
 		Configuration config = new Configuration();
 
@@ -181,14 +174,17 @@ public class DynamicShardingTest extends SearchTestBase {
 
 		// use filesystem based directory provider to be able to assert against index
 		config.setProperty( "hibernate.search.default.directory_provider", "filesystem" );
-		File sub = getBaseIndexDir();
-		config.setProperty( "hibernate.search.default.indexBase", sub.getAbsolutePath() );
+		Path sub = getBaseIndexDir();
+		config.setProperty( "hibernate.search.default.indexBase", sub.toAbsolutePath().toString() );
 
 		config.addAnnotatedClass( Animal.class );
 
-		SessionFactory newSessionFactory = config.buildSessionFactory();
-		FullTextSession fullTextSession = Search.getFullTextSession( newSessionFactory.openSession() );
-		return fullTextSession.getSearchFactory().unwrap( ExtendedSearchIntegrator.class );
+		try ( SessionFactory newSessionFactory = config.buildSessionFactory() ) {
+			try ( FullTextSession fullTextSession = Search.getFullTextSession( newSessionFactory.openSession() ) ) {
+				ExtendedSearchIntegrator integrator = fullTextSession.getSearchFactory().unwrap( ExtendedSearchIntegrator.class );
+				return integrator.getIndexBindings().get( Animal.class ).getIndexManagers();
+			}
+		}
 	}
 
 	public static class AnimalShardIdentifierProvider extends ShardIdentifierProviderTemplate {

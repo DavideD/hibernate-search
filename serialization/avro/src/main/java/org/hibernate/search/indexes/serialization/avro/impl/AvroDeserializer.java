@@ -20,7 +20,7 @@ import org.apache.avro.generic.GenericRecord;
 import org.apache.avro.io.Decoder;
 import org.apache.avro.io.DecoderFactory;
 import org.apache.avro.util.Utf8;
-
+import org.hibernate.search.backend.impl.DeleteByQuerySupport;
 import org.hibernate.search.bridge.spi.ConversionContext;
 import org.hibernate.search.bridge.util.impl.ContextualExceptionBridgeHelper;
 import org.hibernate.search.indexes.serialization.spi.Deserializer;
@@ -32,7 +32,8 @@ import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard &lt;emmanuel@hibernate.org&gt;
+ * @author Hardy Ferentschik
  */
 public class AvroDeserializer implements Deserializer {
 
@@ -52,7 +53,7 @@ public class AvroDeserializer implements Deserializer {
 		final Protocol protocol = protocols.getProtocol( majorVersion, minorVersion );
 
 		Decoder decoder = DecoderFactory.get().binaryDecoder( inputStream, null );
-		GenericDatumReader<GenericRecord> reader = new GenericDatumReader<GenericRecord>( protocol.getType( "Message" ) );
+		GenericDatumReader<GenericRecord> reader = new GenericDatumReader<>( protocol.getType( "Message" ) );
 		GenericRecord result;
 		try {
 			result = reader.read( null, decoder );
@@ -80,6 +81,16 @@ public class AvroDeserializer implements Deserializer {
 				hydrator.addDeleteLuceneWork(
 						asClass( operation, "class" ), conversionContext
 				);
+			}
+			else if ( "DeleteByQuery".equals( schema ) ) {
+				String entityClassName = asClass( operation, "class" );
+				int queryKey = asInt( operation, "key" );
+				List<Utf8> stringList = asListOfString( operation, "query" );
+				String[] query = new String[stringList.size()];
+				for ( int i = 0; i < stringList.size(); ++i ) {
+					query[i] = stringList.get( i ).toString();
+				}
+				hydrator.addDeleteByQueryLuceneWork( entityClassName, DeleteByQuerySupport.fromString( queryKey, query ) );
 			}
 			else if ( "Add".equals( schema ) ) {
 				buildLuceneDocument( asGenericRecord( operation, "document" ), hydrator );
@@ -112,6 +123,7 @@ public class AvroDeserializer implements Deserializer {
 		return classReferences.get( index ).toString();
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private List<Utf8> asListOfString(GenericRecord result, String attribute) {
 		return (List<Utf8>) result.get( attribute );
 	}
@@ -136,7 +148,7 @@ public class AvroDeserializer implements Deserializer {
 		if ( analyzersWithUtf8 == null ) {
 			return null;
 		}
-		Map<String,String> analyzers = new HashMap<String, String>( analyzersWithUtf8.size() );
+		Map<String,String> analyzers = new HashMap<>( analyzersWithUtf8.size() );
 		for ( Map.Entry<?,?> entry : analyzersWithUtf8.entrySet() ) {
 			analyzers.put( entry.getKey().toString(), entry.getValue().toString() );
 		}
@@ -239,6 +251,22 @@ public class AvroDeserializer implements Deserializer {
 						asBoolean( field, "omitTermFreqAndPositions" )
 				);
 			}
+			else if ( "BinaryDocValuesField".equals( schema ) ) {
+				hydrator.addDocValuesFieldWithBinaryData(
+						asString( field, "name" ),
+						asString( field, "type" ),
+						asByteArray( field, "value" ),
+						asInt( field, "offset" ),
+						asInt( field, "length" )
+				);
+			}
+			else if ( "NumericDocValuesField".equals( schema ) ) {
+				hydrator.addDocValuesFieldWithNumericData(
+						asString( field, "name" ),
+						asString( field, "type" ),
+						asLong( field, "value" )
+				);
+			}
 			else {
 				throw log.cannotDeserializeField( schema );
 			}
@@ -246,6 +274,7 @@ public class AvroDeserializer implements Deserializer {
 	}
 
 	private void buildAttributes(GenericRecord record, String field, LuceneWorksBuilder hydrator) {
+		@SuppressWarnings( "unchecked" )
 		List<List<?>> tokens = (List<List<?>>) record.get( field );
 		for ( List<?> token : tokens ) {
 			for ( Object attribute : token ) {
@@ -260,7 +289,9 @@ public class AvroDeserializer implements Deserializer {
 			GenericRecord record = (GenericRecord) element;
 			String name = record.getSchema().getName();
 			if ( "TokenTrackingAttribute".equals( name ) ) {
-				hydrator.addTokenTrackingAttribute( (List<Integer>) record.get( "positions" ) );
+				@SuppressWarnings( "unchecked" )
+				List<Integer> positionList = (List<Integer>) record.get( "positions" );
+				hydrator.addTokenTrackingAttribute( positionList );
 			}
 			else if ( "CharTermAttribute".equals( name ) ) {
 				hydrator.addCharTermAttribute( (CharSequence) record.get( "sequence" ) );
@@ -284,14 +315,14 @@ public class AvroDeserializer implements Deserializer {
 				hydrator.addOffsetAttribute( asInt( record, "startOffset"), asInt( record, "endOffset" ) );
 			}
 			else {
-				log.unknownAttributeSerializedRepresentation( name );
+				throw log.unknownAttributeSerializedRepresentation( name );
 			}
 		}
-		if ( element instanceof ByteBuffer ) {
+		else if ( element instanceof ByteBuffer ) {
 			hydrator.addSerializedAttribute( asByteArray( (ByteBuffer) element ) );
 		}
 		else {
-			log.unknownAttributeSerializedRepresentation( element.getClass().getName() );
+			throw log.unknownAttributeSerializedRepresentation( element.getClass().getName() );
 		}
 	}
 
@@ -299,6 +330,7 @@ public class AvroDeserializer implements Deserializer {
 		return (GenericRecord) operation.get( field );
 	}
 
+	@SuppressWarnings( "unchecked" )
 	private List<GenericRecord> asListOfGenericRecords(GenericRecord result, String field) {
 		return (List<GenericRecord>) result.get( field );
 	}

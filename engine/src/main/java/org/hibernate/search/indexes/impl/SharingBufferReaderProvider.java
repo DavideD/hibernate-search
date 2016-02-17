@@ -30,7 +30,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * It uses IndexReader.reopen() which should improve performance on larger indexes
  * as it shares buffers with previous IndexReader generation for the segments which didn't change.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class SharingBufferReaderProvider implements DirectoryBasedReaderProvider {
 
@@ -63,7 +63,7 @@ public class SharingBufferReaderProvider implements DirectoryBasedReaderProvider
 
 	@Override
 	public DirectoryReader openIndexReader() {
-		log.debugf( "Opening IndexReader for directoryProvider %s", indexName );
+		log.tracef( "Opening IndexReader for directoryProvider %s", indexName );
 		Directory directory = directoryProvider.getDirectory();
 		PerDirectoryLatestReader directoryLatestReader = currentReaders.get( directory );
 		// might eg happen for FSSlaveDirectoryProvider or for mutable SearchFactory
@@ -78,7 +78,7 @@ public class SharingBufferReaderProvider implements DirectoryBasedReaderProvider
 		if ( reader == null ) {
 			return;
 		}
-		log.debugf( "Closing IndexReader: %s", reader );
+		log.tracef( "Closing IndexReader: %s", reader );
 		ReaderUsagePair container = allReaders.get( reader );
 		container.close(); //virtual
 	}

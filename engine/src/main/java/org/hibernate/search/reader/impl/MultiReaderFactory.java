@@ -9,15 +9,16 @@ package org.hibernate.search.reader.impl;
 import java.io.IOException;
 
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.search.Sort;
 import org.hibernate.search.indexes.spi.IndexManager;
-import org.hibernate.search.indexes.spi.ReaderProvider;
+import org.hibernate.search.query.engine.impl.SortConfigurations;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
  * Creates and closes the IndexReaders encompassing multiple indexes.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public final class MultiReaderFactory {
 
@@ -28,22 +29,21 @@ public final class MultiReaderFactory {
 	}
 
 	public static IndexReader openReader(IndexManager... indexManagers) {
-		final int length = indexManagers.length;
-		IndexReader[] readers = new IndexReader[length];
-		ReaderProvider[] managers = new ReaderProvider[length];
-		for ( int index = 0; index < length; index++ ) {
-			ReaderProvider indexReaderManager = indexManagers[index].getReaderProvider();
-			IndexReader openIndexReader = indexReaderManager.openIndexReader();
-			readers[index] = openIndexReader;
-			managers[index] = indexReaderManager;
-		}
+		return openReader( null, null, indexManagers, true );
+	}
 
-		if ( length == 0 ) {
+	public static IndexReader openReader(SortConfigurations configuredSorts, Sort sort, IndexManager[] indexManagers, boolean indexUninvertingAllowed) {
+		if ( indexManagers.length == 0 ) {
 			return null;
 		}
 		else {
 			//everything should be the same so wrap in an MultiReader
-			return new ManagedMultiReader( readers, managers );
+			try {
+				return ManagedMultiReader.createInstance( indexManagers, configuredSorts, sort, indexUninvertingAllowed );
+			}
+			catch (IOException e) {
+				throw log.ioExceptionOnMultiReaderRefresh( e );
+			}
 		}
 	}
 

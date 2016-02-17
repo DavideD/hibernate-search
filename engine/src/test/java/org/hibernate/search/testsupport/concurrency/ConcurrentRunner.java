@@ -21,7 +21,7 @@ import org.junit.Assert;
  *
  * If any exception happens, a JUnit failure is caused.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2014 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2014 Red Hat Inc.
  */
 public class ConcurrentRunner {
 
@@ -99,9 +99,12 @@ public class ConcurrentRunner {
 		public void run() {
 			try {
 				startLatch.await(); // Maximize chances of working concurrently on the Serializer
-				userRunnable.run();
+				//Prevent more work to be scheduled if something failed already
+				if ( somethingFailed.get() == false ) {
+					userRunnable.run();
+				}
 			}
-			catch (InterruptedException | RuntimeException e) {
+			catch (InterruptedException | RuntimeException | AssertionError e) {
 				e.printStackTrace();
 				somethingFailed.set( true );
 			}

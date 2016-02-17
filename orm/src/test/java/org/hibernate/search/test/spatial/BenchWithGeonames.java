@@ -6,13 +6,21 @@
  */
 package org.hibernate.search.test.spatial;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import org.apache.lucene.search.ConstantScoreQuery;
 import org.apache.lucene.search.QueryWrapperFilter;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -24,13 +32,6 @@ import org.hibernate.search.query.facet.FacetingRequest;
 import org.hibernate.search.spatial.impl.Point;
 import org.hibernate.search.spatial.impl.Rectangle;
 import org.hibernate.search.spatial.impl.SpatialQueryBuilderFromCoordinates;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 /**
  * Hibernate Search spatial : Benchmarks with <a href="http://www.geonames.org">GeoNames</a>
@@ -47,7 +48,7 @@ import java.util.Random;
  * To test you must download <a href="http://download.geonames.org/export/dump/FR.zip">FR GeoBames file</a>
  * and extract it at the root directory of Hibernate Search
  *
- * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
+ * @author Nicolas Helleringer
  */
 public final class BenchWithGeonames {
 
@@ -78,7 +79,7 @@ public final class BenchWithGeonames {
 			fullTextSession = Search.getFullTextSession( session );
 
 			File geonamesFile = new File( geonamesDataFile );
-			buffRead = new BufferedReader( new FileReader( geonamesFile ) );
+			buffRead = new BufferedReader( new InputStreamReader( new FileInputStream( geonamesFile ), "UTF-8" ) );
 			String line = null;
 
 			int line_number = 0;
@@ -114,7 +115,7 @@ public final class BenchWithGeonames {
 		finally {
 			if ( fullTextSession != null && fullTextSession.isOpen() ) {
 				Transaction transaction = fullTextSession.getTransaction();
-				if ( transaction != null && transaction.isActive() ) {
+				if ( transaction != null && transaction.getStatus() == TransactionStatus.ACTIVE ) {
 					transaction.rollback();
 				}
 				fullTextSession.close();
@@ -315,25 +316,25 @@ public final class BenchWithGeonames {
 			System.out
 					.println(
 							"Mean time with Spatial Hash : " + Double.toString(
-									(double) spatialHashTotalDuration * Math.pow( 10, -6 ) / ( iterations - warmUp )
+									spatialHashTotalDuration * Math.pow( 10, -6 ) / ( iterations - warmUp )
 							) + " ms. Average number of docs fetched : " + Double.toString( spatialHashDocsFetched / ((iterations - warmUp) * 1.0d) )
 					);
 			System.out
 					.println(
 							"Mean time with Spatial Hash + Distance filter : " + Double.toString(
-									(double) spatialTotalDuration * Math.pow( 10, -6 ) / ( iterations - warmUp )
+									spatialTotalDuration * Math.pow( 10, -6 ) / ( iterations - warmUp )
 							) + " ms. Average number of docs fetched : " + Double.toString( spatialDocsFetched / ((iterations - warmUp) * 1.0d) )
 					);
 			System.out
 					.println(
 							"Mean time with DoubleRange : " + Double.toString(
-									(double) doubleRangeTotalDuration * Math.pow( 10, -6 ) / (iterations - warmUp)
+									doubleRangeTotalDuration * Math.pow( 10, -6 ) / (iterations - warmUp)
 							) + " ms. Average number of docs fetched : " + Double.toString( doubleRangeDocsFetched / ((iterations - warmUp) * 1.0d) )
 					);
 			System.out
 					.println(
 							"Mean time with DoubleRange + Distance filter : " + Double.toString(
-									(double) distanceDoubleRangeTotalDuration * Math.pow( 10, -6 ) / ( iterations - warmUp )
+									distanceDoubleRangeTotalDuration * Math.pow( 10, -6 ) / ( iterations - warmUp )
 							) + " ms. Average number of docs fetched : " + Double.toString( distanceDoubleRangeDocsFetched / ((iterations - warmUp) * 1.0d) )
 					);
 
@@ -344,7 +345,7 @@ public final class BenchWithGeonames {
 		finally {
 			if ( fullTextSession != null && fullTextSession.isOpen() ) {
 				Transaction transaction = fullTextSession.getTransaction();
-				if ( transaction != null && transaction.isActive() ) {
+				if ( transaction != null && transaction.getStatus() == TransactionStatus.ACTIVE ) {
 					transaction.rollback();
 				}
 				fullTextSession.close();
@@ -411,7 +412,7 @@ public final class BenchWithGeonames {
 		finally {
 			if ( fullTextSession != null && fullTextSession.isOpen() ) {
 				Transaction transaction = fullTextSession.getTransaction();
-				if ( transaction != null && transaction.isActive() ) {
+				if ( transaction != null && transaction.getStatus() == TransactionStatus.ACTIVE ) {
 					transaction.rollback();
 				}
 				fullTextSession.close();

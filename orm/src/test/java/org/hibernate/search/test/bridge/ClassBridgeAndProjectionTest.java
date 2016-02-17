@@ -59,11 +59,7 @@ public class ClassBridgeAndProjectionTest extends SearchTestBase {
 		tx = s.beginTransaction();
 		// test query without projection
 		FullTextSession ftSession = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"name",
-				TestConstants.standardAnalyzer
-		);
+		QueryParser parser = new QueryParser( "name", TestConstants.standardAnalyzer );
 		FullTextQuery query = ftSession.createFullTextQuery( parser.parse( "name:John" ), Teacher.class );
 		List results = query.list();
 		assertNotNull( results );
@@ -82,7 +78,7 @@ public class ClassBridgeAndProjectionTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] {
 				Student.class,
 				Teacher.class

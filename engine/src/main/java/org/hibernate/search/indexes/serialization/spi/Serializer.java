@@ -11,6 +11,7 @@ import java.util.Map;
 
 import org.apache.lucene.index.IndexableField;
 import org.hibernate.search.backend.LuceneWork;
+import org.hibernate.search.backend.spi.DeletionQuery;
 
 /**
  * Contract between Hibernate Search and the Serialization mechanism.
@@ -18,7 +19,7 @@ import org.hibernate.search.backend.LuceneWork;
  *
  * LuceneWorkSerializer controls the LuceneWork traversal flow.
  *
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public interface Serializer {
 
@@ -43,6 +44,8 @@ public interface Serializer {
 	void addIdAsString(String id);
 
 	void addDelete(String entityClassName);
+
+	void addDeleteByQuery(String entityClassName, DeletionQuery deletionQuery);
 
 	void addAdd(String entityClassName, Map<String, String> fieldToAnalyzerMap);
 
@@ -69,6 +72,10 @@ public interface Serializer {
 	void addFieldWithSerializableReaderData(LuceneFieldContext luceneFieldContext);
 
 	void addFieldWithSerializableFieldable(byte[] fieldable);
+
+	void addDocValuesFieldWithBinaryValue(LuceneFieldContext luceneFieldContext);
+
+	void addDocValuesFieldWithNumericValue(long value, LuceneFieldContext luceneFieldContext);
 
 	void addDocument();
 

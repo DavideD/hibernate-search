@@ -9,7 +9,6 @@ package org.hibernate.search.backend.impl;
 import java.util.concurrent.ConcurrentMap;
 
 import javax.transaction.Status;
-import javax.transaction.Synchronization;
 
 import org.hibernate.search.backend.spi.Work;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
@@ -17,11 +16,11 @@ import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
- * Execute some work inside a transaction synchronization
+ * Execute final work in the after transaction synchronization.
  *
  * @author Emmanuel Bernard
  */
-public class PostTransactionWorkQueueSynchronization implements Synchronization {
+public class PostTransactionWorkQueueSynchronization implements WorkQueueSynchronization {
 
 	private static final Log log = LoggerFactory.make();
 
@@ -34,15 +33,12 @@ public class PostTransactionWorkQueueSynchronization implements Synchronization 
 	private final QueueingProcessor queueingProcessor;
 	private boolean consumed;
 	private boolean prepared;
-	private final ConcurrentMap<Object, PostTransactionWorkQueueSynchronization> queuePerTransaction;
+	private final ConcurrentMap<Object, WorkQueueSynchronization> queuePerTransaction;
 	private final WorkQueue queue;
 	private final Object transactionIdentifier;
 
-	/**
-	 * in transaction work
-	 */
 	public PostTransactionWorkQueueSynchronization(Object transactionIdentifier, QueueingProcessor queueingProcessor,
-			ConcurrentMap<Object, PostTransactionWorkQueueSynchronization> queuePerTransaction,
+			ConcurrentMap<Object, WorkQueueSynchronization> queuePerTransaction,
 			ExtendedSearchIntegrator extendedIntegrator) {
 		this.transactionIdentifier = transactionIdentifier;
 		this.queueingProcessor = queueingProcessor;
@@ -61,16 +57,10 @@ public class PostTransactionWorkQueueSynchronization implements Synchronization 
 	@Override
 	public void beforeCompletion() {
 		if ( prepared ) {
-			if ( log.isTraceEnabled() ) {
-				log.tracef(
-						"Transaction's beforeCompletion() phase already been processed, ignoring: %s", this.toString()
-				);
-			}
+			log.tracef( "Transaction's beforeCompletion() phase already been processed, ignoring: %s", this );
 		}
 		else {
-			if ( log.isTraceEnabled() ) {
-				log.tracef( "Processing Transaction's beforeCompletion() phase: %s", this.toString() );
-			}
+			log.tracef( "Processing Transaction's beforeCompletion() phase: %s", this );
 			queueingProcessor.prepareWorks( queue );
 			prepared = true;
 		}
@@ -80,21 +70,15 @@ public class PostTransactionWorkQueueSynchronization implements Synchronization 
 	public void afterCompletion(int i) {
 		try {
 			if ( Status.STATUS_COMMITTED == i ) {
-				if ( log.isTraceEnabled() ) {
-					log.tracef(
-							"Processing Transaction's afterCompletion() phase for %s. Performing work.", this.toString()
-					);
-				}
+				log.tracef( "Processing Transaction's afterCompletion() phase for %s. Performing work.", this );
 				queueingProcessor.performWorks( queue );
 			}
 			else {
-				if ( log.isTraceEnabled() ) {
-					log.tracef(
-							"Processing Transaction's afterCompletion() phase for %s. Cancelling work due to transaction status %d",
-							this.toString(),
-							i
-					);
-				}
+				log.tracef(
+						"Processing Transaction's afterCompletion() phase for %s. Cancelling work due to transaction status %d",
+						this,
+						i
+				);
 				queueingProcessor.cancelWorks( queue );
 			}
 		}

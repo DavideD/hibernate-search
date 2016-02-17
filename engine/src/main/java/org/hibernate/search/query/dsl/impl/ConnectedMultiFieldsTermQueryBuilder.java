@@ -19,14 +19,17 @@ import org.apache.lucene.search.FuzzyQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.WildcardQuery;
-import org.hibernate.search.exception.AssertionFailure;
-import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.bridge.FieldBridge;
+import org.hibernate.search.bridge.builtin.NumericEncodingDateBridge;
 import org.hibernate.search.bridge.builtin.NumericFieldBridge;
+import org.hibernate.search.bridge.builtin.impl.NullEncodingTwoWayFieldBridge;
+import org.hibernate.search.bridge.builtin.time.impl.NumericTimeBridge;
 import org.hibernate.search.bridge.spi.ConversionContext;
 import org.hibernate.search.bridge.util.impl.ContextualExceptionBridgeHelper;
 import org.hibernate.search.bridge.util.impl.NumericFieldUtils;
 import org.hibernate.search.engine.spi.DocumentBuilderIndexedEntity;
+import org.hibernate.search.exception.AssertionFailure;
+import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.query.dsl.TermTermination;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
@@ -75,14 +78,32 @@ public class ConnectedMultiFieldsTermQueryBuilder implements TermTermination {
 	private Query createQuery(FieldContext fieldContext, ConversionContext conversionContext) {
 		final Query perFieldQuery;
 		final DocumentBuilderIndexedEntity documentBuilder = Helper.getDocumentBuilder( queryContext );
-		final FieldBridge fieldBridge = fieldContext.getFieldBridge() != null ? fieldContext.getFieldBridge() : documentBuilder.getBridge( fieldContext.getField() );
-		if ( fieldBridge instanceof NumericFieldBridge ) {
-			return NumericFieldUtils.createExactMatchQuery( fieldContext.getField(), value );
+		final boolean applyTokenization;
+
+		FieldBridge fieldBridge = fieldContext.getFieldBridge() != null ? fieldContext.getFieldBridge() : documentBuilder.getBridge( fieldContext.getField() );
+		// Handle non-null numeric values
+		if ( value != null ) {
+			applyTokenization = fieldContext.applyAnalyzer();
+			if ( fieldBridge instanceof NullEncodingTwoWayFieldBridge ) {
+				fieldBridge = ( (NullEncodingTwoWayFieldBridge) fieldBridge ).unwrap();
+			}
+			if ( isNumericBridge( fieldBridge ) ) {
+				return NumericFieldUtils.createExactMatchQuery( fieldContext.getField(), value );
+			}
+		}
+		else {
+			applyTokenization = false;
+			if ( fieldBridge instanceof NullEncodingTwoWayFieldBridge ) {
+				NullEncodingTwoWayFieldBridge nullEncodingBridge = (NullEncodingTwoWayFieldBridge) fieldBridge;
+				validateNullValueIsSearchable( fieldContext );
+				return nullEncodingBridge.buildNullQuery( fieldContext.getField() );
+			}
 		}
 
+		validateNullValueIsSearchable( fieldContext );
 		final String searchTerm = buildSearchTerm( fieldContext, documentBuilder, conversionContext );
 
-		if ( fieldContext.isIgnoreAnalyzer() ) {
+		if ( !applyTokenization ) {
 			perFieldQuery = createTermQuery( fieldContext, searchTerm );
 		}
 		else {
@@ -108,14 +129,22 @@ public class ConnectedMultiFieldsTermQueryBuilder implements TermTermination {
 		return fieldContext.getFieldCustomizer().setWrappedQuery( perFieldQuery ).createQuery();
 	}
 
-	private String buildSearchTerm(FieldContext fieldContext, DocumentBuilderIndexedEntity documentBuilder, ConversionContext conversionContext) {
+	private static boolean isNumericBridge(FieldBridge fieldBridge) {
+		return fieldBridge instanceof NumericFieldBridge
+				|| fieldBridge instanceof NumericTimeBridge
+				|| fieldBridge instanceof NumericEncodingDateBridge;
+	}
+
+	private void validateNullValueIsSearchable(FieldContext fieldContext) {
 		if ( fieldContext.isIgnoreFieldBridge() ) {
 			if ( value == null ) {
-				throw new SearchException(
-						"Unable to search for null token on field "
-								+ fieldContext.getField() + " if field bridge is ignored."
-				);
+				throw log.unableToSearchOnNullValueWithoutFieldBridge( fieldContext.getField() );
 			}
+		}
+	}
+
+	private String buildSearchTerm(FieldContext fieldContext, DocumentBuilderIndexedEntity documentBuilder, ConversionContext conversionContext) {
+		if ( fieldContext.isIgnoreFieldBridge() ) {
 			String stringform = value.toString();
 			if ( stringform == null ) {
 				throw new SearchException(

@@ -6,11 +6,15 @@
  */
 package org.hibernate.search.test.integration.jms;
 
+import static org.hibernate.search.test.integration.VersionTestHelper.getWildFlyModuleIdentifier;
+
 import java.io.File;
 
+import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.test.integration.jms.controller.RegistrationController;
 import org.hibernate.search.test.integration.jms.controller.RegistrationMdb;
 import org.hibernate.search.test.integration.jms.model.RegisteredMember;
+import org.hibernate.search.test.integration.jms.transaction.TransactionalJmsMasterSlave;
 import org.hibernate.search.test.integration.jms.util.RegistrationConfiguration;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -32,6 +36,8 @@ import org.jboss.shrinkwrap.descriptor.api.persistence20.Properties;
  */
 public final class DeploymentJmsMasterSlave {
 
+	public static final String CONFIGURATION_PROPERTIES_RESOURCENAME = "configuration.properties";
+
 	private DeploymentJmsMasterSlave() {
 		//not allowed
 	}
@@ -39,18 +45,25 @@ public final class DeploymentJmsMasterSlave {
 	public static Archive<?> createMaster(String deploymentName, int refreshPeriod, File tmpDir) throws Exception {
 		return baseArchive( deploymentName, masterPersistenceXml( deploymentName, refreshPeriod, tmpDir ) )
 				.addClass( RegistrationMdb.class )
-				.addAsWebInfResource( hornetqJmsXml(), "hornetq-jms.xml" )
+				.addAsWebInfResource( activemqJmsXml(), "activemq-jms.xml" )
 				;
 	}
 
-	public static Archive<?> createSlave(String deploymentName, int refreshPeriod, File tmpDir) throws Exception {
-		return baseArchive( deploymentName, slavePersistenceXml( deploymentName, refreshPeriod, tmpDir ) );
+	public static Archive<?> createSlave(String deploymentName, int refreshPeriod, File tmpDir, boolean transactional) throws Exception {
+		return baseArchive( deploymentName, slavePersistenceXml( deploymentName, refreshPeriod, tmpDir, transactional ) );
 	}
 
 	private static WebArchive baseArchive(String name, PersistenceDescriptor unitDef) throws Exception {
 		WebArchive webArchive = ShrinkWrap
 				.create( WebArchive.class, name + ".war" )
-				.addClasses( RegistrationController.class, RegisteredMember.class, RegistrationConfiguration.class, SearchNewEntityJmsMasterSlave.class )
+				.addClasses(
+						RegistrationController.class,
+						RegisteredMember.class,
+						RegistrationConfiguration.class,
+						MasterSlaveTestTemplate.class,
+						TransactionalJmsMasterSlave.class
+				)
+				.addAsResource( new StringAsset( "deploymentName=" + name ), CONFIGURATION_PROPERTIES_RESOURCENAME )
 				.addAsResource( new StringAsset( unitDef.exportAsString() ), "META-INF/persistence.xml" )
 				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" );
 		return webArchive;
@@ -61,22 +74,27 @@ public final class DeploymentJmsMasterSlave {
 		return commonUnitDef( name, "filesystem-master", refreshPeriod, tmpDir ).up().up();
 	}
 
-	private static PersistenceDescriptor slavePersistenceXml(String name, int refreshPeriod, File tmpDir)
+	private static PersistenceDescriptor slavePersistenceXml(String name, int refreshPeriod, File tmpDir, Boolean transactional)
 			throws Exception {
+		String jmsConnectionFactory = transactional ? "java:jboss/DefaultJMSConnectionFactory" : "jboss/exported/jms/RemoteConnectionFactory";
 		return commonUnitDef( name, "filesystem-slave", refreshPeriod, tmpDir )
 					.createProperty()
 						.name( "hibernate.search.default.worker.backend" )
 						.value( "jms" )
 						.up()
+					.createProperty()
+						.name( Environment.WORKER_ENLIST_IN_TRANSACTION )
+						.value( transactional.toString() )
+						.up()
 					//We could use a Local ConnectionFactory but then we would bypass the authentication:
 					//we actually want to verify we're able to authenticate
 					.createProperty()
 						.name( "hibernate.search.default.worker.jms.connection_factory" )
-						.value( "jboss/exported/jms/RemoteConnectionFactory" )
+						.value( jmsConnectionFactory )
 						.up()
 					.createProperty()
 						.name( "hibernate.search.default.worker.jms.queue" )
-						.value( RegistrationConfiguration.DESTINATION_QUEUE )
+						.value( RegistrationMdb.DESTINATION_QUEUE )
 						.up()
 					//Authentication credentials are specified in the AS7 configuration files
 					//See properties files in server/standalone/configuration
@@ -98,7 +116,13 @@ public final class DeploymentJmsMasterSlave {
 				.createPersistenceUnit()
 					.name( "pu-" + name )
 					.jtaDataSource( "java:jboss/datasources/ExampleDS" )
+					// The deployment Scanner is disabled as the JipiJapa integration is not available because of the custom Hibernate ORM module:
+					.clazz( RegisteredMember.class.getName() )
 					.getOrCreateProperties()
+						.createProperty()
+							.name( "wildfly.jpa.hibernate.search.module" )
+							.value( getWildFlyModuleIdentifier() )
+							.up()
 						.createProperty()
 							.name( "hibernate.hbm2ddl.auto" )
 							.value( "create-drop" )
@@ -129,18 +153,19 @@ public final class DeploymentJmsMasterSlave {
 							.up();
 	}
 
-	private static Asset hornetqJmsXml() {
-		String hornetqXml =
+	private static Asset activemqJmsXml() {
+		String activemqXml =
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-			+ "<messaging-deployment xmlns=\"urn:jboss:messaging-deployment:1.0\">"
-				+ "<hornetq-server>"
+			+ "<messaging-deployment xmlns=\"urn:jboss:messaging-activemq-deployment:1.0\">"
+				+ "<server>"
 					+ "<jms-destinations>"
 						+ "<jms-queue name=\"hsearchQueue\">"
-							+ "<entry name=\"" + RegistrationConfiguration.DESTINATION_QUEUE + "\"/>"
+							+ "<entry name=\"" + RegistrationMdb.DESTINATION_QUEUE + "\"/>"
 						+ "</jms-queue>"
 					+ "</jms-destinations>"
-				+ "</hornetq-server>"
+				+ "</server>"
 			+ "</messaging-deployment>";
-		return new StringAsset( hornetqXml );
+		return new StringAsset( activemqXml );
 	}
+
 }

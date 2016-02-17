@@ -40,9 +40,11 @@ public class ScheduledCommitPolicyTest {
 
 	private static final int NUMBER_ENTITIES = 1000;
 
+	private int globalIdCounter = 0;
+
 	@Rule
 	public SearchFactoryHolder sfAsyncExclusiveIndex = new SearchFactoryHolder( Quote.class )
-			.withProperty( "hibernate.search.default.index_flush_interval", "100" )
+			.withProperty( "hibernate.search.default.index_flush_interval", "1" )
 			.withProperty( "hibernate.search.default.worker.execution", "async" )
 			.withProperty( "hibernate.search.default.exclusive_index_use", "true" )
 			.withProperty( "hibernate.search.error_handler", CountingErrorHandler.class.getName() );
@@ -66,13 +68,33 @@ public class ScheduledCommitPolicyTest {
 			targetMethod = "commit",
 			action = "throw new IOException(\"File not found!\")",
 			name = "commitError")
-	public void testErrorHandling() throws Exception {
+	public void testErrorHandlingDuringCommit() throws Exception {
 		writeData( sfAsyncExclusiveIndex, 2 );
 		final CountingErrorHandler errorHandler = (CountingErrorHandler) sfAsyncExclusiveIndex.getSearchFactory().getErrorHandler();
 		assertConditionMet( new Condition() {
 			@Override
 			public boolean evaluate() {
 				return errorHandler.getCountFor( IOException.class ) >= 2;
+			}
+		} );
+	}
+
+	@Test
+	@BMRule(targetClass = "org.hibernate.search.backend.impl.lucene.IndexWriterHolder",
+			targetMethod = "commitIndexWriter()",
+			action = "throw new NullPointerException(\"Fake internal error\")",
+			name = "timerDisruptingError")
+	public void testErrorHandlingOnBackgroundThread() throws Exception {
+		writeData( sfAsyncExclusiveIndex, 2 );
+		final CountingErrorHandler errorHandler = (CountingErrorHandler) sfAsyncExclusiveIndex.getSearchFactory().getErrorHandler();
+		assertConditionMet( new Condition() {
+			@Override
+			public boolean evaluate() {
+				// It's going to commit once each millisecond, and produce a failure each time.
+				// So "4" is just a random number higher than 0, but high enough to
+				// verify that the scheduled task is not being killed at the first failure,
+				// and will keep trying.
+				return errorHandler.getCountFor( NullPointerException.class ) >= 4;
 			}
 		} );
 	}
@@ -90,11 +112,11 @@ public class ScheduledCommitPolicyTest {
 	}
 
 	private class IndexingFinishedCondition implements Condition {
-		private final int docs;
+		private final int expectedDocsCount;
 		private final ExtendedSearchIntegrator searchFactory;
-		private IndexingFinishedCondition(SearchFactoryHolder searchFactoryHolder, int docs) {
+		private IndexingFinishedCondition(SearchFactoryHolder searchFactoryHolder, int expectedDocsCount) {
 			this.searchFactory = searchFactoryHolder.getSearchFactory();
-			this.docs = docs;
+			this.expectedDocsCount = expectedDocsCount;
 		}
 
 		private HSQuery matchAllQuery() {
@@ -106,7 +128,7 @@ public class ScheduledCommitPolicyTest {
 
 		@Override
 		public boolean evaluate() {
-			return docs == matchAllQuery().queryResultSize();
+			return expectedDocsCount == matchAllQuery().queryResultSize();
 		}
 	}
 
@@ -127,8 +149,9 @@ public class ScheduledCommitPolicyTest {
 
 	private void writeData(SearchFactoryHolder sfHolder, int numberEntities) {
 		for ( int i = 0; i < numberEntities; i++ ) {
-			Quote quote = new Quote( 1, "description" );
-			Work work = new Work( quote, quote.getId(), WorkType.ADD, false );
+			Integer id = Integer.valueOf( globalIdCounter++ );
+			Quote quote = new Quote( id, "description" );
+			Work work = new Work( quote, id, WorkType.ADD, false );
 			TransactionContextForTest tc = new TransactionContextForTest();
 			sfHolder.getSearchFactory().getWorker().performWork( work, tc );
 			tc.end();

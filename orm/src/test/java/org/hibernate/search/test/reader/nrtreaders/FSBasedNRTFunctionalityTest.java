@@ -6,20 +6,20 @@
  */
 package org.hibernate.search.test.reader.nrtreaders;
 
-import org.hibernate.cfg.Configuration;
+import java.util.Map;
 
 /**
  * Similar to parent class, but make sure the same functionality works fine
  * when using a FSDirectory [HSEARCH-1095].
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 public class FSBasedNRTFunctionalityTest extends BasicNRTFunctionalityTest {
 
 	@Override
-	protected void configure(Configuration cfg) {
+	public void configure(Map<String,Object> cfg) {
 		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default.directory_provider", "filesystem" );
+		cfg.put( "hibernate.search.default.directory_provider", "filesystem" );
 	}
 
 }

@@ -20,7 +20,6 @@ import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
-import org.apache.lucene.search.Weight;
 import org.apache.lucene.search.similarities.Similarity;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.exception.SearchException;
@@ -30,6 +29,7 @@ import org.hibernate.search.metadata.PropertyDescriptor;
 import org.hibernate.search.reader.impl.MultiReaderFactory;
 import org.hibernate.search.util.StringHelper;
 import org.hibernate.search.util.logging.impl.Log;
+import org.hibernate.search.util.logging.impl.LogCategory;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
@@ -38,6 +38,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
 public final class LazyQueryState implements Closeable {
 
 	private static final Log log = LoggerFactory.make();
+	private static final Log QUERY_LOG = LoggerFactory.make( LogCategory.QUERY );
 
 	private final Query userQuery;
 	private final IndexSearcher searcher;
@@ -47,7 +48,6 @@ public final class LazyQueryState implements Closeable {
 	private final Set<Class<?>> targetedTypes;
 
 	private Query rewrittenQuery;
-	private Weight queryWeight;
 
 	public LazyQueryState(Query userQuery,
 			IndexReader reader,
@@ -73,10 +73,6 @@ public final class LazyQueryState implements Closeable {
 		return fieldSortDoMaxScore;
 	}
 
-	public boolean scoresDocsOutOfOrder() throws IOException {
-		return getWeight().scoresDocsOutOfOrder();
-	}
-
 	public Explanation explain(int documentId) throws IOException {
 		return searcher.explain( rewrittenQuery(), documentId );
 	}
@@ -100,7 +96,12 @@ public final class LazyQueryState implements Closeable {
 
 	public void search(final Filter filter, final Collector collector) throws IOException {
 		validateQuery();
+		QUERY_LOG.executingLuceneQuery( userQuery );
 		searcher.search( rewrittenQuery(), filter, collector );
+	}
+
+	public IndexReader getIndexReader() {
+		return searcher.getIndexReader();
 	}
 
 	@Override
@@ -179,13 +180,6 @@ public final class LazyQueryState implements Closeable {
 		else {
 			stringEncodedFieldNames.add( fieldDescriptor.getName() );
 		}
-	}
-
-	private Weight getWeight() throws IOException {
-		if ( queryWeight == null ) {
-			queryWeight = rewrittenQuery().createWeight( searcher );
-		}
-		return queryWeight;
 	}
 
 	private Query rewrittenQuery() throws IOException {

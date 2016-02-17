@@ -15,8 +15,11 @@ import org.hibernate.search.backend.impl.CommitPolicy;
 import org.hibernate.search.engine.spi.DocumentBuilderIndexedEntity;
 
 /**
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @deprecated This interface will be moved and should be considered non-public API [HSEARCH-1915]
+ *
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
+@Deprecated
 public interface Workspace {
 
 	DocumentBuilderIndexedEntity getDocumentBuilder(Class<?> entity);
@@ -73,6 +76,7 @@ public interface Workspace {
 	 * This allows to use delete by the identifier term which is much faster.
 	 *
 	 * This method should really be named {@code isSingleClassInIndex} but that's a public contract.
+	 * @return true if one and only one entity type is stored in the targeted index.
 	 */
 	boolean areSingleTermDeletesSafe();
 
@@ -85,6 +89,7 @@ public interface Workspace {
 	 * If unsure, we will delete taking the class field into account to avoid unwanted document deletions.
 	 *
 	 * The method should really be named {@code isDeleteByTermEnforcedOrSafe} but that's a public contract.
+	 * @return true if either the configuration guarantees that one can use delete by term on all indexes
 	 */
 	boolean isDeleteByTermEnforced();
 
@@ -103,6 +108,7 @@ public interface Workspace {
 
 	/**
 	 * Returns the name of the index this workspace is being used for.
+	 * @return the name of the index
 	 */
 	String getIndexName();
 

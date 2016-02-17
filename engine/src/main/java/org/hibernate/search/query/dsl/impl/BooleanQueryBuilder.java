@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.lucene.search.BooleanClause;
-import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.BooleanClause.Occur;
+import org.apache.lucene.search.BooleanQuery.Builder;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
@@ -39,13 +40,23 @@ class BooleanQueryBuilder implements MustJunction {
 
 	@Override
 	public BooleanJunction not() {
+		replaceLastMustWith( BooleanClause.Occur.MUST_NOT );
+		return this;
+	}
+
+	@Override
+	public BooleanJunction disableScoring() {
+		replaceLastMustWith( BooleanClause.Occur.FILTER );
+		return this;
+	}
+
+	private void replaceLastMustWith(Occur replacementOccur) {
 		final int lastIndex = clauses.size() - 1;
 		final BooleanClause last = clauses.get( lastIndex );
 		if ( ! last.getOccur().equals( BooleanClause.Occur.MUST ) ) {
-			throw new AssertionFailure( "Cannot negate class: " + last.getOccur() );
+			throw new AssertionFailure( "Cannot negate or disable scoring on class: " + last.getOccur() );
 		}
-		clauses.set( lastIndex, new BooleanClause( last.getQuery(), BooleanClause.Occur.MUST_NOT ) );
-		return this;
+		clauses.set( lastIndex, new BooleanClause( last.getQuery(), replacementOccur ) );
 	}
 
 	@Override
@@ -84,24 +95,21 @@ class BooleanQueryBuilder implements MustJunction {
 		if ( nbrOfClauses == 0 ) {
 			throw log.booleanQueryWithoutClauses();
 		}
-		else if ( nbrOfClauses == 1 ) {
-			final BooleanClause uniqueClause = clauses.get( 0 );
-			if ( uniqueClause.getOccur().equals( BooleanClause.Occur.MUST_NOT ) ) {
-				//FIXME We have two choices here, raise an exception or combine with an All query. #2 is done atm.
-				//TODO which normfield to use and how to pass it?
-				should( new MatchAllDocsQuery() );
-			}
-			else {
-				//optimize
-				return queryCustomizer.setWrappedQuery( uniqueClause.getQuery() ).createQuery();
-			}
-		}
 
-		BooleanQuery query = new BooleanQuery();
+		Builder builder = new org.apache.lucene.search.BooleanQuery.Builder();
+		boolean allClausesAreMustNot = true;
 		for ( BooleanClause clause : clauses ) {
-			query.add( clause );
+			if ( clause.getOccur() != Occur.MUST_NOT ) {
+				allClausesAreMustNot = false;
+			}
+			builder.add( clause );
 		}
-		return queryCustomizer.setWrappedQuery( query ).createQuery();
+		if ( allClausesAreMustNot ) {
+			//It is illegal to have only must-not queries,
+			//in this case we need to add a positive clause to match everything else.
+			builder.add( new MatchAllDocsQuery(), Occur.FILTER );
+		}
+		return queryCustomizer.setWrappedQuery( builder.build() ).createQuery();
 	}
 
 	@Override

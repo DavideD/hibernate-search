@@ -32,7 +32,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * Contains helper to parse properties which should be read by the majority
  * of IndexManager implementations.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class PropertiesParseHelper {
 
@@ -43,9 +43,11 @@ public class PropertiesParseHelper {
 	}
 
 	/**
-	 * <p>isExclusiveIndexUsageEnabled.</p>
+	 * <p>isExclusiveIndexUsageEnabled.
 	 *
 	 * @param indexProps a {@link java.util.Properties} object.
+	 * @return {@code true} when a lock on the index will not be released until the
+	 * SearchIntegrator (or SessionFactory) is closed. Default to {@code false}
 	 */
 	public static boolean isExclusiveIndexUsageEnabled(Properties indexProps) {
 		return ConfigurationParseHelper.getBooleanValue( indexProps, Environment.EXCLUSIVE_INDEX_USE, true );
@@ -128,7 +130,7 @@ public class PropertiesParseHelper {
 	 * Creates a new <code>LuceneIndexingParameters</code> instance for the specified provider.
 	 * If there are no matching properties in the configuration default values will be applied.
 	 * <p>
-	 * NOTE:</br>
+	 * NOTE:<br>
 	 * If a non batch value is set in the configuration apply it also to the
 	 * batch mode. This covers the case where users only specify
 	 * parameters for the non batch mode. In this case the same parameters apply for
@@ -137,6 +139,7 @@ public class PropertiesParseHelper {
 	 * </p>
 	 *
 	 * @param properties The properties extracted from the configuration.
+	 * @return a new {@link LuceneIndexingParameters} instance
 	 */
 	public static LuceneIndexingParameters extractIndexingPerformanceOptions(Properties properties) {
 		return new LuceneIndexingParameters( properties );

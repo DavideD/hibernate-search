@@ -7,6 +7,7 @@
 package org.hibernate.search.testsupport.readerprovider;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 
 import org.apache.lucene.index.StoredFieldVisitor.Status;
@@ -20,7 +21,7 @@ import static org.hibernate.search.testsupport.readerprovider.FieldSelectorLeaki
 /**
  * ReaderProvider to inspect the type of FieldSelector being applied.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2014 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2014 Red Hat Inc.
  */
 @TestForIssue(jiraKey = "HSEARCH-1738")
 public class FieldSelectorTest {
@@ -47,7 +48,7 @@ public class FieldSelectorTest {
 	}
 
 	private void consumeField(ReusableDocumentStoredFieldVisitor fieldVisitor) throws IOException {
-		fieldVisitor.stringField( forgeFieldInfo( "anything" ), "anything" );
+		fieldVisitor.stringField( forgeFieldInfo( "anything" ), "anything".getBytes( StandardCharsets.UTF_8 ) );
 	}
 
 }

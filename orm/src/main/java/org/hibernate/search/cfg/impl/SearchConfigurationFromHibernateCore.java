@@ -12,9 +12,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Set;
 
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.annotations.common.reflection.java.JavaReflectionManager;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.spi.MetadataImplementor;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.search.cfg.SearchMapping;
 import org.hibernate.search.cfg.spi.IdUniquenessResolver;
@@ -23,6 +27,7 @@ import org.hibernate.search.cfg.spi.SearchConfigurationBase;
 import org.hibernate.search.engine.impl.HibernateStatelessInitializer;
 import org.hibernate.search.engine.service.classloading.spi.ClassLoaderService;
 import org.hibernate.search.engine.service.spi.Service;
+import org.hibernate.search.hcore.impl.HibernateSessionFactoryService;
 import org.hibernate.search.spi.InstanceInitializer;
 
 /**
@@ -32,62 +37,66 @@ import org.hibernate.search.spi.InstanceInitializer;
  */
 public class SearchConfigurationFromHibernateCore extends SearchConfigurationBase implements SearchConfiguration {
 
-	private final org.hibernate.cfg.Configuration cfg;
+	private final ConfigurationService configurationService;
 	private final ClassLoaderService classLoaderService;
 	private final Map<Class<? extends Service>, Object> providedServices;
+	private final Metadata metadata;
+	private final Properties legacyConfigurationProperties;//For compatibility reasons only. Should be removed? See HSEARCH-1890
+
 	private ReflectionManager reflectionManager;
 
-
-	public SearchConfigurationFromHibernateCore(org.hibernate.cfg.Configuration cfg,
-			org.hibernate.boot.registry.classloading.spi.ClassLoaderService hibernateClassLoaderService) {
+	public SearchConfigurationFromHibernateCore(Metadata metadata, ConfigurationService configurationService,
+			org.hibernate.boot.registry.classloading.spi.ClassLoaderService hibernateClassLoaderService,
+			HibernateSessionFactoryService sessionService) {
+		this.metadata = metadata;
 		// hmm, not sure why we throw NullPointerExceptions from these sanity checks
 		// Shouldn't we use AssertionFailure or a log message + SearchException? (HF)
-		if ( cfg == null ) {
+		if ( configurationService == null ) {
 			throw new NullPointerException( "Configuration is null" );
 		}
-		this.cfg = cfg;
+		this.configurationService = configurationService;
 
 		if ( hibernateClassLoaderService == null ) {
 			throw new NullPointerException( "ClassLoaderService is null" );
 		}
 		this.classLoaderService = new DelegatingClassLoaderService( hibernateClassLoaderService );
 		Map<Class<? extends Service>, Object> providedServices = new HashMap<>( 1 );
-		providedServices.put( IdUniquenessResolver.class, new HibernateCoreIdUniquenessResolver( cfg ) );
+		providedServices.put( IdUniquenessResolver.class, new HibernateCoreIdUniquenessResolver( metadata ) );
+		providedServices.put( HibernateSessionFactoryService.class, sessionService );
 		this.providedServices = Collections.unmodifiableMap( providedServices );
+		this.legacyConfigurationProperties = extractProperties( configurationService );
 	}
 
 	@Override
 	public Iterator<Class<?>> getClassMappings() {
-		return new ClassIterator( cfg.getClassMappings() );
+		return new ClassIterator( metadata.getEntityBindings().iterator() );
 	}
 
 	@Override
-	public Class<?> getClassMapping(String name) {
-		return cfg.getClassMapping( name ).getMappedClass();
+	public Class<?> getClassMapping(String entityName) {
+		return metadata.getEntityBinding( entityName ).getMappedClass();
 	}
 
 	@Override
 	public String getProperty(String propertyName) {
-		return cfg.getProperty( propertyName );
+		return configurationService.getSetting( propertyName, org.hibernate.engine.config.spi.StandardConverters.STRING );
 	}
 
 	@Override
 	public Properties getProperties() {
-		return cfg.getProperties();
+		return this.legacyConfigurationProperties;
 	}
 
 	@Override
 	public ReflectionManager getReflectionManager() {
 		if ( reflectionManager == null ) {
-			try {
-				//TODO introduce a ReflectionManagerHolder interface to avoid reflection
-				//I want to avoid hard link between HAN and Search for such a simple need
-				//reuse the existing reflectionManager one when possible
-				reflectionManager =
-						(ReflectionManager) cfg.getClass().getMethod( "getReflectionManager" ).invoke( cfg );
-
+			if ( metadata instanceof MetadataImplementor ) {
+				reflectionManager = ((MetadataImplementor) metadata).getMetadataBuildingOptions().getReflectionManager();
 			}
-			catch (Exception e) {
+			if ( reflectionManager == null ) {
+				// Fall back to our own instance of JavaReflectionManager
+				// when metadata is not a MetadataImplementor or
+				// the reflection manager were not created by Hibernate yet.
 				reflectionManager = new JavaReflectionManager();
 			}
 		}
@@ -120,10 +129,10 @@ public class SearchConfigurationFromHibernateCore extends SearchConfigurationBas
 	}
 
 	private static class ClassIterator implements Iterator<Class<?>> {
-		private Iterator hibernatePersistentClassIterator;
+		private Iterator<PersistentClass> hibernatePersistentClassIterator;
 		private Class<?> future;
 
-		private ClassIterator(Iterator hibernatePersistentClassIterator) {
+		private ClassIterator(Iterator<PersistentClass> hibernatePersistentClassIterator) {
 			this.hibernatePersistentClassIterator = hibernatePersistentClassIterator;
 		}
 
@@ -138,7 +147,7 @@ public class SearchConfigurationFromHibernateCore extends SearchConfigurationBas
 					future = null;
 					return false;
 				}
-				final PersistentClass pc = (PersistentClass) hibernatePersistentClassIterator.next();
+				final PersistentClass pc = hibernatePersistentClassIterator.next();
 				future = pc.getMappedClass();
 			}
 			while ( future == null );
@@ -161,4 +170,17 @@ public class SearchConfigurationFromHibernateCore extends SearchConfigurationBas
 			throw new UnsupportedOperationException( "Cannot modify Hibernate Core metadata" );
 		}
 	}
+
+	private static Properties extractProperties(final ConfigurationService configurationService) {
+		Properties props = new Properties();
+		Set<Map.Entry> entrySet = configurationService.getSettings().entrySet();
+		for ( Map.Entry entry : entrySet ) {
+			final Object key = entry.getKey();
+			if ( key instanceof String ) {
+				props.put( key, entry.getValue() );
+			}
+		}
+		return props;
+	}
+
 }

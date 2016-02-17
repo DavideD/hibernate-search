@@ -8,9 +8,7 @@ package org.hibernate.search.batchindexing.impl;
 
 import javax.transaction.SystemException;
 
-import org.hibernate.Session;
 import org.hibernate.StatelessSession;
-
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
@@ -29,12 +27,13 @@ public class OptionallyWrapInJTATransaction extends ErrorHandledRunnable {
 
 	private static final Log log = LoggerFactory.make();
 
-	private final SessionAwareRunnable sessionAwareRunnable;
 	private final StatelessSessionAwareRunnable statelessSessionAwareRunnable;
 	private final BatchTransactionalContext batchContext;
+	private final Integer transactionTimeout;
 	private final boolean wrapInTransaction;
+	private final String tenantId;
 
-	public OptionallyWrapInJTATransaction(BatchTransactionalContext batchContext, SessionAwareRunnable sessionAwareRunnable) {
+	public OptionallyWrapInJTATransaction(BatchTransactionalContext batchContext, StatelessSessionAwareRunnable statelessSessionAwareRunnable, Integer transactionTimeout, String tenantId) {
 		super( batchContext.extendedIntegrator );
 		/*
 		 * Unfortunately we need to access SessionFactoryImplementor to detect:
@@ -42,20 +41,8 @@ public class OptionallyWrapInJTATransaction extends ErrorHandledRunnable {
 		 *  - start it
 		 */
 		this.batchContext = batchContext;
-		this.sessionAwareRunnable = sessionAwareRunnable;
-		this.statelessSessionAwareRunnable = null;
-		this.wrapInTransaction = batchContext.wrapInTransaction();
-	}
-
-	public OptionallyWrapInJTATransaction(BatchTransactionalContext batchContext, StatelessSessionAwareRunnable statelessSessionAwareRunnable) {
-		super( batchContext.extendedIntegrator );
-		/*
-		 * Unfortunately we need to access SessionFactoryImplementor to detect:
-		 *  - whether or not we need to start the JTA transaction
-		 *  - start it
-		 */
-		this.batchContext = batchContext;
-		this.sessionAwareRunnable = null;
+		this.transactionTimeout = transactionTimeout;
+		this.tenantId = tenantId;
 		this.statelessSessionAwareRunnable = statelessSessionAwareRunnable;
 		this.wrapInTransaction = batchContext.wrapInTransaction();
 	}
@@ -63,42 +50,23 @@ public class OptionallyWrapInJTATransaction extends ErrorHandledRunnable {
 	@Override
 	public void runWithErrorHandler() throws Exception {
 		if ( wrapInTransaction ) {
-			final Session session;
-			final StatelessSession statelessSession;
-			if ( sessionAwareRunnable != null ) {
-				session = batchContext.factory.openSession();
-				statelessSession = null;
-			}
-			else {
-				session = null;
-				statelessSession = batchContext.factory.openStatelessSession();
-			}
+			final StatelessSession statelessSession = batchContext
+					.factory
+					.withStatelessOptions()
+					.tenantIdentifier( tenantId )
+					.openStatelessSession();
 
+			if ( transactionTimeout != null ) {
+				batchContext.transactionManager.setTransactionTimeout( transactionTimeout );
+			}
 			batchContext.transactionManager.begin();
-
-			if ( sessionAwareRunnable != null ) {
-				sessionAwareRunnable.run( session );
-			}
-			else {
-				statelessSessionAwareRunnable.run( statelessSession );
-			}
-
+			statelessSessionAwareRunnable.run( statelessSession );
 			batchContext.transactionManager.commit();
 
-			if ( sessionAwareRunnable != null ) {
-				session.close();
-			}
-			else {
-				statelessSession.close();
-			}
+			statelessSession.close();
 		}
 		else {
-			if ( sessionAwareRunnable != null ) {
-				sessionAwareRunnable.run( null );
-			}
-			else {
-				statelessSessionAwareRunnable.run( null );
-			}
+			statelessSessionAwareRunnable.run( null );
 		}
 	}
 

@@ -16,6 +16,7 @@ import org.apache.lucene.store.Directory;
 import org.hibernate.Session;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
+import org.hibernate.search.backend.impl.lucene.LuceneBackendQueueProcessor;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.indexes.spi.DirectoryBasedIndexManager;
 import org.hibernate.search.indexes.spi.IndexManager;
@@ -34,7 +35,7 @@ public class CheckerLuceneIndex {
 	}
 
 	@SuppressWarnings("deprecation") // performance tests can be run against older hsearch versions, where isn't getIndexManagerHolder yet
-	public static void printIndexReport(TestContext ctx, PrintStream out) {
+	public static void printIndexReport(TestContext ctx, PrintStream out) throws IOException {
 		if ( !CHECK_INDEX_STATE ) {
 			return;
 		}
@@ -49,6 +50,7 @@ public class CheckerLuceneIndex {
 
 		for ( IndexManager indexManager : indexManagers ) {
 			DirectoryBasedIndexManager directoryBasedIndexManager = (DirectoryBasedIndexManager) indexManager;
+			stopBackend( directoryBasedIndexManager );
 			DirectoryProvider<?> directoryProvider = directoryBasedIndexManager.getDirectoryProvider();
 			Directory directory = directoryProvider.getDirectory();
 
@@ -70,6 +72,17 @@ public class CheckerLuceneIndex {
 
 		out.println( "==================================================================" );
 		out.flush();
+	}
+
+	/**
+	 * This essentially kills the backend: needed to release the IndexWriter lock
+	 * so that the CheckIndex task can be run.
+	 * You'll need to ignore further issues if indexing is attempted, and even shutdown
+	 * might not be graceful (the shutdown is not designed to be recoverable).
+	 */
+	private static void stopBackend(DirectoryBasedIndexManager directoryBasedIndexManager) {
+		LuceneBackendQueueProcessor backendQueueProcessor = (LuceneBackendQueueProcessor) directoryBasedIndexManager.getBackendQueueProcessor();
+		backendQueueProcessor.getIndexResources().shutdown();
 	}
 
 }

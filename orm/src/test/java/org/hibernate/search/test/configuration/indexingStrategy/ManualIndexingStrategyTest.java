@@ -6,18 +6,16 @@
  */
 package org.hibernate.search.test.configuration.indexingStrategy;
 
+import java.util.Map;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
-import org.apache.lucene.index.IndexReader;
-
 import org.hibernate.Session;
-
-import org.hibernate.cfg.Configuration;
-import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.test.SearchTestBase;
 import org.junit.Test;
 
@@ -35,19 +33,18 @@ public class ManualIndexingStrategyTest extends SearchTestBase {
 		assertEquals(
 				"Due to manual indexing being enabled no automatic indexing should have occurred",
 				0,
-				getDocumentNbr()
+				getNumberOfDocumentsInIndex( TestEntity.class )
 		);
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { TestEntity.class };
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( Environment.INDEXING_STRATEGY, "manual" );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( Environment.INDEXING_STRATEGY, "manual" );
 	}
 
 	private void indexTestEntity() {
@@ -58,17 +55,6 @@ public class ManualIndexingStrategyTest extends SearchTestBase {
 
 		session.getTransaction().commit();
 		session.close();
-	}
-
-	private int getDocumentNbr() throws Exception {
-		// we directly access the index to verify the document count
-		IndexReader reader = IndexReader.open( getDirectory( TestEntity.class ) );
-		try {
-			return reader.numDocs();
-		}
-		finally {
-			reader.close();
-		}
 	}
 
 	@Indexed

@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.index.CorruptIndexException;
 import org.apache.lucene.index.DirectoryReader;
@@ -20,8 +19,7 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.LogByteSizeMergePolicy;
 import org.apache.lucene.index.MergeScheduler;
 import org.apache.lucene.search.similarities.Similarity;
-import org.apache.lucene.store.Directory;
-import org.hibernate.search.cfg.Environment;
+import org.hibernate.search.backend.impl.lucene.analysis.ConcurrentlyMutableAnalyzer;
 import org.hibernate.search.backend.impl.lucene.overrides.ConcurrentMergeScheduler;
 import org.hibernate.search.backend.spi.LuceneIndexingParameters;
 import org.hibernate.search.backend.spi.LuceneIndexingParameters.ParameterSet;
@@ -34,16 +32,10 @@ import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 class IndexWriterHolder {
 	private static final Log log = LoggerFactory.make();
-
-	/**
-	 * This Analyzer is never used in practice: during Add operation it's overridden.
-	 * So we don't care for the Version, using whatever Lucene thinks is safer.
-	 */
-	private static final Analyzer SIMPLE_ANALYZER = new SimpleAnalyzer( Environment.DEFAULT_LUCENE_MATCH_VERSION );
 
 	private final ErrorHandler errorHandler;
 	private final ParameterSet indexParameters;
@@ -132,12 +124,13 @@ class IndexWriterHolder {
 	}
 
 	private IndexWriterConfig createWriterConfig() {
-		final IndexWriterConfig writerConfig = new IndexWriterConfig( Environment.DEFAULT_LUCENE_MATCH_VERSION, SIMPLE_ANALYZER );
+		final ConcurrentlyMutableAnalyzer globalAnalyzer = new ConcurrentlyMutableAnalyzer( new SimpleAnalyzer() );
+		final IndexWriterConfig writerConfig = new IndexWriterConfig( globalAnalyzer );
 		luceneParameters.applyToWriter( writerConfig );
 		if ( similarity != null ) {
 			writerConfig.setSimilarity( similarity );
 		}
-		writerConfig.setOpenMode( OpenMode.APPEND ); //More efficient to open
+		writerConfig.setOpenMode( OpenMode.CREATE_OR_APPEND );
 		return writerConfig;
 	}
 
@@ -190,18 +183,10 @@ class IndexWriterHolder {
 		log.forcingReleaseIndexWriterLock();
 		writerInitializationLock.lock();
 		try {
-			try {
-				IndexWriter indexWriter = writer.getAndSet( null );
-				if ( indexWriter != null ) {
-					indexWriter.close();
-					log.trace( "IndexWriter closed" );
-				}
-			}
-			finally {
-				final Directory directory = directoryProvider.getDirectory();
-				if ( IndexWriter.isLocked( directory ) ) {
-					IndexWriter.unlock( directory );
-				}
+			IndexWriter indexWriter = writer.getAndSet( null );
+			if ( indexWriter != null ) {
+				indexWriter.close();
+				log.trace( "IndexWriter closed" );
 			}
 		}
 		catch (IOException ioe) {

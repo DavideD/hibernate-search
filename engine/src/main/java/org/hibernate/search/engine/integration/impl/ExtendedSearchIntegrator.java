@@ -10,8 +10,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import org.hibernate.search.backend.impl.batch.BatchBackend;
-import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.engine.impl.FilterDef;
 import org.hibernate.search.engine.spi.DocumentBuilderContainedEntity;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
@@ -29,6 +27,7 @@ import org.hibernate.search.stat.spi.StatisticsImplementor;
  *
  * @author Emmanuel Bernard
  * @author Hardy Ferentschik
+ * @author Sanne Grinovero
  */
 public interface ExtendedSearchIntegrator extends SearchIntegrator {
 
@@ -46,14 +45,26 @@ public interface ExtendedSearchIntegrator extends SearchIntegrator {
 
 	FilterDef getFilterDefinition(String name);
 
-	String getIndexingStrategy();
-
 	int getFilterCacheBitResultsSize();
 
+	/**
+	 * Given a set of target entities, return the set of indexed types following our
+	 * polymorphism rules for propagation of the {@code Indexed} annotation:
+	 * It returns an empty set if none of the target entities is indexed, nor any of their sub types.
+	 * Each of the classes of the argument is returned iff explicitly marked as indexed.
+	 * Each of the known subtypes of these classes which are explicitly marked as indexed are
+	 * added to the returned set.
+	 * The {@code Indexed} annotation is not inherited by subtypes which don't explicitly have it.
+	 * Passing {@code Object.class} among the parameters will have the returned set contain all known indexed types.
+	 *
+	 * @param classes a list of types
+	 * @return a set containing the types as in the above rules
+	 */
 	Set<Class<?>> getIndexedTypesPolymorphic(Class<?>[] classes);
 
-	BatchBackend makeBatchBackend(MassIndexerProgressMonitor progressMonitor);
-
+	/**
+	 * @return {@code true} if JMX is enabled
+	 */
 	boolean isJMXEnabled();
 
 	/**
@@ -79,6 +90,9 @@ public interface ExtendedSearchIntegrator extends SearchIntegrator {
 	 */
 	InstanceInitializer getInstanceInitializer();
 
+	/**
+	 * @return the globally configured TimingSource, which we use to implement timeouts during query execution.
+	 */
 	TimingSource getTimingSource();
 
 	/**
@@ -105,4 +119,10 @@ public interface ExtendedSearchIntegrator extends SearchIntegrator {
 	 * @return returns the default {@code OBJECT_LOOKUP_METHOD}.
 	 */
 	ObjectLookupMethod getDefaultObjectLookupMethod();
+
+	/**
+	 * Whether index uninverting should be done when running queries with sorts not covered by the configured sortable
+	 * fields. If not allowed, an exception will be raised in this situation.
+	 */
+	boolean isIndexUninvertingAllowed();
 }

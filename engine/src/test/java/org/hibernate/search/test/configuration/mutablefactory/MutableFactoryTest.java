@@ -34,6 +34,9 @@ import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.test.configuration.mutablefactory.generated.Generated;
 import org.hibernate.search.testsupport.setup.SearchConfigurationForTest;
 import org.hibernate.search.testsupport.setup.TransactionContextForTest;
+import org.hibernate.search.query.engine.spi.HSQuery;
+import org.hibernate.search.query.engine.spi.EntityInfo;
+
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -67,7 +70,6 @@ public class MutableFactoryTest {
 		tc.end();
 
 		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
 				"name",
 				TestConstants.standardAnalyzer
 		);
@@ -114,11 +116,7 @@ public class MutableFactoryTest {
 
 		tc.end();
 
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"name",
-				TestConstants.standardAnalyzer
-		);
+		QueryParser parser = new QueryParser( "name", TestConstants.standardAnalyzer );
 		Query luceneQuery = parser.parse( "Emmanuel" );
 
 		IndexReader indexReader = sf.getIndexReaderAccessor().open( A.class );
@@ -157,6 +155,84 @@ public class MutableFactoryTest {
 		sf.close();
 	}
 
+	@Test
+	public void testAddingClassSimpleAPIwithJMX() throws Exception {
+		SearchIntegrator sf = new SearchIntegratorBuilder()
+				.configuration(
+						new SearchConfigurationForTest()
+							.addClass( A.class )
+							.addProperty( "hibernate.search.jmx_enabled" , Boolean.TRUE.toString() )
+							.addProperty( "hibernate.search.generate_statistics", Boolean.TRUE.toString() )
+							.addProperty( "com.sun.management.jmxremote", Boolean.TRUE.toString() ) )
+				.buildSearchIntegrator();
+
+		TransactionContextForTest tc = new TransactionContextForTest();
+
+		doIndexWork( new A( 1, "Emmanuel" ), 1, sf, tc );
+
+		tc.end();
+
+		QueryParser parser = new QueryParser( "name", TestConstants.standardAnalyzer );
+		Query luceneQuery = parser.parse( "Emmanuel" );
+
+		HSQuery hsQuery = sf.createHSQuery().luceneQuery( luceneQuery );
+		List<Class<?>> l = new ArrayList<>();
+		l.add( A.class );
+
+		hsQuery.targetedEntities( l );
+
+		hsQuery.getTimeoutManager().start();
+
+		List<EntityInfo> entityInfos = hsQuery.queryEntityInfos();
+		assertEquals( 1 , entityInfos.size() );
+		assertEquals( 1 , sf.getStatistics().getSearchQueryExecutionCount() );
+		assertEquals( 1 , sf.getStatistics().getIndexedClassNames().size() );
+
+		hsQuery.getTimeoutManager().stop();
+
+		sf.addClasses( B.class, C.class );
+
+		tc = new TransactionContextForTest();
+
+		doIndexWork( new B( 1, "Noel" ), 1, sf, tc );
+		doIndexWork( new C( 1, "Vincent" ), 1, sf, tc );
+
+		tc.end();
+
+		luceneQuery = parser.parse( "Noel" );
+
+		hsQuery = sf.createHSQuery().luceneQuery( luceneQuery );
+		l.add( B.class );
+		l.add( C.class );
+
+		hsQuery.targetedEntities( l );
+
+		hsQuery.getTimeoutManager().start();
+
+		entityInfos = hsQuery.queryEntityInfos();
+		assertEquals( 1 , entityInfos.size() );
+		assertEquals( 2 , sf.getStatistics().getSearchQueryExecutionCount() );
+		assertEquals( 3 , sf.getStatistics().getIndexedClassNames().size() );
+
+		hsQuery.getTimeoutManager().stop();
+
+		luceneQuery = parser.parse( "Vincent" );
+
+		hsQuery = sf.createHSQuery().luceneQuery( luceneQuery );
+		hsQuery.targetedEntities( l );
+
+		hsQuery.getTimeoutManager().start();
+
+		entityInfos = hsQuery.queryEntityInfos();
+		assertEquals( 1 , entityInfos.size() );
+		assertEquals( 3 , sf.getStatistics().getSearchQueryExecutionCount() );
+		assertEquals( 3 , sf.getStatistics().getIndexedClassNames().size() );
+
+		hsQuery.getTimeoutManager().stop();
+
+		sf.close();
+	}
+
 	private static void doIndexWork(Object entity, Integer id, SearchIntegrator sfi, TransactionContextForTest tc) {
 		Work work = new Work( entity, id, WorkType.INDEX );
 		sfi.getWorker().performWork( work, tc );
@@ -164,11 +240,7 @@ public class MutableFactoryTest {
 
 	@Test
 	public void testMultiThreadedAddClasses() throws Exception {
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"name",
-				TestConstants.standardAnalyzer
-		);
+		QueryParser parser = new QueryParser( "name", TestConstants.standardAnalyzer );
 		try ( SearchIntegrator sf = new SearchIntegratorBuilder().configuration( new SearchConfigurationForTest() ).buildSearchIntegrator() ) {
 			List<DoAddClasses> runnables = new ArrayList<DoAddClasses>( 10 );
 			final int nbrOfThread = 10;
@@ -248,11 +320,7 @@ public class MutableFactoryTest {
 		public DoAddClasses(SearchIntegrator si, int factorOfClassesPerThread, int nbrOfClassesPerThread) {
 			this.extendedIntegrator = si.unwrap( ExtendedSearchIntegrator.class );
 			this.factorOfClassesPerThread = factorOfClassesPerThread;
-			this.parser = new QueryParser(
-					TestConstants.getTargetLuceneVersion(),
-					"name",
-					TestConstants.standardAnalyzer
-			);
+			this.parser = new QueryParser( "name", TestConstants.standardAnalyzer );
 			this.nbrOfClassesPerThread = nbrOfClassesPerThread;
 		}
 

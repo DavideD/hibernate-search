@@ -8,8 +8,8 @@ package org.hibernate.search.test.configuration;
 
 import java.lang.annotation.ElementType;
 
-import org.apache.lucene.analysis.de.GermanStemFilterFactory;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.de.GermanStemFilterFactory;
 import org.apache.lucene.analysis.ngram.NGramFilterFactory;
 import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
@@ -81,15 +81,24 @@ public class ProgrammaticSearchMappingFactory {
 						.field().name( "productCatalogName" ).index( Index.YES ).analyzer( "en" ).store( Store.YES )
 					.property( "items", ElementType.FIELD )
 						.indexEmbedded()
+							.includeEmbeddedObjectId( true )
 				.entity( Item.class )
 					.indexed()
+					.property( "id", ElementType.FIELD )
+						.documentId()
+							.sortableField()
 					.property( "description", ElementType.FIELD )
 						.field().name( "description" ).analyzer( "en" ).index( Index.YES ).store( Store.YES )
 					.property( "productCatalog", ElementType.FIELD )
 						.containedIn()
 					.property( "price", ElementType.FIELD )
 						.field()
-						.numericField().precisionStep( 10 )
+							.store( Store.YES )
+							.numericField().precisionStep( 10 )
+							.sortableField()
+						.field()
+							.name( "price_string" )
+							.store( Store.YES )
 				.entity( DynamicBoostedDescLibrary.class )
 					.dynamicBoost( CustomBoostStrategy.class )
 					.indexed()

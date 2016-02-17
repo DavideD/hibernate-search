@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
@@ -59,7 +60,7 @@ import org.junit.Test;
  * This test is intentionally not using the Hibernate ORM API as it is likely more
  * suited as a use case for the JBoss Data Grid.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2013 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2013 Red Hat Inc.
  * @since 4.4
  */
 @TestForIssue(jiraKey = "HSEARCH-1429")
@@ -181,6 +182,11 @@ public class LogRotationExampleTest {
 		}
 
 		@Override
+		public Set<String> getShardIdentifiersForDeletion(Class<?> entity, Serializable id, String idInString) {
+			return getAllShardIdentifiers();
+		}
+
+		@Override
 		public Set<String> getAllShardIdentifiers() {
 			return hoursOfDay;
 		}
@@ -229,7 +235,7 @@ public class LogRotationExampleTest {
 	 * @return a new GMT Calendar
 	 */
 	private static Calendar createGMTCalendar() {
-		return Calendar.getInstance( TimeZone.getTimeZone( "GMT" ) );
+		return Calendar.getInstance( TimeZone.getTimeZone( "GMT" ), Locale.ROOT );
 	}
 
 }

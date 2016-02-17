@@ -14,8 +14,8 @@ import org.hibernate.search.spatial.Coordinates;
 /**
  * Spatial fields, ids generator and geometric calculation methods for use in SpatialFieldBridge
  *
- * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
- * @author Mathieu Perez <mathieu.perez@novacodex.net>
+ * @author Nicolas Helleringer
+ * @author Mathieu Perez
  * @see org.hibernate.search.spatial.SpatialFieldBridgeByHash
  * @see org.hibernate.search.spatial.SpatialFieldBridgeByRange
  */
@@ -32,7 +32,7 @@ public abstract class SpatialHelper {
 	 * Generate a Cell Index on one axis
 	 *
 	 * @param coordinate position to compute the Index for
-	 * @param range range of the axis (-pi,pi)/(-90,90) => 2*pi/180 e.g
+	 * @param range range of the axis {@literal (-pi,pi)/(-90,90) => 2*pi/180} e.g
 	 * @param spatialHashLevel Hox many time the range has been split in two
 	 * @return the cell index on the axis
 	 */
@@ -163,7 +163,7 @@ public abstract class SpatialHelper {
 					getSpatialHashCellsIds(
 							Point.fromDegreesInclusive(
 									lowerLeftLatitude,
-									GeometricConstants.LONGITUDE_DEGREE_RANGE / 2
+									-GeometricConstants.LONGITUDE_DEGREE_RANGE / 2
 								), Point.fromDegreesInclusive( upperRightLatitude, upperRightLongitude ), spatialHashLevel
 					)
 			);

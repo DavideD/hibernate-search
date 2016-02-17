@@ -12,8 +12,15 @@ package org.hibernate.search.query.dsl;
  */
 public interface WildcardContext extends QueryCustomization<WildcardContext> {
 	/**
-	 * field / property the term query is executed on
+	 * @param field field/property the term query is executed on
+	 * @return a {@link TermMatchingContext}
 	 */
 	TermMatchingContext onField(String field);
+
+	/**
+	 * @param fields fields/properties the term query is executed on
+	 * @return a {@link TermMatchingContext}
+	 */
+	TermMatchingContext onFields(String... fields);
 
 }

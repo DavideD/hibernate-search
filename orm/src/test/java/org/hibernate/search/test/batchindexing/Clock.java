@@ -48,4 +48,46 @@ public class Clock {
 	public void setId(Integer id) {
 		this.id = id;
 	}
+
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append( "[" );
+		builder.append( id );
+		builder.append( "," );
+		builder.append( brand );
+		builder.append( "]" );
+		return builder.toString();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ( ( brand == null ) ? 0 : brand.hashCode() );
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if ( this == obj ) {
+			return true;
+		}
+		if ( obj == null ) {
+			return false;
+		}
+		if ( getClass() != obj.getClass() ) {
+			return false;
+		}
+		Clock other = (Clock) obj;
+		if ( brand == null ) {
+			if ( other.brand != null ) {
+				return false;
+			}
+		}
+		else if ( !brand.equals( other.brand ) ) {
+			return false;
+		}
+		return true;
+	}
 }

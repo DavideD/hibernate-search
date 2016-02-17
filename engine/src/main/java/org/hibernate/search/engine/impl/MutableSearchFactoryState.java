@@ -9,10 +9,12 @@ package org.hibernate.search.engine.impl;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.hibernate.search.backend.spi.BackendQueueProcessor;
 import org.hibernate.search.backend.spi.Worker;
+import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.cfg.SearchMapping;
 import org.hibernate.search.cfg.spi.IndexManagerFactory;
 import org.hibernate.search.engine.service.spi.ServiceManager;
@@ -23,10 +25,13 @@ import org.hibernate.search.exception.ErrorHandler;
 import org.hibernate.search.filter.FilterCachingStrategy;
 import org.hibernate.search.indexes.impl.IndexManagerHolder;
 import org.hibernate.search.query.engine.spi.TimeoutExceptionFactory;
+import org.hibernate.search.spi.IndexingMode;
 import org.hibernate.search.spi.InstanceInitializer;
-import org.hibernate.search.spi.impl.PolymorphicIndexHierarchy;
 import org.hibernate.search.spi.impl.ExtendedSearchIntegratorWithShareableState;
+import org.hibernate.search.spi.impl.PolymorphicIndexHierarchy;
 import org.hibernate.search.spi.impl.SearchFactoryState;
+import org.hibernate.search.stat.Statistics;
+import org.hibernate.search.util.configuration.impl.ConfigurationParseHelper;
 
 /**
  * Shared factory state
@@ -37,12 +42,12 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 
 	private Map<Class<?>, DocumentBuilderContainedEntity> documentBuildersContainedEntities;
 	private Map<Class<?>, EntityIndexBinding> indexBindingsPerEntity;
-	private String indexingStrategy;
+	private IndexingMode indexingMode;
 	private Worker worker;
 	private BackendQueueProcessor backendQueueProcessor;
-	private Map<String, FilterDef> filterDefinitions;
+	private Map<String, FilterDef> filterDefinitions = new ConcurrentHashMap<>();
 	private FilterCachingStrategy filterCachingStrategy;
-	private Map<String, Analyzer> analyzers;
+	private Map<String, Analyzer> analyzers = new ConcurrentHashMap<>();
 	private int cacheBitResultsSize;
 	private Properties configurationProperties;
 	private PolymorphicIndexHierarchy indexHierarchy;
@@ -58,9 +63,11 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 	private boolean deleteByTermEnforced;
 	private boolean isIdProvidedImplicit;
 	private IndexManagerFactory indexManagerFactory;
+	private boolean enlistWorkerInTransaction;
+	private Statistics statistics;
 
 	public void copyStateFromOldFactory(SearchFactoryState oldFactoryState) {
-		indexingStrategy = oldFactoryState.getIndexingStrategy();
+		indexingMode = oldFactoryState.getIndexingMode();
 		indexBindingsPerEntity = oldFactoryState.getIndexBindings();
 		documentBuildersContainedEntities = oldFactoryState.getDocumentBuildersContainedEntities();
 		worker = oldFactoryState.getWorker();
@@ -82,6 +89,8 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 		deleteByTermEnforced = oldFactoryState.isDeleteByTermEnforced();
 		isIdProvidedImplicit = oldFactoryState.isIdProvidedImplicit();
 		indexManagerFactory = oldFactoryState.getIndexManagerFactory();
+		enlistWorkerInTransaction = oldFactoryState.enlistWorkerInTransaction();
+		statistics = oldFactoryState.getStatistics();
 	}
 
 	@Override
@@ -104,8 +113,8 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 	}
 
 	@Override
-	public String getIndexingStrategy() {
-		return indexingStrategy;
+	public IndexingMode getIndexingMode() {
+		return indexingMode;
 	}
 
 	@Override
@@ -155,8 +164,8 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 		this.indexBindingsPerEntity = documentBuildersIndexedEntities;
 	}
 
-	public void setIndexingStrategy(String indexingStrategy) {
-		this.indexingStrategy = indexingStrategy;
+	public void setIndexingMode(IndexingMode indexingMode) {
+		this.indexingMode = indexingMode;
 	}
 
 	public void setWorker(Worker worker) {
@@ -167,16 +176,16 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 		this.backendQueueProcessor = backendQueueProcessor;
 	}
 
-	public void setFilterDefinitions(Map<String, FilterDef> filterDefinitions) {
-		this.filterDefinitions = filterDefinitions;
+	public void addFilterDefinitions(Map<String, FilterDef> filterDefinitions) {
+		this.filterDefinitions.putAll( filterDefinitions );
 	}
 
 	public void setFilterCachingStrategy(FilterCachingStrategy filterCachingStrategy) {
 		this.filterCachingStrategy = filterCachingStrategy;
 	}
 
-	public void setAnalyzers(Map<String, Analyzer> analyzers) {
-		this.analyzers = analyzers;
+	public void addAnalyzers(Map<String, Analyzer> analyzers) {
+		this.analyzers.putAll( analyzers );
 	}
 
 	public void setCacheBitResultsSize(int cacheBitResultsSize) {
@@ -185,6 +194,9 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 
 	public void setConfigurationProperties(Properties configurationProperties) {
 		this.configurationProperties = configurationProperties;
+		this.enlistWorkerInTransaction = ConfigurationParseHelper.getBooleanValue(
+				configurationProperties, Environment.WORKER_ENLIST_IN_TRANSACTION, false
+		);
 	}
 
 	public void setIndexHierarchy(PolymorphicIndexHierarchy indexHierarchy) {
@@ -294,8 +306,22 @@ public class MutableSearchFactoryState implements SearchFactoryState {
 		return indexManagerFactory;
 	}
 
+	@Override
+	public boolean enlistWorkerInTransaction() {
+		return enlistWorkerInTransaction;
+	}
+
 	public void setIndexManagerFactory(IndexManagerFactory indexManagerFactory) {
 		this.indexManagerFactory = indexManagerFactory;
+	}
+
+	@Override
+	public Statistics getStatistics() {
+		return statistics;
+	}
+
+	public void setStatistics(Statistics statistics) {
+		this.statistics = statistics;
 	}
 
 }

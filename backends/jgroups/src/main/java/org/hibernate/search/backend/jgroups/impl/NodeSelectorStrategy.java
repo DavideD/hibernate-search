@@ -21,13 +21,15 @@ import org.jgroups.View;
  *
  * A different {@literal NodeSelectorStrategy} can be chosen for each index.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 public interface NodeSelectorStrategy {
 
 	/**
 	 * Specifies if the current (local) node should apply
 	 * changes to the index.
+	 *
+	 * @return true if the local node is the owner
 	 */
 	boolean isIndexOwnerLocal();
 

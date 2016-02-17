@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -33,8 +34,8 @@ import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.apache.lucene.index.IndexableField;
 import org.apache.lucene.util.AttributeImpl;
 import org.apache.lucene.util.BytesRef;
-
 import org.hibernate.search.backend.LuceneWork;
+import org.hibernate.search.backend.spi.DeletionQuery;
 import org.hibernate.search.indexes.serialization.spi.LuceneFieldContext;
 import org.hibernate.search.indexes.serialization.spi.LuceneNumericFieldContext;
 import org.hibernate.search.indexes.serialization.spi.Serializer;
@@ -44,7 +45,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
 import static org.hibernate.search.indexes.serialization.impl.SerializationHelper.toByteArray;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard &lt;emmanuel@hibernate.org&gt;
  */
 public class AvroSerializer implements Serializer {
 	private static final Log log = LoggerFactory.make();
@@ -54,16 +55,17 @@ public class AvroSerializer implements Serializer {
 	private List<GenericRecord> operations;
 	private List<String> classReferences;
 	private GenericRecord document;
+
 	private final Protocol protocol;
 
 	public AvroSerializer(Protocol protocol) {
 		this.protocol = protocol;
-		this.classReferences = new ArrayList<String>();
+		this.classReferences = new ArrayList<>();
 	}
 
 	@Override
 	public void luceneWorks(List<LuceneWork> works) {
-		operations = new ArrayList<GenericRecord>( works.size() );
+		operations = new ArrayList<>( works.size() );
 	}
 
 	@Override
@@ -82,6 +84,16 @@ public class AvroSerializer implements Serializer {
 		GenericRecord purgeAll = new GenericData.Record( protocol.getType( "PurgeAll" ) );
 		purgeAll.put( "class", classRef );
 		operations.add( purgeAll );
+	}
+
+	@Override
+	public void addDeleteByQuery(String entityClassName, DeletionQuery deletionQuery) {
+		int classRef = getClassReference( entityClassName );
+		GenericRecord deleteByQuery = new GenericData.Record( protocol.getType( "DeleteByQuery" ) );
+		deleteByQuery.put( "class", classRef );
+		deleteByQuery.put( "key", deletionQuery.getQueryKey() );
+		deleteByQuery.put( "query", Arrays.asList( deletionQuery.serialize() ) );
+		operations.add( deleteByQuery );
 	}
 
 	private int getClassReference(String entityClassName) {
@@ -169,10 +181,10 @@ public class AvroSerializer implements Serializer {
 	@Override
 	public byte[] serialize() {
 		final ByteArrayOutputStream out = new ByteArrayOutputStream();
-		out.write( AvroSerializationProvider.getMajorVersion() );
-		out.write( AvroSerializationProvider.getMinorVersion() );
+		out.write( KnownProtocols.MAJOR_VERSION);
+		out.write( KnownProtocols.LATEST_MINOR_VERSION );
 		Schema msgSchema = protocol.getType( "Message" );
-		GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<GenericRecord>( msgSchema );
+		GenericDatumWriter<GenericRecord> writer = new GenericDatumWriter<>( msgSchema );
 		BinaryEncoder encoder = EncoderFactory.get().directBinaryEncoder( out, null );
 		GenericRecord message = new GenericData.Record( msgSchema );
 		message.put( "classReferences", classReferences );
@@ -190,17 +202,17 @@ public class AvroSerializer implements Serializer {
 
 	@Override
 	public void fields(List<IndexableField> fields) {
-		fieldables = new ArrayList<GenericRecord>( fields.size() );
+		fieldables = new ArrayList<>( fields.size() );
 	}
 
 	@Override
 	public void addIntNumericField(int value, LuceneNumericFieldContext context) {
-		GenericRecord numericField = createNumericfield( "NumericIntField", context );
+		GenericRecord numericField = createNumericField( "NumericIntField", context );
 		numericField.put( "value", value );
 		fieldables.add( numericField );
 	}
 
-	private GenericRecord createNumericfield(String schemaName, LuceneNumericFieldContext context) {
+	private GenericRecord createNumericField(String schemaName, LuceneNumericFieldContext context) {
 		GenericRecord numericField = new GenericData.Record( protocol.getType( schemaName ) );
 		numericField.put( "name", context.getName() );
 		numericField.put( "precisionStep", context.getPrecisionStep() );
@@ -214,21 +226,21 @@ public class AvroSerializer implements Serializer {
 
 	@Override
 	public void addLongNumericField(long value, LuceneNumericFieldContext context) {
-		GenericRecord numericField = createNumericfield( "NumericLongField", context );
+		GenericRecord numericField = createNumericField( "NumericLongField", context );
 		numericField.put( "value", value );
 		fieldables.add( numericField );
 	}
 
 	@Override
 	public void addFloatNumericField(float value, LuceneNumericFieldContext context) {
-		GenericRecord numericField = createNumericfield( "NumericFloatField", context );
+		GenericRecord numericField = createNumericField( "NumericFloatField", context );
 		numericField.put( "value", value );
 		fieldables.add( numericField );
 	}
 
 	@Override
 	public void addDoubleNumericField(double value, LuceneNumericFieldContext context) {
-		GenericRecord numericField = createNumericfield( "NumericDoubleField", context );
+		GenericRecord numericField = createNumericField( "NumericDoubleField", context );
 		numericField.put( "value", value );
 		fieldables.add( numericField );
 	}
@@ -267,9 +279,9 @@ public class AvroSerializer implements Serializer {
 	public void addFieldWithTokenStreamData(LuceneFieldContext context) {
 		GenericRecord field = createNormalField( "TokenStreamField", context );
 		List<List<AttributeImpl>> stream = context.getTokenStream().getStream();
-		List<List<Object>> value = new ArrayList<List<Object>>( stream.size() );
+		List<List<Object>> value = new ArrayList<>( stream.size() );
 		for ( List<AttributeImpl> attrs : stream ) {
-			List<Object> elements = new ArrayList<Object>( attrs.size() );
+			List<Object> elements = new ArrayList<>( attrs.size() );
 			for ( AttributeImpl attr : attrs ) {
 				elements.add( buildAttributeImpl( attr ) );
 			}
@@ -346,6 +358,28 @@ public class AvroSerializer implements Serializer {
 		GenericRecord customFieldable = new GenericData.Record( protocol.getType( "CustomFieldable" ) );
 		customFieldable.put( "instance", ByteBuffer.wrap( fieldable ) );
 		fieldables.add( customFieldable );
+	}
+
+	@Override
+	public void addDocValuesFieldWithBinaryValue(LuceneFieldContext context) {
+		GenericRecord record = new GenericData.Record( protocol.getType( "BinaryDocValuesField" ) );
+		record.put( "name", context.getName() );
+		record.put( "type", context.getDocValuesType() );
+
+		BytesRef binaryValue = context.getBinaryValue();
+		record.put( "value", ByteBuffer.wrap( binaryValue.bytes, binaryValue.offset, binaryValue.length ) );
+		record.put( "offset", 0 );
+		record.put( "length", binaryValue.length );
+		fieldables.add( record );
+	}
+
+	@Override
+	public void addDocValuesFieldWithNumericValue(long value, LuceneFieldContext context) {
+		GenericRecord record = new GenericData.Record( protocol.getType( "NumericDocValuesField" ) );
+		record.put( "name", context.getName() );
+		record.put( "type", context.getDocValuesType() );
+		record.put( "value", value );
+		fieldables.add( record );
 	}
 
 	@Override

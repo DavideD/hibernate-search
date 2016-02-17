@@ -6,8 +6,9 @@
  */
 package org.hibernate.search.testsupport;
 
-import java.io.File;
-import java.net.URL;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.core.KeywordAnalyzer;
@@ -15,14 +16,13 @@ import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.util.Version;
-
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
  * Collects static constants used across several tests.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public final class TestConstants {
 
@@ -32,6 +32,7 @@ public final class TestConstants {
 	public static final Analyzer keywordAnalyzer = new KeywordAnalyzer();
 
 	private static final Log log = LoggerFactory.make();
+	private static final CallerProvider callerProvider = new CallerProvider();
 
 	private TestConstants() {
 		//not allowed
@@ -42,42 +43,53 @@ public final class TestConstants {
 	}
 
 	/**
-	 * Returns the target directory of the build.
-	 *
-	 * @param testClass the test class for which the target directory is requested.
-	 * @return the target directory of the build
+	 * Returns a temporary directory for storing test data such as indexes etc. Specific tests should store their data
+	 * in sub-directories. The returned directory will be deleted on graceful shut-down. The returned directory will be
+	 * named like {@code $TEMP/hsearch-tests-<random>}.
 	 */
-	public static File getTargetDir(Class<?> testClass) {
-		ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-		// get a URL reference to something we now is part of the classpath (our own classes)
-		String currentTestClass = testClass.getName();
-		int hopsToCompileDirectory = currentTestClass.split( "\\." ).length;
-		int hopsToTargetDirectory = hopsToCompileDirectory + 1;
-		URL classURL = contextClassLoader.getResource( currentTestClass.replace( '.', '/' ) + ".class" );
-		// navigate back to '/target'
-		File targetDir = new File( classURL.getFile() );
-		// navigate back to '/target'
-		for ( int i = 0; i < hopsToTargetDirectory; i++ ) {
-			targetDir = targetDir.getParentFile();
+	public static Path getTempTestDataDir() {
+		try {
+			Path tempTestDataDir = Files.createTempDirectory( "hsearch-tests-" );
+			tempTestDataDir.toFile().deleteOnExit();
+
+			return tempTestDataDir;
 		}
-		return targetDir;
+		catch (IOException e) {
+			throw new RuntimeException( "Could not create temporary directory for tests", e );
+		}
 	}
 
 	/**
-	 * Return the root directory to store test indexes in. Tests should never use or delete this directly
-	 * but rather nest sub directories in it to avoid interferences across tests.
+	 * Doing the same as {@link #getIndexDirectory(Path, Class)}, using the immediate caller class as requester.
+	 */
+	public static String getIndexDirectory(Path parent) {
+		return getIndexDirectory( parent, callerProvider.getCallerClass() );
+	}
+
+	/**
+	 * Return the root directory to store test indexes in. Tests should never use or delete this directly but rather
+	 * nest sub directories in it to avoid interferences across tests.
 	 *
-	 * @param testClass the test class for which the index directory is requested.
+	 * @param requester The test class requesting the index directory, its name will be part of the returned directory
 	 * @return Return the root directory to store test indexes
 	 */
-	public static String getIndexDirectory(Class<?> testClass) {
-		File targetDir = getTargetDir( testClass );
-		String indexDirPath = targetDir.getAbsolutePath() + File.separator + "indextemp";
-		log.debugf( "Using %s as index directory.", indexDirPath );
-		return indexDirPath;
+	public static String getIndexDirectory(Path parent, Class<?> requester) {
+		Path indexDirPath = parent.resolve( "indextemp-" + requester.getSimpleName() );
+		indexDirPath.toFile().deleteOnExit();
+
+		String indexDir = indexDirPath.toAbsolutePath().toString();
+		log.debugf( "Using %s as index directory.", indexDir );
+		return indexDir;
 	}
 
 	public static boolean arePerformanceTestsEnabled() {
 		return Boolean.getBoolean( "org.hibernate.search.enable_performance_tests" );
+	}
+
+	private static class CallerProvider extends SecurityManager {
+
+		public Class<?> getCallerClass() {
+			return getClassContext()[2];
+		}
 	}
 }

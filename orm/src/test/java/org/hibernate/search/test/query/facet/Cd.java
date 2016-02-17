@@ -11,15 +11,16 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.DateBridge;
-import org.hibernate.search.annotations.EncodingType;
+import org.hibernate.search.annotations.Facet;
 import org.hibernate.search.annotations.Field;
-import org.hibernate.search.annotations.Fields;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Resolution;
 
@@ -34,17 +35,16 @@ public class Cd {
 	@GeneratedValue
 	private int id;
 
-	@Fields({
-			@Field,
-			@Field(name = "name_un_analyzed", analyze = Analyze.NO)
-	})
+	@Field
 	private String name;
 
 	@Field(analyze = Analyze.NO)
+	@Facet
 	private int price;
 
 	@Field(analyze = Analyze.NO)
-	@DateBridge(resolution = Resolution.YEAR, encoding = EncodingType.STRING)
+	@DateBridge(resolution = Resolution.YEAR)
+	@Facet
 	private Date releaseYear;
 
 	public Cd() {
@@ -53,7 +53,7 @@ public class Cd {
 	public Cd(String name, int price, String releaseYear) {
 		this.name = name;
 		this.price = price;
-		DateFormat formatter = new SimpleDateFormat( "yyyy" );
+		DateFormat formatter = new SimpleDateFormat( "yyyy", Locale.ROOT );
 		try {
 			this.releaseYear = formatter.parse( releaseYear );
 		}

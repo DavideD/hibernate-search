@@ -1,6 +1,6 @@
 # Hibernate Search
 
-*Version: 5.0.1.Final*
+*Version: 5.6.0.Alpha1*
 
 ## Description
 
@@ -19,8 +19,8 @@ Hibernate Search is using [Apache Lucene](http://lucene.apache.org/) under the c
 
 This version of Hibernate Search requires:
 
-* Hibernate Core 4.3.x
-* Apache Lucene 4.10.x
+* Hibernate ORM 5.0.x
+* Apache Lucene 5.4.x
 
 ## Instructions
 
@@ -31,7 +31,7 @@ Include the following to your dependency list:
     <dependency>
        <groupId>org.hibernate</groupId>
        <artifactId>hibernate-search-orm</artifactId>
-       <version>5.0.1.Final</version>
+       <version>5.6.0.Alpha1</version>
     </dependency>
 
 ### Sourceforge Bundle
@@ -79,12 +79,8 @@ The project is split in several Maven modules:
 
 * _engine_: The engine of the project. Most of the beef is here.
 
-* _infinispan_: Backend storing indexes in [Infinispan](http://infinispan.org/).
-
 * _integrationtest_: Integration tests with various technologies like WildFly, Spring or Karaf.
 Also includes performance tests.
-
-* _legacy_: Old Maven GAV kept for backward compatibility.
 
 * _modules_: Integration with [WildFly](http://www.wildfly.org/) using JBoss Modules.
 

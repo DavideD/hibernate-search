@@ -11,7 +11,7 @@
     <parent>
         <artifactId>hibernate-search-parent</artifactId>
         <groupId>org.hibernate</groupId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.6.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -28,6 +28,14 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-backward-codecs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-misc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
@@ -185,9 +193,26 @@
                 <configuration>
                     <instructions>
                         <Import-Package>
-                            org.hibernate.annotations.common.*;version="[4,5)",
-                            org.apache.lucene.*;version="[4.10.0,4.11.0)",
-                            org.jboss.logging.*;version="[3.1,4.0.0)",
+                            org.hibernate.annotations.common.*;version="${hibernateHcannOsgiRangeVersion}",
+                            org.apache.lucene;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.analysis;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.analysis.core;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.analysis.standard;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.analysis.tokenattributes;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.analysis.util;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.document;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.facet;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.facet.range;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.facet.sortedset;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.index;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.queries.mlt;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.search;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.search.similarities;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.store;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.uninverting;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.util;version="${luceneOsgiRangeVersion}",
+                            org.apache.lucene.util.automaton;version="${luceneOsgiRangeVersion}",
+                            org.jboss.logging.*;version="${jbossLoggingOsgiRangeVersion}",
                             org.apache.tika.*;version="[${tikaVersion}, 1.5)";resolution:=optional,
                             javax.transaction.*;version="0";resolution:=optional
                         </Import-Package>
@@ -224,6 +249,7 @@
                             org.hibernate.search.query.dsl;version="${project.version}",
                             org.hibernate.search.query.engine;version="${project.version}",
                             org.hibernate.search.query.engine.spi;version="${project.version}",
+                            org.hibernate.search.query.engine.impl;version="${project.version}",
                             org.hibernate.search.query.facet;version="${project.version}",
                             org.hibernate.search.query.fieldcache;version="${project.version}",
                             org.hibernate.search.spatial;version="${project.version}",
@@ -232,6 +258,7 @@
                             org.hibernate.search.stat;version="${project.version}",
                             org.hibernate.search.stat.spi;version="${project.version}",
                             org.hibernate.search.store;version="${project.version}",
+                            org.hibernate.search.store.spi;version="${project.version}",
                             org.hibernate.search.store.optimization;version="${project.version}",
                             org.hibernate.search.util;version="${project.version}",
                             org.hibernate.search.util.impl;version="${project.version}",

@@ -6,9 +6,9 @@
  */
 package org.hibernate.search.test.performance;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -17,10 +17,11 @@ import javax.persistence.PersistenceContext;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.test.integration.wildfly.PackagerHelper;
 import org.hibernate.search.test.performance.scenario.TestScenario;
 import org.hibernate.search.test.performance.scenario.TestScenarioFactory;
+import org.hibernate.search.test.performance.util.TargetDirHelper;
+import org.hibernate.search.testsupport.TestConstants;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.Archive;
@@ -48,22 +49,24 @@ public class TestRunnerArquillian {
 	public static final String TARGET_DIR_KEY = "target";
 
 	@Deployment
-	public static Archive<?> createTestArchive() throws IOException {
+	public static Archive<?> createTestArchive() throws Exception {
 		WebArchive archive = ShrinkWrap
 				.create( WebArchive.class, TestRunnerArquillian.class.getSimpleName() + ".war" )
 				.addPackages( true, TestRunnerArquillian.class.getPackage() )
 				.addClass( TestConstants.class )
 				.addAsResource( createPersistenceXml(), "META-INF/persistence.xml" )
+				.addAsWebInfResource( "jboss-deployment-structure-hcann.xml", "/jboss-deployment-structure.xml" )
 				.addAsLibraries( PackagerHelper.hibernateSearchLibraries() )
+				.addAsLibraries( PackagerHelper.hibernateSearchTestingLibraries() )
 				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" )
 				.add( manifest(), "META-INF/MANIFEST.MF" )
 				.addAsWebInfResource( reportsOutputDirectory(), "classes/" + RUNNER_PROPERTIES );
 		return archive;
 	}
 
-	private static StringAsset reportsOutputDirectory() throws IOException {
-		File path = TestConstants.getTargetDir( TestRunnerArquillian.class );
-		String absolutePath = path.getAbsolutePath();
+	private static StringAsset reportsOutputDirectory() throws Exception {
+		Path path = TargetDirHelper.getTargetDir();
+		String absolutePath = path.toAbsolutePath().toString();
 		//Use Properties to make sure we encode the output correctly,
 		//especially tricky to deal with escaping of paths:
 		Properties runnerProperties = new Properties();
@@ -82,8 +85,6 @@ public class TestRunnerArquillian {
 				.jtaDataSource( System.getProperty( "datasource", "java:jboss/datasources/ExampleDS" ) );
 
 		Properties properties = scenario.getHibernateProperties();
-		properties.setProperty( "hibernate.transaction.factory_class", "org.hibernate.engine.transaction.internal.jta.JtaTransactionFactory" );
-
 		for ( Entry<Object, Object> property : properties.entrySet() ) {
 			pu.getOrCreateProperties().
 					createProperty().
@@ -105,7 +106,7 @@ public class TestRunnerArquillian {
 	private EntityManager em;
 
 	@Test
-	public void runPerformanceTest() {
+	public void runPerformanceTest() throws IOException {
 		SessionFactory sf = em.unwrap( Session.class ).getSessionFactory();
 		scenario.run( sf );
 	}

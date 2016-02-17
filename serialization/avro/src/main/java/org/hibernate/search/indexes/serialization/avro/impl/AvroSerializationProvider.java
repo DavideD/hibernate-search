@@ -6,14 +6,10 @@
  */
 package org.hibernate.search.indexes.serialization.avro.impl;
 
-import java.util.Properties;
-
-import org.hibernate.search.engine.service.spi.Startable;
 import org.hibernate.search.indexes.serialization.avro.logging.impl.Log;
 import org.hibernate.search.indexes.serialization.spi.Deserializer;
 import org.hibernate.search.indexes.serialization.spi.SerializationProvider;
 import org.hibernate.search.indexes.serialization.spi.Serializer;
-import org.hibernate.search.spi.BuildContext;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
@@ -21,7 +17,6 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * <p>
  * Parsing code inspired by http://www.infoq.com/articles/ApacheAvro
  * from Boris Lublinsky
- * </p>
  * <p>
  * Before the actual serialized flux, two bytes are reserved:
  * <ul>
@@ -31,19 +26,19 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  *
  * A major version increase implies an incompatible protocol change.
  * Messages of a {@code majorVersion > current version} should be refused.
- *
+ * <p>
  * A minor version increase implies a compatible protocol change.
  * Messages of a {@code minorVersion > current version} are parsed, but new
  * operation will be ignored or rejected.
- *
+ * <p>
  * If message's {@code major version is < current version}, then the
  * implementation is strongly encouraged to parse and process them.
  * It is mandatory if only message's {@code code minor version is < current version}.
- * </p>
  *
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard &lt;emmanuel@hibernate.org&gt;
+ * @author Hardy Ferentschik
  */
-public class AvroSerializationProvider implements SerializationProvider, Startable {
+public class AvroSerializationProvider implements SerializationProvider {
 
 	private static final Log log = LoggerFactory.make( Log.class );
 
@@ -60,10 +55,6 @@ public class AvroSerializationProvider implements SerializationProvider, Startab
 	public AvroSerializationProvider() {
 		log.serializationProtocol( getMajorVersion(), getMinorVersion() );
 		this.protocols = new KnownProtocols();
-	}
-
-	@Override
-	public void start(Properties properties, BuildContext context) {
 	}
 
 	@Override

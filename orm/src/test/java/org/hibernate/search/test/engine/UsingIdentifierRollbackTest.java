@@ -7,9 +7,9 @@
 package org.hibernate.search.test.engine;
 
 import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Session;
-
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.spi.SearchIntegrator;
@@ -17,7 +17,7 @@ import org.hibernate.search.test.Document;
 import org.hibernate.search.test.SearchTestBase;
 import org.hibernate.search.test.embedded.depth.PersonWithBrokenSocialSecurityNumber;
 import org.hibernate.search.test.errorhandling.MockErrorHandler;
-import org.hibernate.search.testsupport.backend.LeakingLuceneBackend;
+import org.hibernate.search.testsupport.backend.LeakingBackendQueueProcessor;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,30 +71,30 @@ public class UsingIdentifierRollbackTest extends SearchTestBase {
 		s.getTransaction().commit();
 		s.close();
 		Assert.assertNull( "unexpected exception detected", errorHandler.getLastException() );
-		List<LuceneWork> processedQueue = LeakingLuceneBackend.getLastProcessedQueue();
+		List<LuceneWork> processedQueue = LeakingBackendQueueProcessor.getLastProcessedQueue();
 		Assert.assertEquals( 1, processedQueue.size() );
 		LuceneWork luceneWork = processedQueue.get( 0 );
 		Assert.assertEquals( "100", luceneWork.getIdInString() );
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { Document.class, PersonWithBrokenSocialSecurityNumber.class };
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
+	public void configure(Map<String,Object> cfg) {
 		super.configure( cfg );
-		cfg.setProperty( "hibernate.use_identifier_rollback", "true" );
-		cfg.setProperty( Environment.ERROR_HANDLER, MockErrorHandler.class.getName() );
-		cfg.setProperty( "hibernate.search.default.worker.backend", LeakingLuceneBackend.class.getName() );
+		cfg.put( "hibernate.use_identifier_rollback", "true" );
+		cfg.put( Environment.ERROR_HANDLER, MockErrorHandler.class.getName() );
+		cfg.put( "hibernate.search.default.worker.backend", LeakingBackendQueueProcessor.class.getName() );
 	}
 
 	@Override
 	@After
 	public void tearDown() throws Exception {
 		super.tearDown();
-		LeakingLuceneBackend.reset();
+		LeakingBackendQueueProcessor.reset();
 	}
 
 }

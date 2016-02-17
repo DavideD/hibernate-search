@@ -48,7 +48,7 @@ public class NestedEmbeddedTest extends SearchTestBase {
 		tx.commit();
 
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "attributes.values.value", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "attributes.values.value", TestConstants.standardAnalyzer );
 		Query query;
 		List<?> result;
 
@@ -105,7 +105,7 @@ public class NestedEmbeddedTest extends SearchTestBase {
 		tx.commit();
 
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "placesVisited.address.city", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "placesVisited.address.city", TestConstants.standardAnalyzer );
 		Query query;
 		List<?> result;
 
@@ -143,12 +143,7 @@ public class NestedEmbeddedTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-	}
-
-	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Product.class, Attribute.class, AttributeValue.class, Person.class, Place.class, Address.class
 		};

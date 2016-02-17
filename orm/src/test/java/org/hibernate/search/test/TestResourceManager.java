@@ -7,14 +7,12 @@
 
 package org.hibernate.search.test;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
 
 import org.apache.lucene.store.Directory;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.SearchFactory;
 import org.hibernate.search.spi.SearchIntegrator;
 
@@ -24,8 +22,6 @@ import org.hibernate.search.spi.SearchIntegrator;
  * @author Hardy Ferentschik
  */
 public interface TestResourceManager {
-
-	Configuration getCfg();
 
 	void openSessionFactory();
 
@@ -43,11 +39,8 @@ public interface TestResourceManager {
 
 	Directory getDirectory(Class<?> clazz);
 
-	void ensureIndexesAreEmpty();
+	void ensureIndexesAreEmpty() throws IOException;
 
-	File getBaseIndexDir();
+	Path getBaseIndexDir();
 
-	void forceConfigurationRebuild();
-
-	boolean needsConfigurationRebuild();
 }

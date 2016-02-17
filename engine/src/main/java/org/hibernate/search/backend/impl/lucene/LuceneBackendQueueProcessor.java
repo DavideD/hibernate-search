@@ -15,6 +15,7 @@ import org.hibernate.search.backend.IndexingMonitor;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.spi.BackendQueueProcessor;
 import org.hibernate.search.indexes.spi.DirectoryBasedIndexManager;
+import org.hibernate.search.indexes.spi.IndexManager;
 import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
@@ -40,14 +41,14 @@ public class LuceneBackendQueueProcessor implements BackendQueueProcessor {
 	private WorkProcessor workProcessor;
 
 	@Override
-	public void initialize(Properties props, WorkerBuildContext context, DirectoryBasedIndexManager indexManager) {
+	public void initialize(Properties props, WorkerBuildContext context, IndexManager indexManager) {
 		sync = BackendFactory.isConfiguredAsSync( props );
 		if ( workspaceOverride == null ) {
 			workspaceOverride = WorkspaceFactory.createWorkspace(
-					indexManager, context, props
+					(DirectoryBasedIndexManager) indexManager, context, props
 			);
 		}
-		resources = new LuceneBackendResources( context, indexManager, props, workspaceOverride );
+		resources = new LuceneBackendResources( context, (DirectoryBasedIndexManager) indexManager, props, workspaceOverride );
 		streamWorker = new LuceneBackendTaskStreamer( resources );
 		String indexName = indexManager.getIndexName();
 		if ( sync ) {
@@ -64,8 +65,9 @@ public class LuceneBackendQueueProcessor implements BackendQueueProcessor {
 
 	@Override
 	public void close() {
-		resources.shutdown();
+		//The order is important! The work processor uses the resources.
 		workProcessor.shutdown();
+		resources.shutdown();
 	}
 
 	@Override
@@ -94,7 +96,7 @@ public class LuceneBackendQueueProcessor implements BackendQueueProcessor {
 	}
 
 	/**
-	 * If invoked before {@link #initialize(Properties, WorkerBuildContext, DirectoryBasedIndexManager)}
+	 * If invoked before {@link #initialize(Properties, WorkerBuildContext, IndexManager)}
 	 * it can set a customized Workspace instance to be used by this backend.
 	 *
 	 * @param workspace the new workspace
@@ -107,6 +109,14 @@ public class LuceneBackendQueueProcessor implements BackendQueueProcessor {
 	public void indexMappingChanged() {
 		resources = resources.onTheFlyRebuild();
 		workProcessor.updateResources( resources );
+	}
+
+	@Override
+	public void closeIndexWriter() {
+		LuceneBackendResources backendResources = resources;
+		if ( backendResources != null ) {
+			backendResources.getWorkspace().closeIndexWriter();
+		}
 	}
 
 }

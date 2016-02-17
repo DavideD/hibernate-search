@@ -12,24 +12,15 @@ import java.util.Set;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.Token;
 import org.apache.lucene.queryparser.classic.QueryParser;
-
 import org.hibernate.Transaction;
-
-import org.hibernate.annotations.common.reflection.ReflectionManager;
-import org.hibernate.annotations.common.reflection.XClass;
-import org.hibernate.boot.registry.classloading.internal.ClassLoaderServiceImpl;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.SearchFactory;
 import org.hibernate.search.exception.SearchException;
-import org.hibernate.search.cfg.impl.SearchConfigurationFromHibernateCore;
-import org.hibernate.search.engine.impl.ConfigContext;
-import org.hibernate.search.engine.metadata.impl.AnnotationMetadataProvider;
-import org.hibernate.search.engine.metadata.impl.MetadataProvider;
 import org.hibernate.search.test.SearchTestBase;
+import org.hibernate.search.test.util.FullTextSessionBuilder;
 import org.hibernate.search.testsupport.TestConstants;
-import org.hibernate.search.testsupport.setup.BuildContextForTest;
 import org.hibernate.search.util.AnalyzerUtils;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
@@ -70,16 +61,12 @@ public class AnalyzerTest extends SearchTestBase {
 
 		// at query time we use a standard analyzer. We explicitly search for tokens which can only be found if the
 		// right language specific stemmer was used at index time
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"references.text",
-				TestConstants.standardAnalyzer
-		);
+		QueryParser parser = new QueryParser( "references.text", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "aufeinanderschlug" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery );
 		assertEquals( 1, query.getResultSize() );
 
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "text", TestConstants.standardAnalyzer );
+		parser = new QueryParser( "text", TestConstants.standardAnalyzer );
 		luceneQuery = parser.parse( "acknowledg" );
 		query = s.createFullTextQuery( luceneQuery );
 		assertEquals( 1, query.getResultSize() );
@@ -90,20 +77,10 @@ public class AnalyzerTest extends SearchTestBase {
 
 	@Test
 	public void testMultipleAnalyzerDiscriminatorDefinitions() {
-		SearchConfigurationFromHibernateCore searchConfig = new SearchConfigurationFromHibernateCore(
-				getCfg(),
-				new ClassLoaderServiceImpl() // ORM internal class. Should be ok for testing (HF)
-		);
-		ReflectionManager reflectionManager = searchConfig.getReflectionManager();
-		XClass xclass = reflectionManager.toXClass( BlogEntry.class );
-		ConfigContext context = new ConfigContext( searchConfig, new BuildContextForTest( searchConfig ) );
-		MetadataProvider metadataProvider = new AnnotationMetadataProvider(
-				searchConfig.getReflectionManager(),
-				context
-		);
-
+		FullTextSessionBuilder builder = new FullTextSessionBuilder();
+		builder.addAnnotatedClass( BlogEntry.class );
 		try {
-			metadataProvider.getTypeMetadataFor( reflectionManager.toClass( xclass ) );
+			builder.build();
 			fail();
 		}
 		catch (SearchException e) {
@@ -128,11 +105,7 @@ public class AnalyzerTest extends SearchTestBase {
 		tx.commit();
 
 		tx = s.beginTransaction();
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				"id",
-				TestConstants.standardAnalyzer
-		);
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		org.apache.lucene.search.Query luceneQuery = parser.parse( "entity:alarm" );
 		FullTextQuery query = s.createFullTextQuery( luceneQuery, MyEntity.class );
 		assertEquals( 1, query.getResultSize() );
@@ -218,7 +191,7 @@ public class AnalyzerTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { MyEntity.class, Article.class };
 	}
 }

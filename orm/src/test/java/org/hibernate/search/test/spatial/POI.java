@@ -6,23 +6,23 @@
  */
 package org.hibernate.search.test.spatial;
 
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+
 import org.hibernate.search.annotations.Analyze;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Index;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
-import org.hibernate.search.spatial.SpatialFieldBridgeByHash;
 import org.hibernate.search.spatial.Coordinates;
-
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import org.hibernate.search.spatial.SpatialFieldBridgeByHash;
 
 /**
  * Hibernate Search spatial : Point Of Interest test entity
  *
- * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
+ * @author Nicolas Helleringer
  */
 @Entity
 @Indexed
@@ -90,4 +90,20 @@ public class POI {
 		return type;
 	}
 
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append( "POI [id=" );
+		builder.append( id );
+		builder.append( ", name=" );
+		builder.append( name );
+		builder.append( ", type=" );
+		builder.append( type );
+		builder.append( ", latitude=" );
+		builder.append( latitude );
+		builder.append( ", longitude=" );
+		builder.append( longitude );
+		builder.append( "]" );
+		return builder.toString();
+	}
 }

@@ -6,19 +6,27 @@
  */
 package org.hibernate.search.engine.metadata.impl;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Field;
+
 import org.hibernate.search.annotations.NumericField;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.bridge.FieldBridge;
+import org.hibernate.search.engine.impl.nullencoding.NotEncodingCodec;
+import org.hibernate.search.engine.impl.nullencoding.NullMarkerCodec;
 
 import static org.hibernate.search.metadata.NumericFieldSettingsDescriptor.NumericEncodingType;
 
 /**
- * Encapsulating the metadata for a single document field.
+ * Encapsulating the metadata for a single field within a Lucene {@code Document}.
  *
  * @author Hardy Ferentschik
  */
+@SuppressWarnings("deprecation")
 public class DocumentFieldMetadata {
 	private final String fieldName;
 	private final Store store;
@@ -29,10 +37,12 @@ public class DocumentFieldMetadata {
 	private final Analyzer analyzer;
 	private final boolean isId;
 	private final boolean isIdInEmbedded;
-	private final String nullToken;
+	private final NullMarkerCodec nullMarkerCodec;
 	private final boolean isNumeric;
+	private final boolean isSpatial;
 	private final int precisionStep;
 	private final NumericEncodingType numericEncodingType;
+	private final Set<FacetMetadata> facetMetadata;
 
 	private DocumentFieldMetadata(Builder builder) {
 		this.fieldName = builder.fieldName;
@@ -44,21 +54,29 @@ public class DocumentFieldMetadata {
 		this.analyzer = builder.analyzer;
 		this.isId = builder.isId;
 		this.isIdInEmbedded = builder.isIdInEmbedded;
-		this.nullToken = builder.nullToken;
+		this.nullMarkerCodec = builder.nullMarkerCodec;
 		this.isNumeric = builder.isNumeric;
+		this.isSpatial = builder.isSpatial;
 		this.precisionStep = builder.precisionStep;
 		this.numericEncodingType = builder.numericEncodingType;
+		this.facetMetadata = Collections.unmodifiableSet( builder.facetMetadata );
 	}
 
 	public String getName() {
 		return fieldName;
 	}
 
-	public boolean isId() { return isId; }
+	public boolean isId() {
+		return isId;
+	}
 
-	public boolean isIdInEmbedded() { return isIdInEmbedded; }
+	public boolean isIdInEmbedded() {
+		return isIdInEmbedded;
+	}
 
-	public Store getStore() { return store; }
+	public Store getStore() {
+		return store;
+	}
 
 	public Field.Index getIndex() {
 		return index;
@@ -81,11 +99,15 @@ public class DocumentFieldMetadata {
 	}
 
 	public String indexNullAs() {
-		return nullToken;
+		return nullMarkerCodec.nullRepresentedAsString();
 	}
 
 	public boolean isNumeric() {
 		return isNumeric;
+	}
+
+	public boolean isSpatial() {
+		return isSpatial;
 	}
 
 	public Integer getPrecisionStep() {
@@ -94,6 +116,18 @@ public class DocumentFieldMetadata {
 
 	public NumericEncodingType getNumericEncodingType() {
 		return numericEncodingType;
+	}
+
+	public boolean hasFacets() {
+		return !facetMetadata.isEmpty();
+	}
+
+	public String getFieldName() {
+		return fieldName;
+	}
+
+	public Set<FacetMetadata> getFacetMetadata() {
+		return facetMetadata;
 	}
 
 	@Override
@@ -108,10 +142,12 @@ public class DocumentFieldMetadata {
 				", analyzer=" + analyzer +
 				", isId=" + isId +
 				", isIdInEmbedded=" + isIdInEmbedded +
-				", nullToken='" + nullToken + '\'' +
+				", nullToken='" + nullMarkerCodec.nullRepresentedAsString() + '\'' +
 				", isNumeric=" + isNumeric +
+				", isSpatial=" + isSpatial +
 				", precisionStep=" + precisionStep +
-				", encodingType=" + numericEncodingType +
+				", numericEncodingType=" + numericEncodingType +
+				", facetMetadata=" + facetMetadata +
 				'}';
 	}
 
@@ -128,10 +164,12 @@ public class DocumentFieldMetadata {
 		private Analyzer analyzer;
 		private boolean isId;
 		private boolean isIdInEmbedded;
-		private String nullToken;
 		private boolean isNumeric;
+		private boolean isSpatial;
 		private int precisionStep = NumericField.PRECISION_STEP_DEFAULT;
 		private NumericEncodingType numericEncodingType;
+		private Set<FacetMetadata> facetMetadata;
+		private NullMarkerCodec nullMarkerCodec = NotEncodingCodec.SINGLETON;
 
 		public Builder(String fieldName,
 				Store store,
@@ -142,6 +180,7 @@ public class DocumentFieldMetadata {
 			this.store = store;
 			this.index = index;
 			this.termVector = termVector;
+			this.facetMetadata = new HashSet<>( 1 ); // the most common case is a single facet
 		}
 
 		public Builder fieldBridge(FieldBridge fieldBridge) {
@@ -169,13 +208,18 @@ public class DocumentFieldMetadata {
 			return this;
 		}
 
-		public Builder indexNullAs(String nullToken) {
-			this.nullToken = nullToken;
+		public Builder indexNullAs(NullMarkerCodec nullMarkerCodec) {
+			this.nullMarkerCodec = nullMarkerCodec;
 			return this;
 		}
 
 		public Builder numeric() {
 			this.isNumeric = true;
+			return this;
+		}
+
+		public Builder spatial() {
+			this.isSpatial = true;
 			return this;
 		}
 
@@ -186,6 +230,11 @@ public class DocumentFieldMetadata {
 
 		public Builder numericEncodingType(NumericEncodingType numericEncodingType) {
 			this.numericEncodingType = numericEncodingType;
+			return this;
+		}
+
+		public Builder addFacetMetadata(FacetMetadata facetMetadata) {
+			this.facetMetadata.add( facetMetadata );
 			return this;
 		}
 
@@ -200,6 +249,7 @@ public class DocumentFieldMetadata {
 					'}';
 		}
 	}
+
 }
 
 

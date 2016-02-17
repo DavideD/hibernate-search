@@ -6,7 +6,7 @@
  ~ See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
   -->
 <assembly>
-    <id>wildfly-8-dist</id>
+    <id>wildfly-10-dist</id>
     <formats>
         <format>zip</format>
         <format>dir</format> <!-- For ease of debugging only -->
@@ -18,6 +18,11 @@
         <file>
             <source>${module.xml.basedir}/lucene/module.xml</source>
             <outputDirectory>/org/apache/lucene/${lucene.module.slot}</outputDirectory>
+            <filtered>true</filtered>
+        </file>
+        <file>
+            <source>${module.xml.basedir}/lucene_internal/module.xml</source>
+            <outputDirectory>/org/apache/lucene/internal/${lucene.module.slot}</outputDirectory>
             <filtered>true</filtered>
         </file>
         <file>
@@ -51,8 +56,8 @@
             <filtered>true</filtered>
         </file>
         <file>
-            <source>${module.xml.basedir}/search/infinispan-storage/module.xml</source>
-            <outputDirectory>/org/hibernate/search/infinispan-storage/${infinispan.integration.slot}</outputDirectory>
+            <source>${module.xml.basedir}/search/backend-jgroups/module.xml</source>
+            <outputDirectory>/org/hibernate/search/backend-jgroups/${hibernate.search.version}</outputDirectory>
             <filtered>true</filtered>
         </file>
     </files>
@@ -80,6 +85,16 @@
 
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
+            <outputDirectory>org/hibernate/search/backend-jgroups/${hibernate.search.version}</outputDirectory>
+            <useTransitiveFiltering>false</useTransitiveFiltering>
+            <unpack>false</unpack>
+            <includes>
+                <include>org.hibernate:hibernate-search-backend-jgroups</include>
+            </includes>
+        </dependencySet>
+
+        <dependencySet>
+            <useProjectArtifact>false</useProjectArtifact>
             <outputDirectory>org/hibernate/search/orm/${hibernate.search.version}</outputDirectory>
             <useTransitiveFiltering>false</useTransitiveFiltering>
             <unpack>false</unpack>
@@ -100,25 +115,27 @@
 
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>org/hibernate/search/infinispan-storage/${infinispan.integration.slot}</outputDirectory>
+            <outputDirectory>org/apache/lucene/${lucene.module.slot}</outputDirectory>
             <useTransitiveFiltering>false</useTransitiveFiltering>
             <unpack>false</unpack>
             <includes>
-                <include>org.hibernate:hibernate-search-infinispan</include>
+                <include>org.apache.lucene:lucene-core</include>
+                <include>org.apache.lucene:lucene-queryparser</include>
+                <include>org.apache.lucene:lucene-queries</include>
+                <include>org.apache.lucene:lucene-facet</include>
+                <include>org.apache.lucene:lucene-analyzers-common</include>
             </includes>
         </dependencySet>
 
         <dependencySet>
             <useProjectArtifact>false</useProjectArtifact>
-            <outputDirectory>org/apache/lucene/${lucene.module.slot}</outputDirectory>
+            <outputDirectory>org/apache/lucene/internal/${lucene.module.slot}</outputDirectory>
             <useTransitiveFiltering>false</useTransitiveFiltering>
             <unpack>false</unpack>
             <includes>
-                <include>org.apache.lucene:*</include>
+                <include>org.apache.lucene:lucene-backward-codecs</include>
+                <include>org.apache.lucene:lucene-misc</include>
             </includes>
-            <excludes>
-                <exclude>org.apache.lucene:lucene-sandbox</exclude>
-            </excludes>
         </dependencySet>
 
     </dependencySets>

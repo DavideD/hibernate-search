@@ -11,6 +11,7 @@ import java.util.Date;
 
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
+import org.hibernate.search.bridge.impl.JavaTimeBridgeProvider;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
@@ -43,33 +44,50 @@ public final class NumericFieldUtils {
 			throw log.rangeQueryWithNullToAndFromValue( fieldName );
 		}
 
-		if ( numericClass.isAssignableFrom( Double.class ) ) {
+		if ( Double.class.isAssignableFrom( numericClass ) ) {
 			return NumericRangeQuery.newDoubleRange( fieldName, (Double) from, (Double) to, includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Byte.class ) ) {
+		if ( Byte.class.isAssignableFrom( numericClass ) ) {
 			return NumericRangeQuery.newIntRange( fieldName, ( (Byte) from ).intValue(), ( (Byte) to ).intValue(), includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Short.class ) ) {
+		if ( Short.class.isAssignableFrom( numericClass ) ) {
 			return NumericRangeQuery.newIntRange( fieldName, ( (Short) from ).intValue(), ( (Short) to ).intValue(), includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Long.class ) ) {
+		if ( Long.class.isAssignableFrom( numericClass ) ) {
 			return NumericRangeQuery.newLongRange( fieldName, (Long) from, (Long) to, includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Integer.class ) ) {
+		if ( Integer.class.isAssignableFrom( numericClass ) ) {
 			return NumericRangeQuery.newIntRange( fieldName, (Integer) from, (Integer) to, includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Float.class ) ) {
+		if ( Float.class.isAssignableFrom( numericClass ) ) {
 			return NumericRangeQuery.newFloatRange( fieldName, (Float) from, (Float) to, includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Date.class ) ) {
+		if ( Date.class.isAssignableFrom( numericClass ) ) {
 			Long fromValue = from != null ? ((Date) from).getTime() : null;
 			Long toValue = to != null ? ((Date) to).getTime() : null;
 			return NumericRangeQuery.newLongRange( fieldName, fromValue, toValue, includeLower, includeUpper );
 		}
-		if ( numericClass.isAssignableFrom( Calendar.class ) ) {
+		if ( Calendar.class.isAssignableFrom( numericClass ) ) {
 			Long fromValue = from != null ? ((Calendar) from).getTime().getTime() : null;
 			Long toValue = to != null ? ((Calendar) to).getTime().getTime() : null;
 			return NumericRangeQuery.newLongRange( fieldName, fromValue, toValue, includeLower, includeUpper );
+		}
+		if ( JavaTimeBridgeProvider.isActive() ) {
+			if ( java.time.Duration.class.isAssignableFrom( numericClass ) ) {
+				Long fromValue = from != null ? ( (java.time.Duration) from ).toNanos() : null;
+				Long toValue = to != null ? ( (java.time.Duration) to ).toNanos() : null;
+				return NumericRangeQuery.newLongRange( fieldName, fromValue, toValue, includeLower, includeUpper );
+			}
+			if ( java.time.Year.class.isAssignableFrom( numericClass ) ) {
+				Integer fromValue = from != null ? ( (java.time.Year) from ).getValue() : null;
+				Integer toValue = to != null ? ( (java.time.Year) to ).getValue() : null;
+				return NumericRangeQuery.newIntRange( fieldName, fromValue, toValue, includeLower, includeUpper );
+			}
+			if ( java.time.Instant.class.isAssignableFrom( numericClass ) ) {
+				Long fromValue = from != null ? ( (java.time.Instant) from ).toEpochMilli() : null;
+				Long toValue = to != null ? ( (java.time.Instant) to ).toEpochMilli() : null;
+				return NumericRangeQuery.newLongRange( fieldName, fromValue, toValue, includeLower, includeUpper );
+			}
 		}
 
 		throw log.numericRangeQueryWithNonNumericToAndFromValues( fieldName );
@@ -100,10 +118,15 @@ public final class NumericFieldUtils {
 			return false;
 		}
 		final Class<?> numericClass = value.getClass();
-		return numericClass.isAssignableFrom( Double.class ) ||
-				numericClass.isAssignableFrom( Long.class ) ||
-				numericClass.isAssignableFrom( Integer.class ) ||
-				numericClass.isAssignableFrom( Float.class ) ||
-				numericClass.isAssignableFrom( Calendar.class );
+		return Double.class.isAssignableFrom( numericClass ) ||
+				Long.class.isAssignableFrom( numericClass ) ||
+				Integer.class.isAssignableFrom( numericClass ) ||
+				Float.class.isAssignableFrom( numericClass ) ||
+				Calendar.class.isAssignableFrom( numericClass ) ||
+				( JavaTimeBridgeProvider.isActive() && (
+					java.time.Instant.class.isAssignableFrom( numericClass ) ||
+					java.time.Year.class.isAssignableFrom( numericClass ) ||
+					java.time.Duration.class.isAssignableFrom( numericClass )
+				));
 	}
 }

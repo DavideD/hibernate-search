@@ -6,13 +6,14 @@
  */
 package org.hibernate.search.spatial.impl;
 
+import static org.hibernate.search.spatial.impl.CoordinateHelper.coordinate;
+
 import java.io.IOException;
 
-import org.apache.lucene.index.AtomicReader;
-import org.apache.lucene.index.AtomicReaderContext;
+import org.apache.lucene.index.LeafReader;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.NumericDocValues;
 import org.apache.lucene.search.DocIdSet;
-import org.apache.lucene.search.FieldCache;
-import org.apache.lucene.search.FieldCache.Doubles;
 import org.apache.lucene.search.Filter;
 import org.apache.lucene.search.FilteredDocIdSet;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -24,7 +25,7 @@ import org.hibernate.search.spatial.Coordinates;
  * Lucene Filter for filtering documents which have been indexed with Hibernate Search spatial Field bridge
  * Use double lat,long field in the index from a Coordinates field declaration
  *
- * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
+ * @author Nicolas Helleringer
  * @see org.hibernate.search.spatial.SpatialFieldBridgeByHash
  * @see org.hibernate.search.spatial.SpatialFieldBridgeByRange
  * @see org.hibernate.search.spatial.Coordinates
@@ -86,15 +87,17 @@ public final class DistanceFilter extends Filter {
 	}
 
 	/**
-	 * Returns Doc Ids by retrieving their lat,long and checking if within distance(radius) of the center of the search
+	 * Returns Doc Ids by retrieving their latitude,longitude and checking if within distance(radius) of the center of the search
 	 *
-	 * @param reader reader to the index
+	 * @param context the {@link LeafReaderContext} for which to return the {LeafReaderContext}.
+	 * @param acceptDocs Bits that represent the allowable docs to match (typically deleted docs but possibly filtering
+	 * other documents)
+	 *
+	 * @return a {@link DocIdSet} with the matching document ids
 	 */
 	@Override
-	public DocIdSet getDocIdSet(AtomicReaderContext context, Bits acceptDocs) throws IOException {
-		final AtomicReader atomicReader = context.reader();
-		final Doubles latitudeValues = FieldCache.DEFAULT.getDoubles( atomicReader, getLatitudeField(), false );
-		final Doubles longitudeValues = FieldCache.DEFAULT.getDoubles( atomicReader, getLongitudeField(), false );
+	public DocIdSet getDocIdSet(LeafReaderContext context, Bits acceptDocs) throws IOException {
+		final LeafReader atomicReader = context.reader();
 
 		DocIdSet docs = previousFilter.getDocIdSet( context, acceptDocs );
 
@@ -102,11 +105,15 @@ public final class DistanceFilter extends Filter {
 			return null;
 		}
 
+		final NumericDocValues latitudeValues = atomicReader.getNumericDocValues( getLatitudeField() );
+		final NumericDocValues longitudeValues = atomicReader.getNumericDocValues( getLongitudeField() );
+
 		return new FilteredDocIdSet( docs ) {
 			@Override
 			protected boolean match(int documentIndex) {
-
-				if ( center.getDistanceTo( latitudeValues.get( documentIndex ), longitudeValues.get( documentIndex ) ) <= radius ) {
+				double lat = coordinate( latitudeValues, documentIndex );
+				double lon = coordinate( longitudeValues, documentIndex );
+				if ( center.getDistanceTo( lat, lon ) <= radius ) {
 					return true;
 				}
 				else {
@@ -135,7 +142,7 @@ public final class DistanceFilter extends Filter {
 	}
 
 	@Override
-	public String toString() {
+	public String toString(String field) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append( "DistanceFilter" );
 		sb.append( "{previousFilter=" ).append( previousFilter );

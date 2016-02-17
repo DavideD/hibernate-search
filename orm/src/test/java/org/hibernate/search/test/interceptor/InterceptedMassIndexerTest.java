@@ -21,7 +21,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 @TestForIssue(jiraKey = "HSEARCH-1190")
 public class InterceptedMassIndexerTest extends SearchTestBase {
@@ -111,7 +111,7 @@ public class InterceptedMassIndexerTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] { Blog.class };
 	}
 

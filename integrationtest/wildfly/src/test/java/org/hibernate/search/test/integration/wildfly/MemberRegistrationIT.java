@@ -41,11 +41,12 @@ import org.junit.runner.RunWith;
 public class MemberRegistrationIT {
 
 	@Deployment
-	public static Archive<?> createTestArchive() {
+	public static Archive<?> createTestArchive() throws Exception {
 		WebArchive archive = ShrinkWrap
 				.create( WebArchive.class, MemberRegistrationIT.class.getSimpleName() + ".war" )
 				.addClasses( Member.class, MemberRegistration.class, Resources.class )
 				.addAsResource( persistenceXml(), "META-INF/persistence.xml" )
+				.addAsWebInfResource( "jboss-deployment-structure-hcann.xml", "/jboss-deployment-structure.xml" )
 				.addAsLibraries( PackagerHelper.hibernateSearchLibraries() )
 				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" );
 		return archive;
@@ -56,11 +57,14 @@ public class MemberRegistrationIT {
 			.version( "2.0" )
 			.createPersistenceUnit()
 				.name( "primary" )
+				// The deployment Scanner is disabled as the JipiJapa integration is not available because of the custom Hibernate ORM module:
+				.clazz( Member.class.getName() )
 				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
 				.getOrCreateProperties()
 					.createProperty().name( "hibernate.hbm2ddl.auto" ).value( "create-drop" ).up()
 					.createProperty().name( "hibernate.search.default.lucene_version" ).value( "LUCENE_CURRENT" ).up()
 					.createProperty().name( "hibernate.search.default.directory_provider" ).value( "ram" ).up()
+					.createProperty().name( "wildfly.jpa.hibernate.search.module" ).value( "none" ).up()
 				.up().up()
 			.exportAsString();
 		return new StringAsset( persistenceXml );

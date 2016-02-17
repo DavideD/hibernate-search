@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * @author Julie Ingignoli
- * @author Emmanuel Bernard <emmanuel@hibernate,org>
+ * @author Emmanuel Bernard
  */
 public class ResultSizeOnCriteriaTest extends SearchTestBase {
 
@@ -108,7 +108,7 @@ public class ResultSizeOnCriteriaTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Tractor.class
 		};

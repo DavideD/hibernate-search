@@ -20,7 +20,7 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.Store;
 
 @Entity
-@Indexed
+@Indexed(index = "membersIndex")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = "email"))
 public class RegisteredMember implements Serializable {
 
@@ -31,7 +31,7 @@ public class RegisteredMember implements Serializable {
 	@GeneratedValue
 	private Long id;
 
-	@Field(index = Index.YES, store = Store.NO)
+	@Field(index = Index.YES, store = Store.YES)
 	private String name;
 
 	@Field(index = Index.YES, store = Store.NO)

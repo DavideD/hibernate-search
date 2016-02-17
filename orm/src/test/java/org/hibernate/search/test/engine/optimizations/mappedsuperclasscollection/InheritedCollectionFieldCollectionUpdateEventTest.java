@@ -86,15 +86,19 @@ public class InheritedCollectionFieldCollectionUpdateEventTest extends SearchTes
 
 	@SuppressWarnings("unchecked")
 	private List<EntityExtendingMappedSuperclassWithCollectionField> searchEntityByCollectionValue(String value) {
+		Transaction transaction = fullTextSession.beginTransaction();
 		FullTextQuery query = fullTextSession.createFullTextQuery(
 				new TermQuery( new Term( "collection", value ) ),
 				EntityExtendingMappedSuperclassWithCollectionField.class
 		);
-		return query.list();
+		List<EntityExtendingMappedSuperclassWithCollectionField> result = query.list();
+		transaction.commit();
+		fullTextSession.clear();
+		return result;
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				MappedSuperclassWithCollectionField.class,
 				EntityExtendingMappedSuperclassWithCollectionField.class

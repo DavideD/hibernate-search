@@ -8,9 +8,11 @@ package org.hibernate.search.spatial;
 
 import org.apache.lucene.document.Document;
 
+import org.apache.lucene.document.Field;
 import org.hibernate.search.bridge.LuceneOptions;
 import org.hibernate.search.bridge.ParameterizedBridge;
 import org.hibernate.search.spatial.impl.SpatialHelper;
+import org.hibernate.search.spatial.impl.SpatialNumericDocValueField;
 import org.hibernate.search.spatial.impl.Point;
 
 import java.util.Map;
@@ -18,7 +20,7 @@ import java.util.Map;
 /**
  * Hibernate Search field bridge, binding a Coordinates to a spatial hash field in the index
  *
- * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
+ * @author Nicolas Helleringer
  */
 public class SpatialFieldBridgeByHash extends SpatialFieldBridge implements ParameterizedBridge {
 
@@ -72,17 +74,25 @@ public class SpatialFieldBridgeByHash extends SpatialFieldBridge implements Para
 				}
 
 				if ( numericFieldsIndex ) {
+					final String latitudeFieldName = SpatialHelper.formatLatitude( name );
+					final String longitudeFieldName = SpatialHelper.formatLongitude( name );
 					luceneOptions.addNumericFieldToDocument(
-							SpatialHelper.formatLatitude( name ),
+							latitudeFieldName,
 							latitude,
 							document
 					);
 
 					luceneOptions.addNumericFieldToDocument(
-							SpatialHelper.formatLongitude( name ),
+							longitudeFieldName,
 							longitude,
 							document
 					);
+
+					Field latitudeDocValuesField = new SpatialNumericDocValueField( latitudeFieldName, latitude );
+					document.add( latitudeDocValuesField );
+
+					Field longitudeDocValuesField = new SpatialNumericDocValueField( longitudeFieldName, longitude );
+					document.add( longitudeDocValuesField );
 				}
 			}
 		}

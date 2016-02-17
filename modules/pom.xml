@@ -9,7 +9,7 @@
     <parent>
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-search-parent</artifactId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.6.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>hibernate-search-modules</artifactId>
@@ -22,29 +22,15 @@
         <module.xml.basedir>src/main/modules</module.xml.basedir>
         <aliases.xml.basedir>src/main/aliases</aliases.xml.basedir>
         <hibernate.search.version>${project.version}</hibernate.search.version>
-
-        <!-- Needs to match the SLOT being used by Infinispan -->
-        <infinispan.integration.slot>${infinispan.module.slot}</infinispan.integration.slot>
-
-        <!-- Needs to match the SLOT being used by Infinispan -->
-        <jgroups.integration.slot>${jgroups.module.slot}</jgroups.integration.slot>
-
-        <!-- Needs to match the VERSION being used by Infinispan -->
-        <hibernate-search-infinispan.version>${project.version}</hibernate-search-infinispan.version>
-
-        <!-- Needs to match the SLOT being used by Infinispan (if any) -->
-        <jbossmarshalling.integration.slot>main</jbossmarshalling.integration.slot>
-
+        <hibernate.search.module.slot>${parsedVersion.majorVersion}.${parsedVersion.minorVersion}</hibernate.search.module.slot>
+        <infinispan.integration.slot>for-hibernatesearch-${hibernate.search.module.slot}</infinispan.integration.slot>
+        <tika.module.slot>${tikaVersion}</tika.module.slot>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-search-serialization-avro</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-search-infinispan</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -76,6 +62,18 @@
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queryparser</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-backward-codecs</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-misc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-backend-jgroups</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -95,17 +93,6 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-               <!-- Disable Enforcer as we're overriding the version to an external version of
-                org.hibernate:hibernate-search-infinispan -->
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>enforce-rules</id>
-                        <phase>none</phase>
                     </execution>
                 </executions>
             </plugin>

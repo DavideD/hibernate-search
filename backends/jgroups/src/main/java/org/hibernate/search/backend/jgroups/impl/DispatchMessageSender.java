@@ -11,6 +11,8 @@ import java.util.Properties;
 
 import org.hibernate.search.backend.jgroups.logging.impl.Log;
 import org.hibernate.search.engine.service.spi.ServiceManager;
+import org.hibernate.search.engine.service.spi.Startable;
+import org.hibernate.search.engine.service.spi.Stoppable;
 import org.hibernate.search.spi.BuildContext;
 import org.hibernate.search.util.configuration.impl.ConfigurationParseHelper;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
@@ -33,11 +35,11 @@ import org.jgroups.util.RspList;
  * being configured on the stack.
  *
  * @author Lukasz Moren
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  * @author Ales Justin
  * @author Hardy Ferentschik
  */
-public final class DispatchMessageSender implements MessageSenderService {
+public final class DispatchMessageSender implements MessageSenderService, Startable, Stoppable {
 
 	private static final Log log = LoggerFactory.make( Log.class );
 

@@ -55,7 +55,7 @@ public class EmbeddedTest extends SearchTestBase {
 		tx.commit();
 
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		Query query;
 		List<?> result;
 
@@ -122,7 +122,7 @@ public class EmbeddedTest extends SearchTestBase {
 		tx.commit();
 
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		Query query;
 		List<?> result;
 
@@ -160,7 +160,7 @@ public class EmbeddedTest extends SearchTestBase {
 		s.clear();
 
 		FullTextSession session = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.standardAnalyzer );
 		Query query;
 		List<?> result;
 
@@ -239,7 +239,6 @@ public class EmbeddedTest extends SearchTestBase {
 		tx = session.beginTransaction();
 
 		QueryParser parser = new MultiFieldQueryParser(
-				TestConstants.getTargetLuceneVersion(),
 				new String[] { "name", "authors.name" },
 				TestConstants.standardAnalyzer
 		);
@@ -304,7 +303,6 @@ public class EmbeddedTest extends SearchTestBase {
 		tx = session.beginTransaction();
 
 		QueryParser parser = new MultiFieldQueryParser(
-				TestConstants.getTargetLuceneVersion(),
 				new String[] { "name", "state.name" },
 				TestConstants.standardAnalyzer
 		);
@@ -355,7 +353,7 @@ public class EmbeddedTest extends SearchTestBase {
 		FullTextSession session = Search.getFullTextSession( s );
 		tx = session.beginTransaction();
 
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "name", TestConstants.standardAnalyzer );
+		QueryParser parser = new QueryParser( "name", TestConstants.standardAnalyzer );
 		Query query;
 		List<?> result;
 
@@ -374,20 +372,17 @@ public class EmbeddedTest extends SearchTestBase {
 		tx.commit();
 		s.clear();
 
+		tx = s.beginTransaction();
 		query = parser.parse( "features.name:featureB" );
 		result = session.createFullTextQuery( query, AbstractProduct.class ).list();
 		assertEquals( "Feature B should be indexed now as well", 1, result.size() );
+		tx.commit();
 
 		s.close();
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-	}
-
-	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Tower.class, Address.class, Product.class, Order.class, Author.class, Country.class,
 				State.class, StateCandidate.class, NonIndexedEntity.class,

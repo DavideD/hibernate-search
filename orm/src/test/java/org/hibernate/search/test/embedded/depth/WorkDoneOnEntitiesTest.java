@@ -9,15 +9,13 @@ package org.hibernate.search.test.embedded.depth;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.lucene.index.AtomicReaderContext;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.search.Query;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.exception.SearchException;
@@ -25,7 +23,7 @@ import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.indexes.IndexReaderAccessor;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.test.SearchTestBase;
-import org.hibernate.search.testsupport.backend.LeakingLuceneBackend;
+import org.hibernate.search.testsupport.backend.LeakingBackendQueueProcessor;
 import org.hibernate.testing.SkipForDialect;
 import org.junit.After;
 import org.junit.Before;
@@ -178,7 +176,7 @@ public class WorkDoneOnEntitiesTest extends SearchTestBase {
 		IndexReaderAccessor indexReaderAccessor = getSearchFactory().getIndexReaderAccessor();
 		IndexReader indexReader = indexReaderAccessor.open( WorkingPerson.class );
 		try {
-			for ( AtomicReaderContext leave : indexReader.leaves() ) {
+			for ( LeafReaderContext leave : indexReader.leaves() ) {
 				if ( leave.reader().terms( fieldName ) != null ) {
 					return true;
 				}
@@ -249,13 +247,13 @@ public class WorkDoneOnEntitiesTest extends SearchTestBase {
 			session.save( ps[i] );
 		}
 		transaction.commit();
-		LeakingLuceneBackend.reset();
+		LeakingBackendQueueProcessor.reset();
 	}
 
 	@Override
 	@After
 	public void tearDown() throws Exception {
-		LeakingLuceneBackend.reset();
+		LeakingBackendQueueProcessor.reset();
 		super.tearDown();
 	}
 
@@ -282,7 +280,7 @@ public class WorkDoneOnEntitiesTest extends SearchTestBase {
 	}
 
 	private int countWorksDoneOnPersonId(Integer pk) {
-		List<LuceneWork> processedQueue = LeakingLuceneBackend.getLastProcessedQueue();
+		List<LuceneWork> processedQueue = LeakingBackendQueueProcessor.getLastProcessedQueue();
 		int count = 0;
 		for ( LuceneWork luceneWork : processedQueue ) {
 			Serializable id = luceneWork.getId();
@@ -294,14 +292,13 @@ public class WorkDoneOnEntitiesTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] { WorkingPerson.class };
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default.worker.backend", LeakingLuceneBackend.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default.worker.backend", LeakingBackendQueueProcessor.class.getName() );
 	}
 
 }

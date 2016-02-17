@@ -6,19 +6,17 @@
  */
 package org.hibernate.search.test.configuration.integration;
 
-import java.util.LinkedHashSet;
-import java.util.Properties;
+import java.util.Collections;
+import java.util.HashMap;
 
 import org.easymock.Capture;
 import org.easymock.EasyMock;
-import org.junit.Before;
-import org.junit.Test;
-import org.unitils.UnitilsJUnit4;
-import org.unitils.easymock.EasyMockUnitils;
-import org.unitils.easymock.annotation.Mock;
 import org.hibernate.SessionFactoryObserver;
+import org.hibernate.boot.Metadata;
 import org.hibernate.boot.registry.classloading.spi.ClassLoaderService;
-import org.hibernate.cfg.Configuration;
+import org.hibernate.boot.registry.classloading.spi.ClassLoadingException;
+import org.hibernate.engine.config.internal.ConfigurationServiceImpl;
+import org.hibernate.engine.config.spi.ConfigurationService;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
@@ -28,16 +26,23 @@ import org.hibernate.search.event.impl.FullTextIndexEventListener;
 import org.hibernate.search.hcore.impl.HibernateSearchIntegrator;
 import org.hibernate.search.hcore.impl.SearchFactoryReference;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
+import org.junit.Test;
+import org.unitils.UnitilsJUnit4;
+import org.unitils.easymock.EasyMockUnitils;
+import org.unitils.easymock.annotation.Mock;
 
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.startsWith;
 
 /**
  * @author Sanne Grinovero
  * @author Hardy Ferentschik
  */
 public class HibernateSearchIntegratorTest extends UnitilsJUnit4 {
+
+	private static final String ELASTICSEARCH_BRIDGE_PROVIDER_CLASS = "org.hibernate.search.backend.elasticsearch.impl.ElasticsearchBridgeProvider";
 
 	private static final Boolean SEARCH_DISABLED = Boolean.FALSE;
 	private static final Boolean SEARCH_ENABLED = Boolean.TRUE;
@@ -55,37 +60,33 @@ public class HibernateSearchIntegratorTest extends UnitilsJUnit4 {
 	@Mock
 	private ClassLoaderService mockClassLoaderService;
 
-	private HibernateSearchIntegrator integratorUnderTest;
-
-	@Before
-	public void setUp() {
-		integratorUnderTest = new HibernateSearchIntegrator();
-	}
+	@Mock
+	private Metadata mockMetadata;
 
 	@Test
 	public void testEventListenersAreNotRegisteredIfSearchIsExplicitlyDisabledInConfiguration() {
-		Configuration cfg = makeConfiguration( SEARCH_DISABLED );
+		programConfigurationMock( SEARCH_DISABLED );
 
-		// no mock setup, integrator should not call the mocks, because Search is disabled
 		EasyMockUnitils.replay();
 
-		integratorUnderTest.integrate( cfg, mockSessionFactoryImplementor, mockSessionFactoryServiceRegistry );
+		// Search should not care about the metadata or the factory if it's disabled
+		new HibernateSearchIntegrator().integrate( null, null, mockSessionFactoryServiceRegistry );
 	}
 
 	@Test
 	public void testEventListenersAreRegisteredIfSearchIsExplicitlyEnabledInConfiguration() {
-		Configuration cfg = makeConfiguration( SEARCH_ENABLED );
-		assertObserverCalledAndEventListenersRegistered( cfg );
+		programConfigurationMock( SEARCH_ENABLED );
+		assertObserverCalledAndEventListenersRegistered();
 	}
 
 	@Test
 	public void testEventListenersAreRegisteredIfSearchIsImplicitlyEnabledInConfiguration() {
-		Configuration cfg = makeConfiguration( SEARCH_IMPLICITLY_ENABLED );
-		assertObserverCalledAndEventListenersRegistered( cfg );
+		programConfigurationMock( SEARCH_IMPLICITLY_ENABLED );
+		assertObserverCalledAndEventListenersRegistered();
 	}
 
 	@SuppressWarnings("unchecked")
-	private void assertObserverCalledAndEventListenersRegistered(Configuration cfg) {
+	private void assertObserverCalledAndEventListenersRegistered() {
 		Capture<SessionFactoryObserver> capturedSessionFactoryObserver = new Capture<SessionFactoryObserver>();
 		mockSessionFactoryImplementor.addObserver(
 				EasyMock.and(
@@ -132,37 +133,53 @@ public class HibernateSearchIntegratorTest extends UnitilsJUnit4 {
 				isA( FullTextIndexEventListener.class )
 		);
 
-		expect( mockSessionFactoryServiceRegistry.getService( ClassLoaderService.class ) ).andReturn(
-				mockClassLoaderService
-		);
-
-		expect( mockSessionFactoryImplementor.getServiceRegistry() ).andReturn(
-				mockSessionFactoryServiceRegistry
-		);
+		expect( mockSessionFactoryServiceRegistry.getService( ClassLoaderService.class ) )
+			.andReturn( mockClassLoaderService )
+			.anyTimes();
 
 		// returning object.class is fair enough for testing purposes
-		expect( mockClassLoaderService.classForName( "javax.persistence.Id" ) ).andReturn( Object.class );
+		expect( mockClassLoaderService.classForName( "javax.persistence.Id" ) )
+			.andReturn( Object.class )
+			.anyTimes();
 
-		expect( mockClassLoaderService.loadJavaServices( BridgeProvider.class ) ).andReturn(
-				new LinkedHashSet<BridgeProvider>(
-						0
-				)
-		);
+		expect( mockClassLoaderService.classForName( "javax.persistence.EmbeddedId" ) )
+			.andReturn( Object.class )
+			.anyTimes();
+
+		expect( mockClassLoaderService.loadJavaServices( BridgeProvider.class ) )
+			.andReturn( Collections.<BridgeProvider>emptySet() );
+
+		expect( mockClassLoaderService.classForName( startsWith( "java.time" ) ) )
+			.andThrow( new ClassLoadingException( "Called by JavaTimeBridgeProvider; we assume the classes in java.time are not on the ORM class loader" ) )
+			.anyTimes();
+
+		expect( mockClassLoaderService.classForName( ELASTICSEARCH_BRIDGE_PROVIDER_CLASS ) )
+			.andReturn( null );
+
+		expect( mockMetadata.getEntityBindings() )
+			.andReturn( Collections.EMPTY_SET )
+			.anyTimes();
+
+		expect( mockSessionFactoryImplementor.getServiceRegistry() )
+			.andReturn( mockSessionFactoryServiceRegistry )
+			.anyTimes();
 
 		EasyMockUnitils.replay();
 
-		integratorUnderTest.integrate( cfg, mockSessionFactoryImplementor, mockSessionFactoryServiceRegistry );
+		HibernateSearchIntegrator testedIntegrator = new HibernateSearchIntegrator();
+		testedIntegrator.integrate( mockMetadata, mockSessionFactoryImplementor, mockSessionFactoryServiceRegistry );
 
 		capturedSessionFactoryObserver.getValue().sessionFactoryCreated( mockSessionFactoryImplementor );
 	}
 
-	private static Configuration makeConfiguration(Boolean enableSearch) {
-		Configuration cfg = new Configuration();
-		Properties properties = new Properties();
-		cfg.setProperties( properties );
+	private void programConfigurationMock(Boolean enableSearch) {
+		HashMap<String,String> settings = new HashMap<>();
 		if ( enableSearch != null ) {
-			properties.setProperty( Environment.AUTOREGISTER_LISTENERS, String.valueOf( enableSearch ) );
+			settings.put( Environment.AUTOREGISTER_LISTENERS, String.valueOf( enableSearch ) );
 		}
-		return cfg;
+		ConfigurationService cfg = new ConfigurationServiceImpl( settings );
+		expect( mockSessionFactoryServiceRegistry.getService( ConfigurationService.class ) )
+			.andReturn( cfg )
+			.anyTimes();
 	}
 }

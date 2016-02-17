@@ -8,17 +8,16 @@ package org.hibernate.search.test.configuration;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 
 @Entity
 public class Item {
 
-	@Id @GeneratedValue
+	@Id
 	private Integer id;
 	private String description;
-	private Double price;
+	private Short price;
 
 
 	@ManyToOne( cascade = { CascadeType.PERSIST, CascadeType.REMOVE } )
@@ -49,11 +48,11 @@ public class Item {
 		this.description = description;
 	}
 
-	public Double getPrice() {
+	public Short getPrice() {
 		return price;
 	}
 
-	public void setPrice(Double price) {
+	public void setPrice(Short price) {
 		this.price = price;
 	}
 }

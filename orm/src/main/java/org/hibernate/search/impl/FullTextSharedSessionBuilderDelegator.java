@@ -12,12 +12,13 @@ import org.hibernate.ConnectionReleaseMode;
 import org.hibernate.Interceptor;
 import org.hibernate.SessionEventListener;
 import org.hibernate.SharedSessionBuilder;
+import org.hibernate.resource.jdbc.spi.StatementInspector;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.FullTextSharedSessionBuilder;
 import org.hibernate.search.Search;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 class FullTextSharedSessionBuilderDelegator implements FullTextSharedSessionBuilder {
 
@@ -131,6 +132,12 @@ class FullTextSharedSessionBuilderDelegator implements FullTextSharedSessionBuil
 	@Override
 	public FullTextSharedSessionBuilder eventListeners(SessionEventListener... listeners) {
 		builder.eventListeners( listeners );
+		return this;
+	}
+
+	@Override
+	public FullTextSharedSessionBuilder statementInspector(StatementInspector statementInspector) {
+		builder.statementInspector( statementInspector );
 		return this;
 	}
 }

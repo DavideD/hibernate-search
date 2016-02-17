@@ -17,6 +17,7 @@ import org.apache.lucene.search.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.search.Search;
 import org.hibernate.search.test.SearchTestBase;
 import org.hibernate.search.testsupport.TestConstants;
@@ -97,10 +98,7 @@ public class WorkerTestCase extends SearchTestBase {
 
 				s = sf.openSession();
 				tx = s.beginTransaction();
-				QueryParser parser = new QueryParser(
-						TestConstants.getTargetLuceneVersion(), "id",
-						TestConstants.stopAnalyzer
-				);
+				QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 				Query query;
 				try {
 					query = parser.parse( "name:emmanuel2" );
@@ -136,7 +134,7 @@ public class WorkerTestCase extends SearchTestBase {
 			}
 			finally {
 				try {
-					if ( tx != null && tx.isActive() ) {
+					if ( tx != null && tx.getStatus() == TransactionStatus.ACTIVE ) {
 						tx.rollback();
 					}
 					if ( s != null && s.isOpen() ) {
@@ -202,7 +200,7 @@ public class WorkerTestCase extends SearchTestBase {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Employee.class,
 				Employer.class

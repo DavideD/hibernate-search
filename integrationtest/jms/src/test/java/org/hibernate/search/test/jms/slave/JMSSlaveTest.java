@@ -6,7 +6,9 @@
  */
 package org.hibernate.search.test.jms.slave;
 
+import java.util.Map;
 import java.util.Properties;
+
 import javax.jms.MessageConsumer;
 import javax.jms.Queue;
 import javax.jms.QueueConnection;
@@ -16,15 +18,16 @@ import javax.naming.Context;
 import javax.naming.NamingException;
 
 import org.apache.activemq.broker.BrokerService;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.cfg.Environment;
+import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.backend.jms.impl.JmsBackendQueueProcessor;
+import org.hibernate.search.backend.spi.DeleteByQueryWork;
+import org.hibernate.search.backend.spi.SingularTermDeletionQuery;
 import org.hibernate.search.test.SearchTestBase;
 import org.hibernate.search.test.jms.master.JMSMasterTest;
+import org.hibernate.search.testsupport.setup.TransactionContextForTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,19 +64,23 @@ public class JMSSlaveTest extends SearchTestBase {
 		registerMessageListener();
 		SearchQueueChecker.reset();
 
-		Session s = openSession();
-		Transaction tx = s.beginTransaction();
-		TShirt ts = new TShirt();
-		ts.setLogo( "Boston" );
-		ts.setSize( "XXL" );
-		ts.setLength( 23.4d );
-		TShirt ts2 = new TShirt();
-		ts2.setLogo( "Mapple leaves" );
-		ts2.setSize( "L" );
-		ts2.setLength( 23.42d );
-		s.persist( ts );
-		s.persist( ts2 );
-		tx.commit();
+		TShirt ts;
+		TShirt ts2;
+
+		try ( Session s = openSession() ) {
+			Transaction tx = s.beginTransaction();
+			ts = new TShirt();
+			ts.setLogo( "Boston" );
+			ts.setSize( "XXL" );
+			ts.setLength( 23.4d );
+			ts2 = new TShirt();
+			ts2.setLogo( "Mapple leaves" );
+			ts2.setSize( "L" );
+			ts2.setLength( 23.42d );
+			s.persist( ts );
+			s.persist( ts2 );
+			tx.commit();
+		}
 
 		//need to sleep for the message consumption
 		Thread.sleep( 500 );
@@ -82,11 +89,12 @@ public class JMSSlaveTest extends SearchTestBase {
 		assertEquals( 2, SearchQueueChecker.works );
 
 		SearchQueueChecker.reset();
-		s = openSession();
-		tx = s.beginTransaction();
-		ts = (TShirt) s.get( TShirt.class, ts.getId() );
-		ts.setLogo( "Peter pan" );
-		tx.commit();
+		try ( Session s = openSession() ) {
+			Transaction tx = s.beginTransaction();
+			ts = (TShirt) s.get( TShirt.class, ts.getId() );
+			ts.setLogo( "Peter pan" );
+			tx.commit();
+		}
 
 		//need to sleep for the message consumption
 		Thread.sleep( 500 );
@@ -95,18 +103,35 @@ public class JMSSlaveTest extends SearchTestBase {
 		assertEquals( 1, SearchQueueChecker.works );
 
 		SearchQueueChecker.reset();
-		s = openSession();
-		tx = s.beginTransaction();
-		s.delete( s.get( TShirt.class, ts.getId() ) );
-		s.delete( s.get( TShirt.class, ts2.getId() ) );
-		tx.commit();
+
+		try ( Session s = openSession() ) {
+			Transaction tx = s.beginTransaction();
+			s.delete( s.get( TShirt.class, ts.getId() ) );
+			s.delete( s.get( TShirt.class, ts2.getId() ) );
+			tx.commit();
+		}
 
 		//Need to sleep for the message consumption
 		Thread.sleep( 500 );
 
 		assertEquals( 1, SearchQueueChecker.queues );
 		assertEquals( 2, SearchQueueChecker.works );
-		s.close();
+
+		SearchQueueChecker.reset();
+		try ( Session s = openSession() ) {
+			Transaction tx = s.beginTransaction();
+			TransactionContextForTest tc = new TransactionContextForTest();
+			ExtendedSearchIntegrator integrator = this.getExtendedSearchIntegrator();
+			integrator.getWorker().performWork( new DeleteByQueryWork( TShirt.class, new SingularTermDeletionQuery( "id", String.valueOf( ts.getId() ) ) ), tc );
+			tc.end();
+			tx.commit();
+		}
+
+		// Need to sleep for the message consumption
+		Thread.sleep( 500 );
+
+		assertEquals( 1, SearchQueueChecker.queues );
+		assertEquals( 1, SearchQueueChecker.works );
 	}
 
 	@Override
@@ -149,24 +174,21 @@ public class JMSSlaveTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default." + Environment.WORKER_BACKEND, "jms" );
-		cfg.setProperty( "hibernate.search.default." + JmsBackendQueueProcessor.JMS_CONNECTION_FACTORY, CONNECTION_FACTORY_NAME );
-		cfg.setProperty( "hibernate.search.default." + JmsBackendQueueProcessor.JMS_QUEUE, QUEUE_NAME );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default." + Environment.WORKER_BACKEND, "jms" );
+		cfg.put( "hibernate.search.default." + JmsBackendQueueProcessor.JMS_CONNECTION_FACTORY, CONNECTION_FACTORY_NAME );
+		cfg.put( "hibernate.search.default." + JmsBackendQueueProcessor.JMS_QUEUE, QUEUE_NAME );
 
 		// use the hibernate.search.worker.jndi prefix to pass a whole bunch of jndi properties to create the InitialContext
 		// for the queue processor
-		cfg.setProperty(
-				"hibernate.search.default.worker.jndi.class", "org.apache.activemq.jndi.ActiveMQInitialContextFactory"
-		);
-		cfg.setProperty( "hibernate.search.default.worker.jndi.url", "vm://localhost" );
-		cfg.setProperty( "hibernate.search.default.worker.jndi.connectionFactoryNames", "ConnectionFactory, java:/ConnectionFactory" );
-		cfg.setProperty( "hibernate.search.default.worker.jndi.queue.queue/searchtest", "searchQueue" );
+		cfg.put( "hibernate.search.default.worker.jndi.class", "org.apache.activemq.jndi.ActiveMQInitialContextFactory" );
+		cfg.put( "hibernate.search.default.worker.jndi.url", "vm://localhost" );
+		cfg.put( "hibernate.search.default.worker.jndi.connectionFactoryNames", "ConnectionFactory, java:/ConnectionFactory" );
+		cfg.put( "hibernate.search.default.worker.jndi.queue.queue/searchtest", "searchQueue" );
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				TShirt.class
 		};

@@ -6,6 +6,33 @@
  */
 package org.hibernate.search.test.performance.scenario;
 
+import java.io.BufferedWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
+import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.search.engine.Version;
+import org.hibernate.search.test.performance.task.AbstractTask;
+import org.hibernate.search.test.performance.util.CheckerLuceneIndex;
+import org.hibernate.search.test.performance.util.CheckerUncaughtExceptions;
+import org.hibernate.search.test.performance.util.TargetDirHelper;
+import org.hibernate.search.testsupport.TestConstants;
+
 import static org.apache.commons.lang.StringUtils.leftPad;
 import static org.apache.commons.lang.StringUtils.rightPad;
 import static org.hibernate.search.test.performance.TestRunnerArquillian.RUNNER_PROPERTIES;
@@ -18,27 +45,6 @@ import static org.hibernate.search.test.performance.scenario.TestContext.THREADS
 import static org.hibernate.search.test.performance.scenario.TestContext.VERBOSE;
 import static org.hibernate.search.test.performance.util.Util.runGarbageCollectorAndWait;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.Date;
-import java.util.Map.Entry;
-import java.util.Properties;
-import java.util.concurrent.TimeUnit;
-
-import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.search.testsupport.TestConstants;
-import org.hibernate.search.test.performance.task.AbstractTask;
-import org.hibernate.search.test.performance.util.CheckerLuceneIndex;
-import org.hibernate.search.test.performance.util.CheckerUncaughtExceptions;
-import org.hibernate.search.engine.Version;
-
 /**
  * @author Tomas Hradec
  */
@@ -47,9 +53,10 @@ public class TestReporter {
 	private TestReporter() {
 	}
 
-	public static void printReport(TestContext ctx) {
+	public static void printReport(TestContext ctx) throws UnsupportedEncodingException, IOException {
 		PrintStream outStream = createOutputStream( ctx.scenario.getClass().getSimpleName() );
-		PrintWriter outWriter = new PrintWriter( outStream );
+		PrintWriter outWriter = new PrintWriter(
+				new BufferedWriter( new OutputStreamWriter( outStream, "UTF-8" ) ), false );
 
 		outWriter.println( "==================================================================" );
 		outWriter.println( "HIBERNATE SEARCH PERFORMANCE TEST REPORT" );
@@ -63,6 +70,7 @@ public class TestReporter {
 		CheckerUncaughtExceptions.printUncaughtExceptions( ctx, outWriter );
 
 		outWriter.close();
+		outStream.close();
 	}
 
 	private static void printSummary(TestContext ctx, PrintWriter out) {
@@ -154,11 +162,12 @@ public class TestReporter {
 
 	private static PrintStream createOutputStream(String testScenarioName) {
 		try {
-			File targetDir = getTargetDir();
-			File reportFile = new File( targetDir, "report-" + testScenarioName + "-" + DateFormatUtils.format( new Date(), "yyyy-MM-dd-HH'h'mm'm'" ) + ".txt" );
+			Path targetDir = getTargetDir();
+			String reportFileName = "report-" + testScenarioName + "-" + DateFormatUtils.format( new Date(), "yyyy-MM-dd-HH'h'mm'm'" ) + ".txt";
+			Path reportFile = targetDir.resolve( reportFileName );
 
 			final OutputStream std = System.out;
-			final OutputStream file = new PrintStream( reportFile );
+			final OutputStream file = new PrintStream( new FileOutputStream( reportFile.toFile() ), true, "UTF-8" );
 			final OutputStream stream = new OutputStream() {
 
 				@Override
@@ -178,15 +187,14 @@ public class TestReporter {
 					file.close();
 				}
 			};
-			PrintStream ps = new PrintStream( stream );
-			return ps;
+			return new PrintStream( stream, false, "UTF-8" );
 		}
-		catch (FileNotFoundException e) {
+		catch (FileNotFoundException|UnsupportedEncodingException e) {
 			throw new RuntimeException( e );
 		}
 	}
 
-	private static File getTargetDir() {
+	private static Path getTargetDir() {
 		InputStream runnerPropertiesStream = TestReporter.class.getResourceAsStream( "/" + RUNNER_PROPERTIES );
 		if ( runnerPropertiesStream != null ) {
 			Properties runnerProperties = new Properties();
@@ -196,10 +204,10 @@ public class TestReporter {
 			catch (IOException e) {
 				throw new RuntimeException( e );
 			}
-			return new File( runnerProperties.getProperty( TARGET_DIR_KEY ) );
+			return Paths.get( runnerProperties.getProperty( TARGET_DIR_KEY ) );
 		}
 		else {
-			return TestConstants.getTargetDir( TestReporter.class );
+			return TargetDirHelper.getTargetDir();
 		}
 	}
 

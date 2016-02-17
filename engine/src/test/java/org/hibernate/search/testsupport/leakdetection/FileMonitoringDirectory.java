@@ -22,7 +22,7 @@ import org.apache.lucene.store.RAMDirectory;
  * This Directory keeps track of opened IndexInput and IndexOutput
  * instances, making it possible to verify if any file was left open.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 public class FileMonitoringDirectory extends RAMDirectory {
 
@@ -64,6 +64,7 @@ public class FileMonitoringDirectory extends RAMDirectory {
 		private final IndexOutput delegate;
 
 		public IndexOutputDelegate(IndexOutput delegate) {
+			super( "Testing Delegate: " + delegate.toString());
 			this.delegate = delegate;
 		}
 
@@ -86,11 +87,6 @@ public class FileMonitoringDirectory extends RAMDirectory {
 			delegate.writeByte( b );
 		}
 
-		@Override @Deprecated
-		public void flush() throws IOException {
-			throw new IllegalStateException( "should never be called" );
-		}
-
 		@Override
 		public void writeBytes(byte[] b, int length) throws IOException {
 			delegate.writeBytes( b, length );
@@ -104,11 +100,6 @@ public class FileMonitoringDirectory extends RAMDirectory {
 		@Override
 		public void writeBytes(byte[] b, int offset, int length) throws IOException {
 			delegate.writeBytes( b, offset, length );
-		}
-
-		@Override
-		public long length() throws IOException {
-			return delegate.length();
 		}
 
 		@Override

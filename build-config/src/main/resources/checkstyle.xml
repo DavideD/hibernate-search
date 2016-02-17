@@ -94,11 +94,6 @@
         <module name="DefaultComesLast" />
         <module name="WhitespaceAround" />
         <module name="TypecastParenPad" />
-        <module name="RedundantThrows">
-            <!-- Needed to workaround a CheckStyle bug: can't find exception types which are
-            a dependency which is only available in scope test (to check style of our tests) -->
-            <property name="suppressLoadErrors" value="true"/>
-        </module>
         <module name="HideUtilityClassConstructor"/>
         <module name="MutableException"/>
         <module name="CovariantEquals" />
@@ -184,6 +179,12 @@
     <module name="RegexpSingleline">
         <property name="format" value="\s+$" />
         <property name="message" value="White spaces at the end of line" />
+    </module>
+
+    <module name="RegexpSingleline">
+        <!-- not using an "illegal import" rule as the java.lang package doesn't need to be imported -->
+        <property name="format" value="\s+throw new AssertionError\(" />
+        <property name="message" value="Avoid throwing 'AssertionError': use org.hibernate.search.exception.AssertionFailure" />
     </module>
 
     <module name="SuppressionCommentFilter" />

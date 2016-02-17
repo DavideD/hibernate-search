@@ -14,23 +14,28 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.similarities.Similarity;
+
 import org.hibernate.search.backend.BackendFactory;
 import org.hibernate.search.backend.IndexingMonitor;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.OptimizeLuceneWork;
 import org.hibernate.search.backend.spi.BackendQueueProcessor;
 import org.hibernate.search.backend.spi.LuceneIndexingParameters;
+import org.hibernate.search.cfg.Environment;
+import org.hibernate.search.cfg.spi.DirectoryProviderService;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.service.spi.ServiceManager;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
+import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.indexes.impl.PropertiesParseHelper;
 import org.hibernate.search.indexes.serialization.impl.LuceneWorkSerializerImpl;
 import org.hibernate.search.indexes.serialization.spi.LuceneWorkSerializer;
 import org.hibernate.search.indexes.serialization.spi.SerializationProvider;
 import org.hibernate.search.spi.WorkerBuildContext;
 import org.hibernate.search.store.DirectoryProvider;
-import org.hibernate.search.store.impl.DirectoryProviderFactory;
 import org.hibernate.search.store.optimization.OptimizerStrategy;
+import org.hibernate.search.util.StringHelper;
+import org.hibernate.search.util.configuration.impl.ConfigurationParseHelper;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
@@ -38,14 +43,14 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * This implementation of {@code IndexManager} is coupled to a
  * {@code DirectoryProvider} and a {@code DirectoryBasedReaderProvider}.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class DirectoryBasedIndexManager implements IndexManager {
 
 	private static Log log = LoggerFactory.make();
 
 	private String indexName;
-	private DirectoryProvider directoryProvider;
+	private DirectoryProvider<?> directoryProvider;
 	private Similarity similarity;
 	private BackendQueueProcessor backend;
 	private OptimizerStrategy optimizer;
@@ -79,15 +84,29 @@ public class DirectoryBasedIndexManager implements IndexManager {
 
 	@Override
 	public void initialize(String indexName, Properties properties, Similarity similarity, WorkerBuildContext buildContext) {
+		this.serviceManager = buildContext.getServiceManager();
 		this.indexName = indexName;
 		this.similarity = similarity;
 		this.directoryProvider = createDirectoryProvider( indexName, properties, buildContext );
 		this.indexingParameters = PropertiesParseHelper.extractIndexingPerformanceOptions( properties );
 		this.optimizer = PropertiesParseHelper.getOptimizerStrategy( this, properties, buildContext );
 		this.backend = createBackend( indexName, properties, buildContext );
+		boolean enlistInTransaction = ConfigurationParseHelper.getBooleanValue(
+				properties,
+				Environment.WORKER_ENLIST_IN_TRANSACTION,
+				false
+		);
+		if ( enlistInTransaction && ! ( backend instanceof BackendQueueProcessor.Transactional ) ) {
+			// We are expecting to use a transactional worker but the backend is not
+			// this is war!
+			// TODO would be better to have this check in the indexManager factory but we need access to the backend
+			String backend = properties.getProperty( Environment.WORKER_BACKEND );
+			backend = StringHelper.isEmpty( backend ) ? "lucene" : backend;
+			throw log.backendNonTransactional( indexName, backend );
+
+		}
 		this.directoryProvider.start( this );
 		this.readers = createIndexReader( indexName, properties, buildContext );
-		this.serviceManager = buildContext.getServiceManager();
 	}
 
 	@Override
@@ -108,6 +127,9 @@ public class DirectoryBasedIndexManager implements IndexManager {
 
 	@Override
 	public void performOperations(List<LuceneWork> workList, IndexingMonitor monitor) {
+		if ( log.isDebugEnabled() ) {
+			log.debug( "Sending work to backend of type " + backend.getClass() );
+		}
 		backend.applyWork( workList, monitor );
 	}
 
@@ -142,11 +164,25 @@ public class DirectoryBasedIndexManager implements IndexManager {
 	@Override
 	public LuceneWorkSerializer getSerializer() {
 		if ( serializer == null ) {
-			serializationProvider = serviceManager.requestService( SerializationProvider.class );
+			serializationProvider = requestSerializationProvider();
 			serializer = new LuceneWorkSerializerImpl( serializationProvider, boundSearchIntegrator );
 			log.indexManagerUsesSerializationService( this.indexName, this.serializer.describeSerializer() );
 		}
 		return serializer;
+	}
+
+	@Override
+	public void closeIndexWriter() {
+		backend.closeIndexWriter();
+	}
+
+	private SerializationProvider requestSerializationProvider() {
+		try {
+			return serviceManager.requestService( SerializationProvider.class );
+		}
+		catch (SearchException se) {
+			throw log.serializationProviderNotFoundException( se );
+		}
 	}
 
 	//Not exposed on the IndexManager interface
@@ -165,7 +201,7 @@ public class DirectoryBasedIndexManager implements IndexManager {
 	}
 
 	//Not exposed on the interface
-	public DirectoryProvider getDirectoryProvider() {
+	public DirectoryProvider<?> getDirectoryProvider() {
 		return directoryProvider;
 	}
 
@@ -193,8 +229,14 @@ public class DirectoryBasedIndexManager implements IndexManager {
 		return PropertiesParseHelper.createDirectoryBasedReaderProvider( this, cfg, buildContext );
 	}
 
-	protected DirectoryProvider createDirectoryProvider(String indexName, Properties cfg, WorkerBuildContext buildContext) {
-		return DirectoryProviderFactory.createDirectoryProvider( indexName, cfg, buildContext );
+	protected DirectoryProvider<?> createDirectoryProvider(String indexName, Properties cfg, WorkerBuildContext buildContext) {
+		try {
+			DirectoryProviderService directoryProviderService = serviceManager.requestService( DirectoryProviderService.class );
+			return directoryProviderService.create( cfg, indexName, buildContext );
+		}
+		finally {
+			serviceManager.releaseService( DirectoryProviderService.class );
+		}
 	}
 
 }

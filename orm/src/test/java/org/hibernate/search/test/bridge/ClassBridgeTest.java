@@ -7,16 +7,14 @@
 package org.hibernate.search.test.bridge;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.core.SimpleAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
-
 import org.hibernate.ScrollableResults;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -59,7 +57,7 @@ public class ClassBridgeTest extends SearchTestBase {
 		// Departments entity after being massaged by passing it
 		// through the EquipmentType class. This field is in
 		// the Lucene document but not in the Department entity itself.
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "equipment", TestConstants.simpleAnalyzer );
+		QueryParser parser = new QueryParser( "equipment", TestConstants.simpleAnalyzer );
 
 		// Check the second ClassBridge annotation
 		Query query = parser.parse( "equiptype:Cisco" );
@@ -79,7 +77,7 @@ public class ClassBridgeTest extends SearchTestBase {
 		assertTrue( "problem with field cross-ups", result.size() == 0 );
 
 		// Non-ClassBridge field.
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "branchHead", TestConstants.simpleAnalyzer );
+		parser = new QueryParser( "branchHead", TestConstants.simpleAnalyzer );
 		query = parser.parse( "branchHead:Kent Lewin" );
 		hibQuery = session.createFullTextQuery( query, Departments.class );
 		result = hibQuery.list();
@@ -88,7 +86,7 @@ public class ClassBridgeTest extends SearchTestBase {
 		assertEquals( "incorrect entity returned", "Kent Lewin", ( result.get( 0 ) ).getBranchHead() );
 
 		// Check other ClassBridge annotation.
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "branchnetwork", TestConstants.simpleAnalyzer );
+		parser = new QueryParser( "branchnetwork", TestConstants.simpleAnalyzer );
 		query = parser.parse( "branchnetwork:st. george 1D" );
 		hibQuery = session.createFullTextQuery( query, Departments.class );
 		result = hibQuery.list();
@@ -130,7 +128,7 @@ public class ClassBridgeTest extends SearchTestBase {
 		// Departments entity after being massaged by passing it
 		// through the EquipmentType class. This field is in
 		// the Lucene document but not in the Department entity itself.
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "equipment", TestConstants.simpleAnalyzer );
+		QueryParser parser = new QueryParser( "equipment", TestConstants.simpleAnalyzer );
 
 		// Check the second ClassBridge annotation
 		Query query = parser.parse( "equiptype:Cisco" );
@@ -199,7 +197,7 @@ public class ClassBridgeTest extends SearchTestBase {
 		// the branch field and the network field of the Department
 		// class. This is in the Lucene document but not in the
 		// Department entity itself.
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "branchnetwork", TestConstants.simpleAnalyzer );
+		QueryParser parser = new QueryParser( "branchnetwork", TestConstants.simpleAnalyzer );
 
 		Query query = parser.parse( "branchnetwork:layton 2B" );
 		org.hibernate.search.FullTextQuery hibQuery = session.createFullTextQuery( query, Department.class );
@@ -226,7 +224,7 @@ public class ClassBridgeTest extends SearchTestBase {
 		assertTrue( "problem with field cross-ups", result.size() == 0 );
 
 		// Non-ClassBridge field.
-		parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "branchHead", TestConstants.simpleAnalyzer );
+		parser = new QueryParser( "branchHead", TestConstants.simpleAnalyzer );
 		query = parser.parse( "branchHead:Kent Lewin" );
 		hibQuery = session.createFullTextQuery( query, Department.class );
 		result = hibQuery.list();
@@ -322,7 +320,7 @@ public class ClassBridgeTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Department.class,
 				Departments.class
@@ -330,8 +328,7 @@ public class ClassBridgeTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( Environment.ANALYZER_CLASS, SimpleAnalyzer.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( Environment.ANALYZER_CLASS, SimpleAnalyzer.class.getName() );
 	}
 }

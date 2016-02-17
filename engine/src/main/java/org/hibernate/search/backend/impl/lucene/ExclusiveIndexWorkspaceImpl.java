@@ -9,6 +9,7 @@ package org.hibernate.search.backend.impl.lucene;
 import org.hibernate.search.backend.BackendFactory;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.impl.CommitPolicy;
+import org.hibernate.search.exception.ErrorHandler;
 import org.hibernate.search.indexes.impl.PropertiesParseHelper;
 import org.hibernate.search.indexes.spi.DirectoryBasedIndexManager;
 import org.hibernate.search.spi.WorkerBuildContext;
@@ -16,7 +17,7 @@ import org.hibernate.search.spi.WorkerBuildContext;
 import java.util.Properties;
 
 /**
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class ExclusiveIndexWorkspaceImpl extends AbstractWorkspaceImpl {
 
@@ -27,7 +28,8 @@ public class ExclusiveIndexWorkspaceImpl extends AbstractWorkspaceImpl {
 		boolean async = ! BackendFactory.isConfiguredAsSync( cfg );
 		if ( async ) {
 			int commitInterval = PropertiesParseHelper.extractFlushInterval( indexManager.getIndexName(), cfg );
-			commitPolicy = new ScheduledCommitPolicy( writerHolder, indexManager.getIndexName(), commitInterval );
+			ErrorHandler errorHandler = context.getErrorHandler();
+			commitPolicy = new ScheduledCommitPolicy( writerHolder, indexManager.getIndexName(), commitInterval, errorHandler );
 		}
 		else {
 			commitPolicy = new PerChangeSetCommitPolicy( writerHolder );

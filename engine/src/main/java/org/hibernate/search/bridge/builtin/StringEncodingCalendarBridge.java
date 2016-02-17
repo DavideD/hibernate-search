@@ -8,6 +8,8 @@ package org.hibernate.search.bridge.builtin;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import org.apache.lucene.document.Document;
 
@@ -15,6 +17,20 @@ import org.hibernate.search.annotations.Resolution;
 import org.hibernate.search.bridge.LuceneOptions;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
 
+/**
+ * Bridge a {@code java.util.Calendar} to a {@code String}, truncated to the specified resolution.
+ * <ul>
+ * <li>Resolution.YEAR: yyyy</li>
+ * <li>Resolution.MONTH: yyyyMM</li>
+ * <li>Resolution.DAY: yyyyMMdd</li>
+ * <li>Resolution.HOUR: yyyyMMddHH</li>
+ * <li>Resolution.MINUTE: yyyyMMddHHmm</li>
+ * <li>Resolution.SECOND: yyyyMMddHHmmss</li>
+ * <li>Resolution.MILLISECOND: yyyyMMddHHmmssSSS</li>
+ * </ul>
+ *
+ * @author Davide D'Alto
+ */
 public class StringEncodingCalendarBridge extends StringEncodingDateBridge {
 
 	public static final TwoWayFieldBridge CALENDAR_YEAR = new StringEncodingCalendarBridge( Resolution.YEAR );
@@ -27,6 +43,8 @@ public class StringEncodingCalendarBridge extends StringEncodingDateBridge {
 			Resolution.MILLISECOND
 	);
 
+	private static final TimeZone ENCODING_TIME_ZONE = TimeZone.getTimeZone( "UTC" );
+
 	public StringEncodingCalendarBridge() {
 	}
 
@@ -38,7 +56,7 @@ public class StringEncodingCalendarBridge extends StringEncodingDateBridge {
 	public Object get(String name, Document document) {
 		Object value = super.get( name, document );
 		if ( value != null ) {
-			Calendar calendar = Calendar.getInstance();
+			Calendar calendar = Calendar.getInstance( ENCODING_TIME_ZONE, Locale.ROOT );
 			calendar.setTime( (Date) value );
 			value = calendar;
 		}

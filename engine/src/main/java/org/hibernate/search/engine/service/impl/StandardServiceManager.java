@@ -8,6 +8,7 @@ package org.hibernate.search.engine.service.impl;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -17,6 +18,7 @@ import org.hibernate.search.cfg.spi.SearchConfiguration;
 import org.hibernate.search.engine.service.classloading.spi.ClassLoaderService;
 import org.hibernate.search.engine.service.spi.Service;
 import org.hibernate.search.engine.service.spi.ServiceManager;
+import org.hibernate.search.engine.service.spi.ServiceReference;
 import org.hibernate.search.engine.service.spi.Startable;
 import org.hibernate.search.engine.service.spi.Stoppable;
 import org.hibernate.search.spi.BuildContext;
@@ -81,6 +83,11 @@ public class StandardServiceManager implements ServiceManager {
 	}
 
 	@Override
+	public <S extends Service> ServiceReference<S> requestReference(Class<S> serviceRole) {
+		return new ServiceReference<>( this, serviceRole );
+	}
+
+	@Override
 	public <S extends Service> void releaseService(Class<S> serviceRole) {
 		if ( serviceRole == null ) {
 			throw new IllegalArgumentException( "'null' is not a valid service role" );
@@ -138,8 +145,10 @@ public class StandardServiceManager implements ServiceManager {
 	}
 
 	private <S extends Service> ServiceWrapper<S> createAndCacheWrapper(Class<S> serviceRole) {
-		ServiceWrapper<S> wrapper;
-		Set<S> services = requestService( ClassLoaderService.class ).loadJavaServices( serviceRole );
+		Set<S> services = new HashSet<>();
+		for ( S service : requestService( ClassLoaderService.class ).loadJavaServices( serviceRole ) ) {
+			services.add( service );
+		}
 
 		if ( services.size() == 0 ) {
 			tryLoadingDefaultService( serviceRole, services );
@@ -151,7 +160,7 @@ public class StandardServiceManager implements ServiceManager {
 			);
 		}
 		S service = services.iterator().next();
-		wrapper = new ServiceWrapper<S>( service, serviceRole, buildContext );
+		ServiceWrapper<S> wrapper = new ServiceWrapper<S>( service, serviceRole, buildContext );
 		@SuppressWarnings("unchecked")
 		ServiceWrapper<S> previousWrapper = (ServiceWrapper<S>) cachedServices.putIfAbsent( serviceRole, wrapper );
 		if ( previousWrapper != null ) {

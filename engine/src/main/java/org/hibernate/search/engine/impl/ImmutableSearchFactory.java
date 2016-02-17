@@ -6,6 +6,7 @@
  */
 package org.hibernate.search.engine.impl;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -13,8 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.hibernate.search.backend.impl.batch.BatchBackend;
 import org.hibernate.search.backend.impl.batch.DefaultBatchBackend;
+import org.hibernate.search.backend.spi.BatchBackend;
 import org.hibernate.search.backend.spi.Worker;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.cfg.Environment;
@@ -45,14 +46,15 @@ import org.hibernate.search.query.DatabaseRetrievalMethod;
 import org.hibernate.search.query.ObjectLookupMethod;
 import org.hibernate.search.query.dsl.QueryContextBuilder;
 import org.hibernate.search.query.dsl.impl.ConnectedQueryContextBuilder;
-import org.hibernate.search.query.engine.impl.HSQueryImpl;
+import org.hibernate.search.query.engine.impl.LuceneHSQuery;
 import org.hibernate.search.query.engine.spi.HSQuery;
 import org.hibernate.search.query.engine.spi.TimeoutExceptionFactory;
+import org.hibernate.search.spi.IndexingMode;
 import org.hibernate.search.spi.InstanceInitializer;
 import org.hibernate.search.spi.SearchIntegrator;
 import org.hibernate.search.spi.WorkerBuildContext;
-import org.hibernate.search.spi.impl.PolymorphicIndexHierarchy;
 import org.hibernate.search.spi.impl.ExtendedSearchIntegratorWithShareableState;
+import org.hibernate.search.spi.impl.PolymorphicIndexHierarchy;
 import org.hibernate.search.spi.impl.SearchFactoryState;
 import org.hibernate.search.stat.Statistics;
 import org.hibernate.search.stat.impl.StatisticsImpl;
@@ -92,7 +94,7 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 	private final boolean transactionManagerExpected;
 	private final IndexManagerHolder allIndexesManager;
 	private final ErrorHandler errorHandler;
-	private final String indexingStrategy;
+	private final IndexingMode indexingMode;
 	private final ServiceManager serviceManager;
 	private final boolean enableDirtyChecks;
 	private final DefaultIndexReaderAccessor indexReaderAccessor;
@@ -107,6 +109,8 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 	private final IndexManagerFactory indexManagerFactory;
 	private final ObjectLookupMethod defaultObjectLookupMethod;
 	private final DatabaseRetrievalMethod defaultDatabaseRetrievalMethod;
+	private final boolean enlistWorkerInTransaction;
+	private final boolean indexUninvertingAllowed;
 
 	public ImmutableSearchFactory(SearchFactoryState state) {
 		this.analyzers = state.getAnalyzers();
@@ -117,7 +121,7 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 		this.filterCachingStrategy = state.getFilterCachingStrategy();
 		this.filterDefinitions = state.getFilterDefinitions();
 		this.indexHierarchy = state.getIndexHierarchy();
-		this.indexingStrategy = state.getIndexingStrategy();
+		this.indexingMode = state.getIndexingMode();
 		this.worker = state.getWorker();
 		this.serviceManager = state.getServiceManager();
 		this.transactionManagerExpected = state.isTransactionManagerExpected();
@@ -127,15 +131,20 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 		this.timeoutExceptionFactory = state.getDefaultTimeoutExceptionFactory();
 		this.timingSource = state.getTimingSource();
 		this.mapping = state.getProgrammaticMapping();
-		this.statistics = new StatisticsImpl( this );
+		if ( state.getStatistics() == null ) {
+			this.statistics = new StatisticsImpl( this );
+			boolean statsEnabled = ConfigurationParseHelper.getBooleanValue(
+					configurationProperties, Environment.GENERATE_STATS, false
+			);
+			this.statistics.setStatisticsEnabled( statsEnabled );
+		}
+		else {
+			this.statistics = (StatisticsImpl) state.getStatistics();
+		}
 		this.indexMetadataIsComplete = state.isIndexMetadataComplete();
 		this.isDeleteByTermEnforced = state.isDeleteByTermEnforced();
 		this.isIdProvidedImplicit = state.isIdProvidedImplicit();
 		this.indexManagerFactory = state.getIndexManagerFactory();
-		boolean statsEnabled = ConfigurationParseHelper.getBooleanValue(
-				configurationProperties, Environment.GENERATE_STATS, false
-		);
-		this.statistics.setStatisticsEnabled( statsEnabled );
 
 		this.enableDirtyChecks = ConfigurationParseHelper.getBooleanValue(
 				configurationProperties, Environment.ENABLE_DIRTY_CHECK, true
@@ -153,6 +162,13 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 
 		this.defaultObjectLookupMethod = determineDefaultObjectLookupMethod();
 		this.defaultDatabaseRetrievalMethod = determineDefaultDatabaseRetrievalMethod();
+		this.enlistWorkerInTransaction = ConfigurationParseHelper.getBooleanValue(
+				configurationProperties, Environment.WORKER_ENLIST_IN_TRANSACTION, false
+		);
+
+		this.indexUninvertingAllowed = ConfigurationParseHelper.getBooleanValue(
+				configurationProperties, Environment.INDEX_UNINVERTING_ALLOWED, true
+		);
 	}
 
 	private ObjectLookupMethod determineDefaultObjectLookupMethod() {
@@ -162,7 +178,7 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 		}
 		else {
 			try {
-				return Enum.valueOf( ObjectLookupMethod.class, objectLookupMethod.toUpperCase() );
+				return Enum.valueOf( ObjectLookupMethod.class, objectLookupMethod.toUpperCase( Locale.ROOT ) );
 			}
 			catch (IllegalArgumentException e) {
 				throw log.invalidPropertyValue( objectLookupMethod, Environment.OBJECT_LOOKUP_METHOD );
@@ -177,7 +193,7 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 		}
 		else {
 			try {
-				return Enum.valueOf( DatabaseRetrievalMethod.class, databaseRetrievalMethod.toUpperCase() );
+				return Enum.valueOf( DatabaseRetrievalMethod.class, databaseRetrievalMethod.toUpperCase( Locale.ROOT ) );
 			}
 			catch (IllegalArgumentException e) {
 				throw log.invalidPropertyValue( databaseRetrievalMethod, Environment.OBJECT_LOOKUP_METHOD );
@@ -191,8 +207,14 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 	}
 
 	@Override
+	@Deprecated
 	public String getIndexingStrategy() {
-		return indexingStrategy;
+		return indexingMode.toExternalRepresentation();
+	}
+
+	@Override
+	public IndexingMode getIndexingMode() {
+		return indexingMode;
 	}
 
 	@Override
@@ -229,7 +251,7 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 
 	@Override
 	public HSQuery createHSQuery() {
-		return new HSQueryImpl( this );
+		return new LuceneHSQuery( this );
 	}
 
 	@Override
@@ -512,14 +534,25 @@ public class ImmutableSearchFactory implements ExtendedSearchIntegratorWithShare
 	}
 
 	@Override
+	public boolean enlistWorkerInTransaction() {
+		return enlistWorkerInTransaction;
+	}
+
+	@Override
 	public IndexManager getIndexManager(String indexName) {
 		return getIndexManagerHolder().getIndexManager( indexName );
+	}
+
+	@Override
+	public boolean isIndexUninvertingAllowed() {
+		return indexUninvertingAllowed;
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T unwrap(Class<T> cls) {
-		if ( SearchIntegrator.class.isAssignableFrom( cls ) || ExtendedSearchIntegrator.class.isAssignableFrom( cls ) ) {
+		if ( SearchIntegrator.class.isAssignableFrom( cls ) || ExtendedSearchIntegrator.class.isAssignableFrom( cls )
+				|| SearchFactoryState.class.isAssignableFrom( cls ) ) {
 			return (T) this;
 		}
 		else {

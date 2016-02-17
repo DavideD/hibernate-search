@@ -6,92 +6,144 @@
  */
 package org.hibernate.search.test;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.store.Directory;
-
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-
-import org.hibernate.cfg.Configuration;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.SessionFactoryBuilder;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.jdbc.Work;
-import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.SearchFactory;
 import org.hibernate.search.cfg.Environment;
-import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
+import org.hibernate.search.hcore.util.impl.ContextHelper;
 import org.hibernate.search.indexes.spi.DirectoryBasedIndexManager;
 import org.hibernate.search.indexes.spi.IndexManager;
+import org.hibernate.search.test.util.MultitenancyTestHelper;
+import org.hibernate.search.test.util.TestConfiguration;
 import org.hibernate.search.testsupport.TestConstants;
-import org.hibernate.search.hcore.util.impl.ContextHelper;
 import org.hibernate.search.util.impl.FileHelper;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
- * Test utility class for managing ORM and Search test resources.
+ * Manages bootstrap and teardown of an Hibernate SessionFactory for purposes of
+ * testing.
  *
- * @author Emmanuel Bernard
- * @author Hardy Ferentschik
+ * It enforces some cleanup rules, and sets various configuration settings by default.
+ * This class also takes care of schema creation for tests requiring multi-tenancy,
+ * which is normally not supported by the HBM2DDL_AUTO setting.
+ *
+ * @author Sanne Grinovero
+ * @since 5.4
  */
 public final class DefaultTestResourceManager implements TestResourceManager {
 
 	private static final Log log = LoggerFactory.make();
 
-	private final Class<?>[] annotatedClasses;
-	private final File baseIndexDir;
+	private final TestConfiguration test;
+	private final Path baseIndexDir;
 
-	private Configuration cfg;
-	private SessionFactory sessionFactory;
+	/* Each of the following fields needs to be cleaned up on close */
+	private SessionFactoryImplementor sessionFactory;
+	private MultitenancyTestHelper multitenancy;
 	private Session session;
 	private SearchFactory searchFactory;
-	private boolean needsConfigurationRebuild;
+	private Map<String,Object> configurationSettings;
 
-	public DefaultTestResourceManager(Class<?>[] annotatedClasses) {
-		this.annotatedClasses = annotatedClasses;
-		this.cfg = new Configuration();
-		this.baseIndexDir = createBaseIndexDir();
-		this.needsConfigurationRebuild = true;
+	public DefaultTestResourceManager(TestConfiguration test, Class<?> currentTestModuleClass) {
+		this.test = test;
+		this.baseIndexDir = createBaseIndexDir( currentTestModuleClass );
 	}
 
 	@Override
 	public void openSessionFactory() {
 		if ( sessionFactory == null ) {
-			if ( cfg == null ) {
-				throw new IllegalStateException( "configuration was not built" );
-			}
-			setSessionFactory( cfg.buildSessionFactory( /*new TestInterceptor()*/ ) );
+			sessionFactory = buildSessionFactory();
 		}
 		else {
 			throw new IllegalStateException( "there should be no SessionFactory initialized at this point" );
 		}
 	}
 
-	@Override
-	public void closeSessionFactory() {
-		if ( sessionFactory == null ) {
-			throw new IllegalStateException( "there is no SessionFactory to close" );
+	private SessionFactoryImplementor buildSessionFactory() {
+		multitenancy = new MultitenancyTestHelper( test.multiTenantIds() );
+		Map<String, Object> settings = getConfigurationSettings();
+		multitenancy.forceConfigurationSettings( settings );
+
+		StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder()
+			.applySettings( settings );
+
+		multitenancy.start();
+		multitenancy.enableIfNeeded( registryBuilder );
+
+		StandardServiceRegistry serviceRegistry = registryBuilder.build();
+
+		MetadataSources ms = new MetadataSources( serviceRegistry );
+		Class<?>[] annotatedClasses = test.getAnnotatedClasses();
+		if ( annotatedClasses != null ) {
+			for ( Class<?> entity : annotatedClasses ) {
+				ms.addAnnotatedClass( entity );
+			}
 		}
-		else {
-			sessionFactory.close();
-			sessionFactory = null;
+
+		Metadata metadata = ms.buildMetadata();
+		multitenancy.exportSchema( serviceRegistry, metadata, settings );
+
+		final SessionFactoryBuilder sfb = metadata.getSessionFactoryBuilder();
+		return (SessionFactoryImplementor) sfb.build();
+	}
+
+	private Map<String,Object> getConfigurationSettings() {
+		if ( configurationSettings == null ) {
+			configurationSettings = new HashMap<>();
+			configurationSettings.put( "hibernate.search.lucene_version", TestConstants.getTargetLuceneVersion().toString() );
+			configurationSettings.put( "hibernate.search.default.directory_provider", "ram" );
+			configurationSettings.put( "hibernate.search.default.indexBase", getBaseIndexDir().toAbsolutePath().toString() );
+			configurationSettings.put( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
+			configurationSettings.put( "hibernate.search.default.indexwriter.merge_factor", "100" );
+			configurationSettings.put( "hibernate.search.default.indexwriter.max_buffered_docs", "1000" );
+			configurationSettings.put( org.hibernate.cfg.Environment.HBM2DDL_AUTO, "create-drop" );
+			test.configure( configurationSettings );
 		}
+		return configurationSettings;
 	}
 
 	@Override
-	public Configuration getCfg() {
-		return cfg;
+	public void closeSessionFactory() {
+		if ( sessionFactory != null ) {
+			sessionFactory.close();
+			sessionFactory = null;
+		}
+		if ( multitenancy != null ) {
+			multitenancy.close();
+			multitenancy = null;
+		}
+		//Make sure we don't reuse the settings across SessionFactories
+		configurationSettings = null;
+		session = null;
+		searchFactory = null;
 	}
 
 	@Override
 	public Session openSession() {
+		if ( session != null && session.isOpen() ) {
+			throw new IllegalStateException( "Previously opened Session wasn't closed!" );
+		}
 		session = getSessionFactory().openSession();
 		return session;
 	}
@@ -103,9 +155,6 @@ public final class DefaultTestResourceManager implements TestResourceManager {
 
 	@Override
 	public SessionFactory getSessionFactory() {
-		if ( cfg == null ) {
-			throw new IllegalStateException( "Configuration should be already defined at this point" );
-		}
 		if ( sessionFactory == null ) {
 			throw new IllegalStateException( "SessionFactory should be already defined at this point" );
 		}
@@ -114,69 +163,43 @@ public final class DefaultTestResourceManager implements TestResourceManager {
 
 	@Override
 	public Directory getDirectory(Class<?> clazz) {
-		ExtendedSearchIntegrator integrator = ContextHelper.getSearchintegratorBySFI( (SessionFactoryImplementor) sessionFactory );
+		ExtendedSearchIntegrator integrator = ContextHelper.getSearchintegratorBySFI( sessionFactory );
 		IndexManager[] indexManagers = integrator.getIndexBinding( clazz ).getIndexManagers();
 		DirectoryBasedIndexManager indexManager = (DirectoryBasedIndexManager) indexManagers[0];
 		return indexManager.getDirectoryProvider().getDirectory();
 	}
 
 	@Override
-	public void ensureIndexesAreEmpty() {
-		if ( "jms".equals( getCfg().getProperty( "hibernate.search.worker.backend" ) ) ) {
-			log.debug( "JMS based test. Skipping index emptying" );
-			return;
-		}
+	public void ensureIndexesAreEmpty() throws IOException {
 		FileHelper.delete( getBaseIndexDir() );
 	}
 
 	@Override
 	public SearchFactory getSearchFactory() {
 		if ( searchFactory == null ) {
-			Session session = openSession();
-			FullTextSession fullTextSession = Search.getFullTextSession( session );
-			searchFactory = fullTextSession.getSearchFactory();
-			fullTextSession.close();
+			//Don't use this#openSession() as that would interfere with our sanity
+			//verification for the tests to not open additional session instances.
+			try ( Session session = getSessionFactory().openSession() ) {
+				searchFactory = Search.getFullTextSession( session ).getSearchFactory();
+			}
 		}
 		return searchFactory;
 	}
 
 	@Override
 	public ExtendedSearchIntegrator getExtendedSearchIntegrator() {
-		return getSearchFactory().unwrap( ExtendedSearchIntegrator.class );
+		return ContextHelper.getSearchintegratorBySFI( sessionFactory );
 	}
 
 	@Override
-	public File getBaseIndexDir() {
+	public Path getBaseIndexDir() {
 		return baseIndexDir;
-	}
-
-	@Override
-	public void forceConfigurationRebuild() {
-		this.needsConfigurationRebuild = true;
-		this.cfg = new Configuration();
-	}
-
-	@Override
-	public boolean needsConfigurationRebuild() {
-		return this.needsConfigurationRebuild;
 	}
 
 	public void defaultTearDown() throws Exception {
 		handleUnclosedResources();
 		closeSessionFactory();
 		ensureIndexesAreEmpty();
-	}
-
-	public void applyDefaultConfiguration(Configuration cfg) {
-		cfg.setProperty( "hibernate.search.lucene_version", TestConstants.getTargetLuceneVersion().toString() );
-		cfg.setProperty( "hibernate.search.default.directory_provider", "ram" );
-		cfg.setProperty( "hibernate.search.default.indexBase", getBaseIndexDir().getAbsolutePath() );
-		cfg.setProperty( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
-
-		cfg.setProperty( "hibernate.search.default.indexwriter.merge_factor", "100" );
-		cfg.setProperty( "hibernate.search.default.indexwriter.max_buffered_docs", "1000" );
-
-		cfg.setProperty( org.hibernate.cfg.Environment.HBM2DDL_AUTO, "create-drop" );
 	}
 
 	public void handleUnclosedResources() {
@@ -194,48 +217,21 @@ public final class DefaultTestResourceManager implements TestResourceManager {
 		searchFactory = null;
 	}
 
-	public void setSessionFactory(SessionFactory sessionFactory) {
-		this.sessionFactory = sessionFactory;
-	}
-
-	public void buildConfiguration() {
-		try {
-			for ( Class<?> aClass : annotatedClasses ) {
-				getCfg().addAnnotatedClass( aClass );
-			}
-		}
-		catch (HibernateException e) {
-			e.printStackTrace();
-			throw e;
-		}
-		catch (SearchException e) {
-			e.printStackTrace();
-			throw e;
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException( e );
-		}
-		needsConfigurationRebuild = false;
-	}
-
-	private File createBaseIndexDir() {
-		// Make sure no directory is ever reused across the test suite as Windows might not be able
-		// to delete the files after usage. See also
+	private Path createBaseIndexDir(Class<?> currentTestModuleClass) {
+		// Appending UUID to be extra-sure no directory is ever reused across the test suite as Windows might not be
+		// able to delete the files after usage. See also
 		// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4715154
-		String shortTestName = this.getClass().getSimpleName() + "-" + UUID.randomUUID().toString().substring( 0, 8 );
-
-		// the constructor File(File, String) is broken too, see :
-		// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=5066567
-		// So make sure to use File(String, String) in this case as TestConstants works with absolute paths!
-		return new File( TestConstants.getIndexDirectory( this.getClass() ), shortTestName );
+		return Paths.get(
+				TestConstants.getIndexDirectory( TestConstants.getTempTestDataDir(), currentTestModuleClass ),
+				UUID.randomUUID().toString().substring( 0, 8 )
+		);
 	}
 
 	private static class RollbackWork implements Work {
-
 		@Override
 		public void execute(Connection connection) throws SQLException {
 			connection.rollback();
 		}
 	}
+
 }

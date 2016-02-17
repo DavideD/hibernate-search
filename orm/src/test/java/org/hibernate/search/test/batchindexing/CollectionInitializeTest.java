@@ -20,7 +20,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class CollectionInitializeTest extends SearchTestBase {
 
@@ -73,7 +73,7 @@ public class CollectionInitializeTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { LegacyCarPlant.class, LegacyCar.class, LegacyTire.class };
 	}
 }

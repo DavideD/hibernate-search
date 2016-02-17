@@ -100,6 +100,11 @@ public abstract class AbstractWorkspaceImpl implements Workspace {
 	public void shutDownNow() {
 		getCommitPolicy().onClose();
 		log.shuttingDownBackend( indexManager.getIndexName() );
+		closeIndexWriter();
+	}
+
+	public void closeIndexWriter() {
+		log.closingIndexWriter( indexManager.getIndexName() );
 		writerHolder.closeIndexWriter();
 	}
 
@@ -193,4 +198,27 @@ public abstract class AbstractWorkspaceImpl implements Workspace {
 	public String getIndexName() {
 		return this.indexManager.getIndexName();
 	}
+
+	public IndexWriterDelegate getIndexWriterDelegate(ErrorContextBuilder errorContextBuilder) {
+		IndexWriter indexWriter = getIndexWriter( errorContextBuilder );
+		//This to respect the existing semantics of returning null on failure of IW opening
+		if ( indexWriter != null ) {
+			return new IndexWriterDelegate( indexWriter );
+		}
+		else {
+			return null;
+		}
+	}
+
+	public IndexWriterDelegate getIndexWriterDelegate() {
+		IndexWriter indexWriter = getIndexWriter();
+		//This to respect the existing semantics of returning null on failure of IW opening
+		if ( indexWriter != null ) {
+			return new IndexWriterDelegate( indexWriter );
+		}
+		else {
+			return null;
+		}
+	}
+
 }

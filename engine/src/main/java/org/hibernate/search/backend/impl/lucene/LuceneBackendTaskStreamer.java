@@ -8,9 +8,9 @@ package org.hibernate.search.backend.impl.lucene;
 
 import java.util.concurrent.locks.Lock;
 
-import org.apache.lucene.index.IndexWriter;
 import org.hibernate.search.backend.IndexingMonitor;
 import org.hibernate.search.backend.LuceneWork;
+import org.hibernate.search.backend.impl.lucene.works.LuceneWorkExecutor;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
@@ -22,7 +22,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * applied; this should be wrapping the invoker code, as it does for example
  * in the MassIndexer.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 final class LuceneBackendTaskStreamer {
 
@@ -41,14 +41,15 @@ final class LuceneBackendTaskStreamer {
 	public void doWork(final LuceneWork work, final IndexingMonitor monitor) {
 		modificationLock.lock();
 		try {
-			IndexWriter indexWriter = workspace.getIndexWriter();
-			if ( indexWriter == null ) {
+			IndexWriterDelegate delegate = workspace.getIndexWriterDelegate();
+			if ( delegate == null ) {
 				log.cannotOpenIndexWriterCausePreviousError();
 				return;
 			}
 			boolean errors = true;
 			try {
-				work.getWorkDelegate( resources.getVisitor() ).performWork( work, indexWriter, monitor );
+				LuceneWorkExecutor executor = work.acceptIndexWorkVisitor( resources.getWorkVisitor(), null );
+				executor.performWork( work, delegate, monitor );
 				errors = false;
 			}
 			finally {

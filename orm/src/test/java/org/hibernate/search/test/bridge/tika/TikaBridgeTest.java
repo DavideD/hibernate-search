@@ -113,7 +113,7 @@ public class TikaBridgeTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Song.class
 		};
@@ -131,7 +131,6 @@ public class TikaBridgeTest extends SearchTestBase {
 		FullTextSession fullTextSession = Search.getFullTextSession( session );
 		Transaction tx = session.beginTransaction();
 		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
 				XMPDM.ARTIST.getName(),
 				TestConstants.standardAnalyzer
 		);

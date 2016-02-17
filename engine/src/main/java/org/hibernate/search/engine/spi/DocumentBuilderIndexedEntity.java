@@ -7,31 +7,33 @@
 package org.hibernate.search.engine.spi;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumSet;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.DoubleDocValuesField;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Index;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.document.FloatDocValuesField;
+import org.apache.lucene.document.NumericDocValuesField;
+import org.apache.lucene.document.SortedDocValuesField;
+import org.apache.lucene.facet.sortedset.SortedSetDocValuesFacetField;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexableField;
-
-import org.hibernate.search.bridge.builtin.NumericEncodingCalendarBridge;
-import org.hibernate.search.bridge.builtin.NumericEncodingDateBridge;
-import org.hibernate.search.bridge.builtin.NumericFieldBridge;
-import org.hibernate.search.bridge.builtin.StringEncodingDateBridge;
-import org.hibernate.search.exception.AssertionFailure;
+import org.apache.lucene.util.BytesRef;
 import org.hibernate.annotations.common.reflection.ReflectionManager;
 import org.hibernate.annotations.common.reflection.XClass;
 import org.hibernate.annotations.common.reflection.XMember;
-import org.hibernate.search.engine.ProjectionConstants;
-import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.analyzer.Discriminator;
-import org.hibernate.search.annotations.CacheFromIndex;
 import org.hibernate.search.annotations.ProvidedId;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.backend.AddLuceneWork;
@@ -43,17 +45,24 @@ import org.hibernate.search.bridge.LuceneOptions;
 import org.hibernate.search.bridge.StringBridge;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
 import org.hibernate.search.bridge.TwoWayStringBridge;
+import org.hibernate.search.bridge.builtin.NumericEncodingCalendarBridge;
+import org.hibernate.search.bridge.builtin.NumericEncodingDateBridge;
+import org.hibernate.search.bridge.builtin.NumericFieldBridge;
+import org.hibernate.search.bridge.builtin.StringEncodingDateBridge;
 import org.hibernate.search.bridge.builtin.impl.TwoWayString2FieldBridgeAdaptor;
 import org.hibernate.search.bridge.spi.ConversionContext;
+import org.hibernate.search.engine.ProjectionConstants;
 import org.hibernate.search.engine.impl.ConfigContext;
+import org.hibernate.search.engine.impl.FacetHandling;
 import org.hibernate.search.engine.impl.LuceneOptionsImpl;
 import org.hibernate.search.engine.metadata.impl.DocumentFieldMetadata;
 import org.hibernate.search.engine.metadata.impl.EmbeddedTypeMetadata;
+import org.hibernate.search.engine.metadata.impl.FacetMetadata;
 import org.hibernate.search.engine.metadata.impl.PropertyMetadata;
+import org.hibernate.search.engine.metadata.impl.SortableFieldMetadata;
 import org.hibernate.search.engine.metadata.impl.TypeMetadata;
-import org.hibernate.search.query.collector.impl.FieldCacheCollectorFactory;
-import org.hibernate.search.query.fieldcache.impl.ClassLoadingStrategySelector;
-import org.hibernate.search.query.fieldcache.impl.FieldCacheLoadingType;
+import org.hibernate.search.exception.AssertionFailure;
+import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.spi.InstanceInitializer;
 import org.hibernate.search.util.impl.ReflectionHelper;
 import org.hibernate.search.util.logging.impl.Log;
@@ -69,6 +78,12 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author Hardy Ferentschik
  */
 public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
+
+	/**
+	 * The tenant identifier. This is not a projection constant as we're not storing it.
+	 */
+	public static final String TENANT_ID_FIELDNAME = "__HSearch_TenantId";
+
 	private static final Log log = LoggerFactory.make();
 
 	private static final LuceneOptions NULL_EMBEDDED_MARKER_OPTIONS;
@@ -86,6 +101,8 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 		NULL_EMBEDDED_MARKER_OPTIONS = new LuceneOptionsImpl( fieldMetadata, 1f, 1f );
 	}
 
+	private static final FieldType TENANT_ID_FIELDTYPE = createTenantIdFieldType();
+
 	/**
 	 * Flag indicating whether {@link org.apache.lucene.search.IndexSearcher#doc(int, org.apache.lucene.index.StoredFieldVisitor)}
 	 * can be used in order to retrieve documents. This is only safe to do if we know that
@@ -99,17 +116,7 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 	 */
 	private boolean idProvided;
 
-	/**
-	 * Type of allowed FieldCache usage
-	 */
-	private final Set<org.hibernate.search.annotations.FieldCacheType> fieldCacheUsage;
-
 	private final String identifierName;
-
-	/**
-	 * Which strategy to use to load values from the FieldCache
-	 */
-	private final FieldCacheCollectorFactory idFieldCacheCollectorFactory;
 
 	/**
 	 * The document field name of the document id
@@ -125,6 +132,7 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 	 * Creates a document builder for entities annotated with <code>@Indexed</code>.
 	 *
 	 * @param clazz The class for which to build a <code>DocumentBuilderContainedEntity</code>
+	 * @param typeMetadata all the metadata for the entity type
 	 * @param context Handle to default configuration settings
 	 * @param reflectionManager Reflection manager to use for processing the annotations
 	 * @param optimizationBlackList mutable register, keeps track of types on which we need to disable collection events optimizations
@@ -147,25 +155,9 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 			throw log.noDocumentIdFoundException( clazz.getName() );
 		}
 
-		idFieldName = idPropertyMetadata.getFieldMetadata().iterator().next().getName();
+		idFieldName = idPropertyMetadata.getFieldMetadataSet().iterator().next().getName();
 
-		CacheFromIndex fieldCacheOptions = clazz.getAnnotation( CacheFromIndex.class );
-		if ( fieldCacheOptions == null ) {
-			this.fieldCacheUsage = Collections.unmodifiableSet( EnumSet.of( org.hibernate.search.annotations.FieldCacheType.CLASS ) );
-		}
-		else {
-			EnumSet<org.hibernate.search.annotations.FieldCacheType> enabledTypes = EnumSet.noneOf( org.hibernate.search.annotations.FieldCacheType.class );
-			Collections.addAll( enabledTypes, fieldCacheOptions.value() );
-			if ( enabledTypes.size() != 1 && enabledTypes.contains( org.hibernate.search.annotations.FieldCacheType.NOTHING ) ) {
-				throw new SearchException(
-						"CacheFromIndex configured with conflicting parameters:" +
-								" if FieldCacheType.NOTHING is enabled, no other options can be added"
-				);
-			}
-			this.fieldCacheUsage = Collections.unmodifiableSet( enabledTypes );
-		}
 		checkAllowFieldSelection();
-		idFieldCacheCollectorFactory = figureIdFieldCacheUsage();
 		if ( log.isDebugEnabled() ) {
 			log.debugf(
 					"Field selection in projections is set to %b for entity %s.",
@@ -177,27 +169,8 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 		this.identifierName = idProvided ? null : idPropertyMetadata.getPropertyAccessor().getName();
 	}
 
-	private FieldCacheCollectorFactory figureIdFieldCacheUsage() {
-		if ( this.fieldCacheUsage.contains( org.hibernate.search.annotations.FieldCacheType.ID ) ) {
-			FieldCacheLoadingType collectorTypeForId = ClassLoadingStrategySelector.guessAppropriateCollectorType(
-					getIdBridge()
-			);
-			if ( collectorTypeForId == null ) {
-				log.cannotExtractValueForIdentifier( getBeanClass() );
-				return null;
-			}
-			TwoWayStringBridge twoWayIdStringBridge = ClassLoadingStrategySelector.getTwoWayStringBridge( getIdBridge() );
-			return new FieldCacheCollectorFactory( getIdKeywordName(), collectorTypeForId, twoWayIdStringBridge );
-		}
-		return null;
-	}
-
 	public XMember getIdGetter() {
 		return idPropertyMetadata.getPropertyAccessor();
-	}
-
-	public FieldCacheCollectorFactory getIdFieldCacheCollectionFactory() {
-		return idFieldCacheCollectorFactory;
 	}
 
 	private ProvidedId findProvidedId(XClass clazz, ReflectionManager reflectionManager) {
@@ -211,15 +184,16 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 	}
 
 	@Override
-	public void addWorkToQueue(Class<?> entityClass, Object entity, Serializable id, boolean delete, boolean add, List<LuceneWork> queue, ConversionContext contextualBridge) {
+	public void addWorkToQueue(String tenantId, Class<?> entityClass, Object entity, Serializable id, boolean delete, boolean add, List<LuceneWork> queue, ConversionContext contextualBridge) {
 		DocumentFieldMetadata idFieldMetadata = idPropertyMetadata.getFieldMetadata( idFieldName );
 		String idInString = objectToString( getIdBridge(), idFieldMetadata.getName(), id, contextualBridge );
 		if ( delete && !add ) {
-			queue.add( new DeleteLuceneWork( id, idInString, entityClass ) );
+			queue.add( new DeleteLuceneWork( tenantId, id, idInString, entityClass ) );
 		}
 		else if ( add && !delete ) {
 			queue.add(
 					createAddWork(
+							tenantId,
 							entityClass,
 							entity,
 							id,
@@ -232,6 +206,7 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 		else if ( add && delete ) {
 			queue.add(
 					createUpdateWork(
+							tenantId,
 							entityClass,
 							entity,
 							id,
@@ -273,63 +248,74 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 		return stringValue;
 	}
 
-	public AddLuceneWork createAddWork(Class<?> entityClass, Object entity, Serializable id, String idInString, InstanceInitializer sessionInitializer, ConversionContext conversionContext) {
+	public AddLuceneWork createAddWork(String tenantId, Class<?> entityClass, Object entity, Serializable id, String idInString, InstanceInitializer sessionInitializer, ConversionContext conversionContext) {
 		Map<String, String> fieldToAnalyzerMap = new HashMap<String, String>();
-		Document doc = getDocument( entity, id, fieldToAnalyzerMap, sessionInitializer, conversionContext, null );
+		Document doc = getDocument( tenantId, entity, id, fieldToAnalyzerMap, sessionInitializer, conversionContext, null );
 		final AddLuceneWork addWork;
 		if ( fieldToAnalyzerMap.isEmpty() ) {
-			addWork = new AddLuceneWork( id, idInString, entityClass, doc );
+			addWork = new AddLuceneWork( tenantId, id, idInString, entityClass, doc );
 		}
 		else {
-			addWork = new AddLuceneWork( id, idInString, entityClass, doc, fieldToAnalyzerMap );
+			addWork = new AddLuceneWork( tenantId, id, idInString, entityClass, doc, fieldToAnalyzerMap );
 		}
 		return addWork;
 	}
 
-	public UpdateLuceneWork createUpdateWork(Class entityClass, Object entity, Serializable id, String idInString, InstanceInitializer sessionInitializer, ConversionContext contextualBridge) {
+	public UpdateLuceneWork createUpdateWork(String tenantId, Class entityClass, Object entity, Serializable id, String idInString, InstanceInitializer sessionInitializer, ConversionContext contextualBridge) {
 		Map<String, String> fieldToAnalyzerMap = new HashMap<String, String>();
-		Document doc = getDocument( entity, id, fieldToAnalyzerMap, sessionInitializer, contextualBridge, null );
+		Document doc = getDocument( tenantId, entity, id, fieldToAnalyzerMap, sessionInitializer, contextualBridge, null );
 		final UpdateLuceneWork addWork;
 		if ( fieldToAnalyzerMap.isEmpty() ) {
-			addWork = new UpdateLuceneWork( id, idInString, entityClass, doc );
+			addWork = new UpdateLuceneWork( tenantId, id, idInString, entityClass, doc );
 		}
 		else {
-			addWork = new UpdateLuceneWork( id, idInString, entityClass, doc, fieldToAnalyzerMap );
+			addWork = new UpdateLuceneWork( tenantId, id, idInString, entityClass, doc, fieldToAnalyzerMap );
 		}
 		return addWork;
 	}
 
 	/**
-	 * Builds the Lucene <code>Document</code> for a given entity <code>instance</code> and its <code>id</code>.
+	 * Builds the Lucene {@code Document} for a given entity instance and its id.
 	 *
-	 * @param instance The entity for which to build the matching Lucene <code>Document</code>
+	 * @param tenantId the identifier of the tenant or null if there isn't one
+	 * @param instance The entity for which to build the matching Lucene {@code Document}
 	 * @param id the entity id.
-	 * @param fieldToAnalyzerMap this maps gets populated while generating the <code>Document</code>.
-	 * It allows to specify for any document field a named analyzer to use. This parameter cannot be <code>null</code>.
-	 * @param objectInitializer used to ensure that all objects are initalized
+	 * @param fieldToAnalyzerMap this maps gets populated while generating the {@code Document}.
+	 * It allows to specify for any document field a named analyzer to use. This parameter cannot be {@code null}.
+	 * @param objectInitializer used to ensure that all objects are initialized
 	 * @param conversionContext a {@link org.hibernate.search.bridge.spi.ConversionContext} object.
 	 * @param includedFieldNames list of field names to consider. Others can be excluded. Null if all fields are considered.
 	 *
-	 * @return The Lucene <code>Document</code> for the specified entity.
+	 * @return The Lucene {@code Document} for the specified entity.
 	 */
-	public Document getDocument(Object instance, Serializable id, Map<String, String> fieldToAnalyzerMap, InstanceInitializer objectInitializer, ConversionContext conversionContext, String[] includedFieldNames) {
-		// TODO as it is, includedFieldNames is not generally useful as we don't know if a fieldbridge creates specific fields or not
+	public Document getDocument(
+			String tenantId,
+			Object instance,
+			Serializable id,
+			Map<String, String> fieldToAnalyzerMap,
+			InstanceInitializer objectInitializer,
+			ConversionContext conversionContext,
+			String[] includedFieldNames) {
+		// TODO as it is, includedFieldNames is not generally useful as we don't know if a field bridge creates specific fields or not
 		// TODO only used at the moment to filter the id field and the class field
 
 		if ( fieldToAnalyzerMap == null ) {
 			throw new IllegalArgumentException( "fieldToAnalyzerMap cannot be null" );
 		}
+
 		//sensible default for outside callers
 		if ( objectInitializer == null ) {
 			objectInitializer = getInstanceInitializer();
 		}
 
 		Document doc = new Document();
-		final Class<?> entityType = objectInitializer.getClass( instance );
-		final float documentLevelBoost = getMetadata().getClassBoost( instance );
+		FacetHandling faceting = new FacetHandling();
+		Class<?> entityType = objectInitializer.getClass( instance );
+		float documentLevelBoost = getMetadata().getClassBoost( instance );
 
 		// add the class name of the entity to the document
 		if ( containsFieldName( ProjectionConstants.OBJECT_CLASS, includedFieldNames ) ) {
+			@SuppressWarnings( "deprecation" )
 			Field classField =
 					new Field(
 							ProjectionConstants.OBJECT_CLASS,
@@ -341,6 +327,8 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 			doc.add( classField );
 		}
 
+		addTenantIdIfRequired( tenantId, doc );
+
 		// now add the entity id to the document
 		if ( containsFieldName( idFieldName, includedFieldNames ) ) {
 			DocumentFieldMetadata idFieldMetaData = idPropertyMetadata.getFieldMetadata( idFieldName );
@@ -351,6 +339,7 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 
 			try {
 				contextualizedBridge.set( idFieldMetaData.getName(), id, doc, luceneOptions );
+				addSortFieldDocValues( doc, idPropertyMetadata, documentLevelBoost, id );
 			}
 			finally {
 				conversionContext.popProperty();
@@ -358,54 +347,215 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 		}
 
 		// finally add all other document fields
-		Set<String> processedFieldNames = new HashSet<String>();
+		Set<String> processedFieldNames = new HashSet<>();
 		buildDocumentFields(
 				instance,
 				doc,
+				faceting,
 				getMetadata(),
 				fieldToAnalyzerMap,
 				processedFieldNames,
 				conversionContext,
 				objectInitializer,
-				documentLevelBoost
+				documentLevelBoost,
+				false
 		);
+
+
+		doc = faceting.build( doc );
 		return doc;
 	}
 
+	private void addTenantIdIfRequired(String tenantId, Document doc) {
+		if ( tenantId != null ) {
+			Field tenantIdField = new Field(
+					TENANT_ID_FIELDNAME,
+					tenantId,
+					TENANT_ID_FIELDTYPE );
+			doc.add( tenantIdField );
+		}
+	}
+
+	private static FieldType createTenantIdFieldType() {
+		FieldType type = new FieldType();
+		type.setStored( false );
+		type.setOmitNorms( true );
+		type.setIndexOptions( IndexOptions.DOCS );
+		type.setTokenized( false );
+		type.setStoreTermVectorOffsets( false );
+		type.setStoreTermVectorPayloads( false );
+		type.setStoreTermVectorPositions( false );
+		type.setStoreTermVectors( false );
+		type.freeze();
+		return type;
+	}
+
+	/**
+	 * @param inheritedBoost Boost inherited from the parent structure of the given instance: the document-level boost
+	 * in case of a top-level field, the product of the document-level boost and the boost(s) of the parent
+	 * embeddable(s) in case of an embedded field
+	 */
 	private void buildDocumentFields(Object instance,
 			Document doc,
+			FacetHandling faceting,
 			TypeMetadata typeMetadata,
 			Map<String, String> fieldToAnalyzerMap,
 			Set<String> processedFieldNames,
 			ConversionContext conversionContext,
 			InstanceInitializer objectInitializer,
-			final float documentBoost) {
+			final float inheritedBoost,
+			boolean multiValued) {
 
 		// needed for field access: I cannot work in the proxied version
 		Object unproxiedInstance = unproxy( instance, objectInitializer );
 
-		// process the class bridges
-		for ( DocumentFieldMetadata fieldMetadata : typeMetadata.getClassBridgeMetadata() ) {
-			FieldBridge fieldBridge = fieldMetadata.getFieldBridge();
-			final String fieldName = fieldMetadata.getName();
-			final FieldBridge oneWayConversionContext = conversionContext.oneWayConversionContext( fieldBridge );
-			conversionContext.pushProperty( fieldName );
+		buildDocumentFieldForClassBridges( doc, typeMetadata, conversionContext, inheritedBoost, unproxiedInstance );
+		buildDocumentFieldsForProperties(
+				doc,
+				faceting,
+				typeMetadata,
+				conversionContext,
+				objectInitializer,
+				inheritedBoost,
+				unproxiedInstance,
+				multiValued
+		);
+
+		// allow analyzer override for the fields added by the class and field bridges
+		allowAnalyzerDiscriminatorOverride(
+				doc, typeMetadata, fieldToAnalyzerMap, processedFieldNames, unproxiedInstance
+		);
+
+		buildDocumentFieldsForEmbeddedObjects(
+				doc,
+				faceting,
+				typeMetadata,
+				fieldToAnalyzerMap,
+				processedFieldNames,
+				conversionContext,
+				objectInitializer,
+				inheritedBoost,
+				unproxiedInstance,
+				multiValued
+		);
+	}
+
+	private void buildDocumentFieldsForEmbeddedObjects(Document doc,
+			FacetHandling faceting,
+			TypeMetadata typeMetadata,
+			Map<String, String> fieldToAnalyzerMap,
+			Set<String> processedFieldNames,
+			ConversionContext conversionContext,
+			InstanceInitializer objectInitializer,
+			float inheritedBoost,
+			Object unproxiedInstance,
+			boolean multiValued) {
+		for ( EmbeddedTypeMetadata embeddedTypeMetadata : typeMetadata.getEmbeddedTypeMetadata() ) {
+			XMember member = embeddedTypeMetadata.getEmbeddedGetter();
+			float embeddedBoost = inheritedBoost * embeddedTypeMetadata.getStaticBoost();
+			conversionContext.pushProperty( embeddedTypeMetadata.getEmbeddedFieldName() );
 			try {
-				oneWayConversionContext.set(
-						fieldName,
-						unproxiedInstance,
-						doc,
-						typeMetadata.getClassLuceneOptions( fieldMetadata, documentBoost )
-				);
+				Object value = ReflectionHelper.getMemberValue( unproxiedInstance, member );
+				if ( value == null ) {
+					processEmbeddedNullValue( doc, embeddedTypeMetadata, conversionContext );
+					continue;
+				}
+
+				switch ( embeddedTypeMetadata.getEmbeddedContainer() ) {
+					case ARRAY:
+						Object[] array = objectInitializer.initializeArray( (Object[]) value );
+						for ( Object arrayValue : array ) {
+							buildDocumentFields(
+									arrayValue,
+									doc,
+									faceting,
+									embeddedTypeMetadata,
+									fieldToAnalyzerMap,
+									processedFieldNames,
+									conversionContext,
+									objectInitializer,
+									embeddedBoost,
+									true
+							);
+						}
+						break;
+					case COLLECTION:
+						Collection<?> collection = objectInitializer.initializeCollection( (Collection<?>) value );
+						for ( Object collectionValue : collection ) {
+							buildDocumentFields(
+									collectionValue,
+									doc,
+									faceting,
+									embeddedTypeMetadata,
+									fieldToAnalyzerMap,
+									processedFieldNames,
+									conversionContext,
+									objectInitializer,
+									embeddedBoost,
+									true
+							);
+						}
+						break;
+					case MAP:
+						Map<?, ?> map = objectInitializer.initializeMap( (Map<?, ?>) value );
+						for ( Object collectionValue : map.values() ) {
+							buildDocumentFields(
+									collectionValue,
+									doc,
+									faceting,
+									embeddedTypeMetadata,
+									fieldToAnalyzerMap,
+									processedFieldNames,
+									conversionContext,
+									objectInitializer,
+									embeddedBoost,
+									true
+							);
+						}
+						break;
+					case OBJECT:
+						buildDocumentFields(
+								value,
+								doc,
+								faceting,
+								embeddedTypeMetadata,
+								fieldToAnalyzerMap,
+								processedFieldNames,
+								conversionContext,
+								objectInitializer,
+								embeddedBoost,
+								multiValued
+						);
+						break;
+					default:
+						throw new AssertionFailure(
+								"Unknown embedded container: "
+										+ embeddedTypeMetadata.getEmbeddedContainer()
+						);
+				}
 			}
 			finally {
 				conversionContext.popProperty();
 			}
 		}
+	}
 
-		// process the indexed fields
+	/**
+	 * @param multiValued Whether the type whose properties should be added may appear more than once (within the same
+	 * role) in a document or not. That's the case if the type is (directly or indirectly) contained within an embedded
+	 * to-many association.
+	 */
+	private void buildDocumentFieldsForProperties(Document document,
+			FacetHandling faceting,
+			TypeMetadata typeMetadata,
+			ConversionContext conversionContext,
+			InstanceInitializer objectInitializer,
+			float documentBoost,
+			Object unproxiedInstance,
+			boolean multiValued) {
 		XMember previousMember = null;
 		Object currentFieldValue = null;
+
 		for ( PropertyMetadata propertyMetadata : typeMetadata.getAllPropertyMetadata() ) {
 			XMember member = propertyMetadata.getPropertyAccessor();
 			if ( previousMember != member ) {
@@ -427,106 +577,200 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 			try {
 				conversionContext.pushProperty( propertyMetadata.getPropertyAccessorName() );
 
-				for ( DocumentFieldMetadata fieldMetadata : propertyMetadata.getFieldMetadata() ) {
+				for ( DocumentFieldMetadata fieldMetadata : propertyMetadata.getFieldMetadataSet() ) {
 					final FieldBridge fieldBridge = fieldMetadata.getFieldBridge();
 					final String fieldName = fieldMetadata.getName();
-					final FieldBridge oneWayConversionContext = conversionContext.oneWayConversionContext( fieldBridge );
+					final FieldBridge oneWayConversionContext = conversionContext.oneWayConversionContext(
+							fieldBridge
+					);
 
+					// handle the default field creation via the bridge
 					oneWayConversionContext.set(
 							fieldName,
 							currentFieldValue,
-							doc,
-							typeMetadata.getFieldLuceneOptions( propertyMetadata, fieldMetadata, currentFieldValue, documentBoost )
+							document,
+							typeMetadata.getFieldLuceneOptions(
+									propertyMetadata, fieldMetadata, currentFieldValue, documentBoost
+							)
 					);
+
+					// handle faceting fields
+					if ( fieldMetadata.hasFacets() ) {
+						faceting.enableFacetProcessing();
+						for ( FacetMetadata facetMetadata : fieldMetadata.getFacetMetadata() ) {
+							if ( multiValued ) {
+								faceting.setMultiValued( facetMetadata.getFacetName() );
+							}
+							addFacetDocValues( document, fieldMetadata, facetMetadata, currentFieldValue );
+						}
+					}
+				}
+
+				// add the doc value fields required for sorting, but only if this property is not part of an embedded
+				// to-many assoc, in which case sorting on these fields would not make sense
+				if ( !multiValued ) {
+					addSortFieldDocValues( document, propertyMetadata, documentBoost, currentFieldValue );
 				}
 			}
 			finally {
 				conversionContext.popProperty();
 			}
 		}
+	}
 
-		// allow analyzer override for the fields added by the class and field bridges
-		allowAnalyzerDiscriminatorOverride(
-				doc, typeMetadata, fieldToAnalyzerMap, processedFieldNames, unproxiedInstance
-		);
+	private void addFacetDocValues(Document document,
+			DocumentFieldMetadata fieldMetadata,
+			FacetMetadata facetMetadata,
+			Object value) {
+		Field facetField;
+		switch ( facetMetadata.getEncoding() ) {
+			case STRING: {
+				facetField = new SortedSetDocValuesFacetField( facetMetadata.getFacetName(), value.toString() );
+				break;
+			}
+			case LONG: {
+				if ( value instanceof Number ) {
+					facetField = new NumericDocValuesField(
+							facetMetadata.getFacetName(),
+							( (Number) value ).longValue()
+					);
+				}
+				else if ( Date.class.isAssignableFrom( value.getClass() ) ) {
+					Date date = (Date) value;
+					FieldBridge fieldBridge = fieldMetadata.getFieldBridge();
+					// if we have a date and the actual value is not indexed as a numeric value we will run into
+					// problems. Better fail early
+					if ( !( fieldBridge instanceof NumericEncodingDateBridge ) ) {
+						log.numericDateFacetForNonNumericField(
+								facetMetadata.getFacetName(),
+								fieldMetadata.getFieldName()
+						);
+					}
+					NumericEncodingDateBridge dateBridge = (NumericEncodingDateBridge) fieldBridge;
+					long numericDateValue = DateTools.round( date.getTime(), dateBridge.getResolution() );
 
-		// recursively process embedded objects
-		for ( EmbeddedTypeMetadata embeddedTypeMetadata : typeMetadata.getEmbeddedTypeMetadata() ) {
-			XMember member = embeddedTypeMetadata.getEmbeddedGetter();
-			conversionContext.pushProperty( embeddedTypeMetadata.getEmbeddedFieldName() );
+					facetField = new NumericDocValuesField( facetMetadata.getFacetName(), numericDateValue );
+				}
+				else if ( Calendar.class.isAssignableFrom( value.getClass() ) ) {
+					Calendar calendar = (Calendar) value;
+					facetField = new NumericDocValuesField(
+							facetMetadata.getFacetName(),
+							calendar.getTime().getTime()
+					);
+				}
+				else {
+					throw new AssertionFailure( "Unexpected value type for faceting: " + value.getClass().getName() );
+				}
+				break;
+			}
+			case DOUBLE: {
+				if ( value instanceof Number ) {
+					facetField = new DoubleDocValuesField(
+							facetMetadata.getFacetName(),
+							( (Number) value ).doubleValue()
+					);
+				}
+				else {
+					throw new AssertionFailure( "Unexpected value type for faceting: " + value.getClass().getName() );
+				}
+				break;
+			}
+			case AUTO: {
+				throw new AssertionFailure( "The facet type should have been resolved during bootstrapping" );
+			}
+			default: {
+				throw new AssertionFailure(
+						"Unexpected facet encoding type '"
+								+ facetMetadata.getEncoding()
+								+ "' Has the enum been modified?"
+				);
+			}
+		}
+
+		document.add( facetField );
+	}
+
+	/**
+	 * Adds the doc field values to the document required to map the configured sort fields. The value from the
+	 * underlying field will be obtained from the document (it has been written at this point already) and an equivalent
+	 * doc field value will be added.
+	 */
+	private void addSortFieldDocValues(Document document, PropertyMetadata propertyMetadata, float documentBoost, Object propertyValue) {
+		for ( SortableFieldMetadata sortField : propertyMetadata.getSortableFieldMetadata() ) {
+			DocumentFieldMetadata fieldMetaData = propertyMetadata.getFieldMetadata( sortField.getFieldName() );
+
+			// field marked as sortable by custom bridge to allow sort field validation pass, but that bridge itself is
+			// in charge of adding the required field
+			if ( fieldMetaData == null ) {
+				continue;
+			}
+
+			IndexableField field;
+
+			// A non-stored, non-indexed field will not be added to the actual document; in that case retrieve
+			// its value via a dummy document, adjusting the options to index the field
+			if ( fieldMetaData.getIndex() == Index.NO && fieldMetaData.getStore() == Store.NO ) {
+				FieldBridge fieldBridge = fieldMetaData.getFieldBridge();
+
+				LuceneOptionsImpl luceneOptions = new LuceneOptionsImpl(
+						Index.NOT_ANALYZED,
+						fieldMetaData.getTermVector(),
+						fieldMetaData.getStore(),
+						fieldMetaData.indexNullAs(),
+						fieldMetaData.getBoost() * propertyMetadata.getDynamicBoostStrategy().defineBoost( propertyValue ),
+						documentBoost
+				);
+
+				Document dummy = new Document();
+				fieldBridge.set(
+						"dummy",
+						propertyValue,
+						dummy,
+						luceneOptions
+				);
+
+				field = dummy.getField( "dummy" );
+			}
+			else {
+				field = document.getField( sortField.getFieldName() );
+			}
+
+			if ( field != null ) {
+				Number numericValue = field.numericValue();
+
+				if ( numericValue != null ) {
+					if ( numericValue instanceof Double ) {
+						document.add( new DoubleDocValuesField( sortField.getFieldName(), (double) numericValue ) );
+					}
+					else if ( numericValue instanceof Float ) {
+						document.add( new FloatDocValuesField( sortField.getFieldName(), (float) numericValue ) );
+					}
+					else {
+						document.add( new NumericDocValuesField( sortField.getFieldName(), numericValue.longValue() ) );
+					}
+				}
+				else {
+					document.add( new SortedDocValuesField( sortField.getFieldName(), new BytesRef( field.stringValue() ) ) );
+				}
+			}
+		}
+	}
+
+	private void buildDocumentFieldForClassBridges(Document doc,
+			TypeMetadata typeMetadata,
+			ConversionContext conversionContext, float documentBoost, Object unproxiedInstance) {
+		for ( DocumentFieldMetadata fieldMetadata : typeMetadata.getClassBridgeMetadata() ) {
+			FieldBridge fieldBridge = fieldMetadata.getFieldBridge();
+			final String fieldName = fieldMetadata.getName();
+			final FieldBridge oneWayConversionContext = conversionContext.oneWayConversionContext( fieldBridge );
+			conversionContext.pushProperty( fieldName );
 			try {
-				Object value = ReflectionHelper.getMemberValue( unproxiedInstance, member );
-				//TODO handle boost at embedded level: already stored in propertiesMedatada.boost
-
-				if ( value == null ) {
-					processEmbeddedNullValue( doc, embeddedTypeMetadata, conversionContext );
-					continue;
-				}
-
-				switch ( embeddedTypeMetadata.getEmbeddedContainer() ) {
-					case ARRAY:
-						Object[] array = objectInitializer.initializeArray( (Object[]) value );
-						for ( Object arrayValue : array ) {
-							buildDocumentFields(
-									arrayValue,
-									doc,
-									embeddedTypeMetadata,
-									fieldToAnalyzerMap,
-									processedFieldNames,
-									conversionContext,
-									objectInitializer,
-									documentBoost
-							);
-						}
-						break;
-					case COLLECTION:
-						Collection collection = objectInitializer.initializeCollection( (Collection) value );
-						for ( Object collectionValue : collection ) {
-							buildDocumentFields(
-									collectionValue,
-									doc,
-									embeddedTypeMetadata,
-									fieldToAnalyzerMap,
-									processedFieldNames,
-									conversionContext,
-									objectInitializer,
-									documentBoost
-							);
-						}
-						break;
-					case MAP:
-						Map map = objectInitializer.initializeMap( (Map) value );
-						for ( Object collectionValue : map.values() ) {
-							buildDocumentFields(
-									collectionValue,
-									doc,
-									embeddedTypeMetadata,
-									fieldToAnalyzerMap,
-									processedFieldNames,
-									conversionContext,
-									objectInitializer,
-									documentBoost
-							);
-						}
-						break;
-					case OBJECT:
-						buildDocumentFields(
-								value,
-								doc,
-								embeddedTypeMetadata,
-								fieldToAnalyzerMap,
-								processedFieldNames,
-								conversionContext,
-								objectInitializer,
-								documentBoost
-						);
-						break;
-					default:
-						throw new AssertionFailure(
-								"Unknown embedded container: "
-										+ embeddedTypeMetadata.getEmbeddedContainer()
-						);
-				}
+				oneWayConversionContext.set(
+						fieldName,
+						unproxiedInstance,
+						doc,
+						typeMetadata.getClassLuceneOptions( fieldMetadata, documentBoost )
+				);
 			}
 			finally {
 				conversionContext.popProperty();
@@ -627,8 +871,14 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 		return allowFieldSelectionInProjection;
 	}
 
+	/**
+	 * This method will be removed as Field caching is no longer implemented
+	 * (as it is no longer useful)
+	 * @return Always returns an empty Set.
+	 */
+	@Deprecated
 	public Set<org.hibernate.search.annotations.FieldCacheType> getFieldCacheOption() {
-		return fieldCacheUsage;
+		return Collections.emptySet();
 	}
 
 	public TwoWayFieldBridge getIdBridge() {
@@ -642,7 +892,7 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 	/**
 	 * Return the id used for indexing if possible
 	 * An IllegalStateException otherwise
-	 * <p/>
+	 * <p>
 	 * If the id is provided, we can't extract it from the entity
 	 */
 	@Override
@@ -750,7 +1000,7 @@ public class DocumentBuilderIndexedEntity extends AbstractDocumentBuilder {
 			return;
 		}
 		for ( PropertyMetadata propertyMetadata : getMetadata().getAllPropertyMetadata() ) {
-			for ( DocumentFieldMetadata documentFieldMetadata : propertyMetadata.getFieldMetadata() ) {
+			for ( DocumentFieldMetadata documentFieldMetadata : propertyMetadata.getFieldMetadataSet() ) {
 				FieldBridge bridge = documentFieldMetadata.getFieldBridge();
 				if ( fieldBridgeProhibitsFieldSelectionInProjection( bridge ) ) {
 					allowFieldSelectionInProjection = false;

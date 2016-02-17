@@ -12,20 +12,19 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.sql.Blob;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.Query;
-
 import org.hibernate.CacheMode;
 import org.hibernate.FlushMode;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -56,7 +55,9 @@ public class TikaBridgeBlobSupportTest extends SearchTestBase {
 	public void testDefaultTikaBridgeWithBlobData() throws Exception {
 		Session session = openSession();
 
-		persistBook( session );
+		persistBook( session, getBlobData( PATH_TO_TEST_DOCUMENT_PDF, session ) );
+		persistBook( session, null );
+
 		// we have to index manually. Using the Blob (streaming approach) the indexing would try to re-read the
 		// input stream of the blob after it was persisted into the database
 		indexBook( session );
@@ -68,9 +69,8 @@ public class TikaBridgeBlobSupportTest extends SearchTestBase {
 	@SuppressWarnings("unchecked")
 	private void searchBook(Session session) throws ParseException {
 		FullTextSession fullTextSession = Search.getFullTextSession( session );
-		Transaction tx = session.beginTransaction();
+		Transaction transaction = fullTextSession.beginTransaction();
 		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
 				"content",
 				TestConstants.standardAnalyzer
 		);
@@ -85,14 +85,21 @@ public class TikaBridgeBlobSupportTest extends SearchTestBase {
 		result = fullTextSession.createFullTextQuery( query ).list();
 		assertEquals( "there should be match", 1, result.size() );
 
-		tx.commit();
+		query = parser.parse( "<NULL>" );
+
+		result = fullTextSession.createFullTextQuery( query ).list();
+		assertEquals( "there should be match", 1, result.size() );
+
+		result = fullTextSession.createFullTextQuery( new MatchAllDocsQuery() ).list();
+		assertEquals( "there should be match", 2, result.size() );
+		transaction.commit();
+		fullTextSession.clear();
 	}
 
-	private void persistBook(Session session) throws IOException {
+	private void persistBook(Session session, Blob data) throws IOException {
 		Transaction tx = session.beginTransaction();
 
 		Book book = new Book();
-		Blob data = getBlobData( PATH_TO_TEST_DOCUMENT_PDF, session );
 		book.setContent( data );
 
 		session.save( book );
@@ -128,16 +135,16 @@ public class TikaBridgeBlobSupportTest extends SearchTestBase {
 
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Book.class
 		};
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
+	public void configure(Map<String,Object> cfg) {
 		super.configure( cfg );
-		cfg.setProperty( Environment.INDEXING_STRATEGY, "manual" );
+		cfg.put( Environment.INDEXING_STRATEGY, "manual" );
 	}
 
 	private Blob getBlobData(String fileName, Session session) throws IOException {

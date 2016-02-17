@@ -16,6 +16,7 @@ import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.annotations.IndexedEmbedded;
+import org.hibernate.search.annotations.SortableField;
 
 /**
  * * @author Davide Di Somma <davide.disomma@gmail.com>
@@ -59,6 +60,7 @@ public class Person {
 	}
 
 	@Field
+	@SortableField
 	private String surname;
 
 	public String getSurname() {

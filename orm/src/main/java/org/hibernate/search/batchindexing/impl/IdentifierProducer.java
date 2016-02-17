@@ -17,10 +17,11 @@ import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Projections;
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.exception.ErrorHandler;
-import org.hibernate.search.util.logging.impl.LoggerFactory;
 import org.hibernate.search.util.logging.impl.Log;
+import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
  * This Runnable is going to feed the indexing queue
@@ -46,6 +47,7 @@ public class IdentifierProducer implements StatelessSessionAwareRunnable {
 	private final long objectsLimit;
 	private final int idFetchSize;
 	private final ErrorHandler errorHandler;
+	private final String tenantId;
 
 	/**
 	 * @param fromIdentifierListToEntities the target queue where the produced identifiers are sent to
@@ -55,13 +57,15 @@ public class IdentifierProducer implements StatelessSessionAwareRunnable {
 	 * @param monitor to monitor indexing progress
 	 * @param objectsLimit if not zero
 	 * @param errorHandler how to handle unexpected errors
+	 * @param idFetchSize the fetch size
+	 * @param tenantId the tenant identifier
 	 */
 	public IdentifierProducer(
 			ProducerConsumerQueue<List<Serializable>> fromIdentifierListToEntities,
 			SessionFactory sessionFactory,
 			int objectLoadingBatchSize,
 			Class<?> indexedType, MassIndexerProgressMonitor monitor,
-			long objectsLimit, ErrorHandler errorHandler, int idFetchSize) {
+			long objectsLimit, ErrorHandler errorHandler, int idFetchSize, String tenantId) {
 				this.destination = fromIdentifierListToEntities;
 				this.sessionFactory = sessionFactory;
 				this.batchSize = objectLoadingBatchSize;
@@ -70,6 +74,7 @@ public class IdentifierProducer implements StatelessSessionAwareRunnable {
 				this.objectsLimit = objectsLimit;
 				this.errorHandler = errorHandler;
 				this.idFetchSize = idFetchSize;
+				this.tenantId = tenantId;
 				log.trace( "created" );
 	}
 
@@ -91,7 +96,12 @@ public class IdentifierProducer implements StatelessSessionAwareRunnable {
 	private void inTransactionWrapper(StatelessSession upperSession) throws Exception {
 		StatelessSession session = upperSession;
 		if ( upperSession == null ) {
-			session = sessionFactory.openStatelessSession();
+			if ( tenantId == null ) {
+				session = sessionFactory.openStatelessSession();
+			}
+			else {
+				session = sessionFactory.withStatelessOptions().tenantIdentifier( tenantId ).openStatelessSession();
+			}
 		}
 		try {
 			Transaction transaction = session.getTransaction();
@@ -139,6 +149,12 @@ public class IdentifierProducer implements StatelessSessionAwareRunnable {
 				Serializable id = (Serializable) results.get( 0 );
 				destinationList.add( id );
 				if ( destinationList.size() == batchSize ) {
+					// Explicitly checking whether the TX is still open; Depending on the driver implementation new ids
+					// might be produced otherwise if the driver fetches all rows up-front
+					if ( session.getTransaction().getStatus() != TransactionStatus.ACTIVE ) {
+						throw log.transactionNotActiveWhileProducingIdsForBatchIndexing( indexedType );
+					}
+
 					enqueueList( destinationList );
 					destinationList = new ArrayList<Serializable>( batchSize );
 				}

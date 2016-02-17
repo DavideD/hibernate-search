@@ -6,23 +6,20 @@
  */
 package org.hibernate.search.test.shards;
 
-import java.io.File;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.core.StopAnalyzer;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.store.FSDirectory;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
-import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
+import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.indexes.spi.IndexManager;
 import org.hibernate.search.store.impl.IdHashShardingStrategy;
 import org.hibernate.search.test.SearchTestBase;
@@ -30,25 +27,21 @@ import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.testsupport.indexmanager.RamIndexManager;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Emmanuel Bernard
  */
 public class ShardsTest extends SearchTestBase {
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default.directory_provider", "filesystem" );
-		File sub = getBaseIndexDir();
-		cfg.setProperty( "hibernate.search.default.indexBase", sub.getAbsolutePath() );
-		cfg.setProperty( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default.directory_provider", "filesystem" );
+		Path sub = getBaseIndexDir();
+		cfg.put( "hibernate.search.default.indexBase", sub.toAbsolutePath().toString() );
+		cfg.put( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
 		//is the default when multiple shards are set up
 		//cfg.setProperty( "hibernate.search.Animal.sharding_strategy", IdHashShardingStrategy.class );
-		cfg.setProperty( "hibernate.search.Animal.sharding_strategy.nbr_of_shards", "2" );
-		cfg.setProperty( "hibernate.search.Animal.0.indexName", "Animal00" );
+		cfg.put( "hibernate.search.Animal.sharding_strategy.nbr_of_shards", "2" );
+		cfg.put( "hibernate.search.Animal.0.indexName", "Animal00" );
 	}
 
 	@Test
@@ -79,7 +72,7 @@ public class ShardsTest extends SearchTestBase {
 		s.clear();
 
 		tx = s.beginTransaction();
-		a = (Animal) s.get( Animal.class, 1 );
+		a = s.get( Animal.class, 1 );
 		a.setName( "Mouse" );
 		Furniture fur = new Furniture();
 		fur.setColor( "dark blue" );
@@ -90,7 +83,7 @@ public class ShardsTest extends SearchTestBase {
 
 		tx = s.beginTransaction();
 		FullTextSession fts = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.stopAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 
 		List results = fts.createFullTextQuery( parser.parse( "name:mouse OR name:bear" ) ).list();
 		assertEquals( "Either double insert, single update, or query fails with shards", 2, results.size() );
@@ -122,65 +115,24 @@ public class ShardsTest extends SearchTestBase {
 
 		s.clear();
 
-		FSDirectory animal00Directory = FSDirectory.open( new File( getBaseIndexDir(), "Animal00" ) );
-		try {
-			IndexReader reader = DirectoryReader.open( animal00Directory );
-			try {
-				int num = reader.numDocs();
-				assertEquals( 1, num );
-			}
-			finally {
-				reader.close();
-			}
-		}
-		finally {
-			animal00Directory.close();
-		}
-
-		FSDirectory animal01Directory = FSDirectory.open( new File( getBaseIndexDir(), "Animal.1" ) );
-		try {
-			IndexReader reader = DirectoryReader.open( animal01Directory );
-			try {
-				int num = reader.numDocs();
-				assertEquals( 1, num );
-			}
-			finally {
-				reader.close();
-			}
-		}
-		finally {
-			animal01Directory.close();
-		}
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal00" ) );
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal.1" ) );
 
 		tx = s.beginTransaction();
-		a = (Animal) s.get( Animal.class, 1 );
+		a = s.get( Animal.class, 1 );
 		a.setName( "Mouse" );
 		tx.commit();
 
 		s.clear();
 
-		animal01Directory = FSDirectory.open( new File( getBaseIndexDir(), "Animal.1" ) );
-		try {
-			IndexReader reader = DirectoryReader.open( animal01Directory );
-			try {
-				int num = reader.numDocs();
-				assertEquals( 1, num );
-				int numberOfMice = reader.docFreq( new Term( "name", "mouse" ) );
-				assertEquals( 1, numberOfMice );
-			}
-			finally {
-				reader.close();
-			}
-		}
-		finally {
-			animal01Directory.close();
-		}
+		assertEquals( 1, getNumberOfDocumentsInIndex( "Animal.1" ) );
+		assertEquals( 1, getNumberOfDocumentsInIndexByQuery( "Animal.1", "name", "mouse" ) );
 
 		tx = s.beginTransaction();
 		FullTextSession fts = Search.getFullTextSession( s );
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.stopAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 
-		List results = fts.createFullTextQuery( parser.parse( "name:mouse OR name:bear" ) ).list();
+		List<?> results = fts.createFullTextQuery( parser.parse( "name:mouse OR name:bear" ) ).list();
 		assertEquals( "Either double insert, single update, or query fails with shards", 2, results.size() );
 		for ( Object o : results ) {
 			s.delete( o );
@@ -190,8 +142,7 @@ public class ShardsTest extends SearchTestBase {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Animal.class,
 				Furniture.class

@@ -13,9 +13,12 @@ import java.util.Set;
 import org.hibernate.search.backend.FlushLuceneWork;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.backend.OptimizeLuceneWork;
-import org.hibernate.search.backend.impl.StreamingSelectionVisitor;
-import org.hibernate.search.backend.impl.TransactionalSelectionVisitor;
+import org.hibernate.search.backend.impl.StreamingOperationExecutor;
+import org.hibernate.search.backend.impl.StreamingOperationExecutorSelector;
+import org.hibernate.search.backend.impl.TransactionalOperationExecutor;
+import org.hibernate.search.backend.impl.TransactionalOperationExecutorSelector;
 import org.hibernate.search.backend.impl.WorkQueuePerIndexSplitter;
+import org.hibernate.search.backend.spi.BatchBackend;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
 import org.hibernate.search.indexes.spi.IndexManager;
@@ -55,13 +58,13 @@ public class DefaultBatchBackend implements BatchBackend {
 		EntityIndexBinding entityIndexBinding = integrator.getIndexBinding( entityType );
 		IndexShardingStrategy shardingStrategy = entityIndexBinding.getSelectionStrategy();
 		if ( forceAsync ) {
-			work.getWorkDelegate( StreamingSelectionVisitor.INSTANCE )
-					.performStreamOperation( work, shardingStrategy, progressMonitor, forceAsync );
+			StreamingOperationExecutor executor = work.acceptIndexWorkVisitor( StreamingOperationExecutorSelector.INSTANCE, null );
+			executor.performStreamOperation( work, shardingStrategy, progressMonitor, forceAsync );
 		}
 		else {
 			WorkQueuePerIndexSplitter workContext = new WorkQueuePerIndexSplitter();
-			work.getWorkDelegate( TransactionalSelectionVisitor.INSTANCE )
-					.performOperation( work, shardingStrategy, workContext );
+			TransactionalOperationExecutor executor = work.acceptIndexWorkVisitor( TransactionalOperationExecutorSelector.INSTANCE, null );
+			executor.performOperation( work, shardingStrategy, workContext );
 			workContext.commitOperations( progressMonitor ); //FIXME I need a "Force sync" actually for when using PurgeAll before the indexing starts
 		}
 	}

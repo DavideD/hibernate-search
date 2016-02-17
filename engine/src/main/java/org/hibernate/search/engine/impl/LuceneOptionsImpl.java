@@ -16,7 +16,7 @@ import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.FloatField;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.document.LongField;
-import org.apache.lucene.index.FieldInfo.IndexOptions;
+import org.apache.lucene.index.IndexOptions;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.bridge.LuceneOptions;
 import org.hibernate.search.engine.metadata.impl.DocumentFieldMetadata;
@@ -34,10 +34,9 @@ public class LuceneOptionsImpl implements LuceneOptions {
 
 	private static final FieldType TYPE_COMPRESSED = new FieldType();
 	static {
-		TYPE_COMPRESSED.setIndexed( false );
 		TYPE_COMPRESSED.setTokenized( false );
 		TYPE_COMPRESSED.setOmitNorms( true );
-		TYPE_COMPRESSED.setIndexOptions( IndexOptions.DOCS_ONLY );
+		TYPE_COMPRESSED.setIndexOptions( IndexOptions.NONE );
 		TYPE_COMPRESSED.setStored( true );
 		TYPE_COMPRESSED.freeze();
 	}
@@ -46,14 +45,20 @@ public class LuceneOptionsImpl implements LuceneOptions {
 	private final boolean storeUncompressed;
 	private boolean documentBoostApplied = false; //needs to be applied only once
 	private final float fieldLevelBoost;
-	private final float documentLevelBoost;
+
+	/**
+	 * Boost inherited from the parent structure of the given field: the document-level boost in case of a top-level
+	 * field, the product of the document-level boost and the boost(s) of the parent embeddable(s) in case of an
+	 * embedded field
+	 */
+	private final float inheritedBoost;
 	private final Index indexMode;
 	private final TermVector termVector;
 	private final Store storeType;
 	private final String indexNullAs;
 
-	public LuceneOptionsImpl(DocumentFieldMetadata fieldMetadata, float fieldLevelBoost, float documentLevelBoost) {
-		this.documentLevelBoost = documentLevelBoost;
+	public LuceneOptionsImpl(DocumentFieldMetadata fieldMetadata, float fieldLevelBoost, float inheritedBoost) {
+		this.inheritedBoost = inheritedBoost;
 		this.indexMode = fieldMetadata.getIndex();
 		this.termVector = fieldMetadata.getTermVector();
 		this.fieldLevelBoost = fieldLevelBoost;
@@ -61,6 +66,17 @@ public class LuceneOptionsImpl implements LuceneOptions {
 		this.storeCompressed = this.storeType.equals( Store.COMPRESS );
 		this.storeUncompressed = this.storeType.equals( Store.YES );
 		this.indexNullAs = fieldMetadata.indexNullAs();
+	}
+
+	public LuceneOptionsImpl(Index indexMode, TermVector termVector, Store store, String indexNullAs, float fieldLevelBoost, float inheritedBoost) {
+		this.inheritedBoost = inheritedBoost;
+		this.indexMode = indexMode;
+		this.termVector = termVector;
+		this.fieldLevelBoost = fieldLevelBoost;
+		this.storeType = store;
+		this.storeCompressed = this.storeType.equals( Store.COMPRESS );
+		this.storeUncompressed = this.storeType.equals( Store.YES );
+		this.indexNullAs = indexNullAs;
 	}
 
 	@Override
@@ -77,12 +93,22 @@ public class LuceneOptionsImpl implements LuceneOptions {
 	}
 
 	private void standardFieldAdd(String name, String indexedString, Document document) {
+		// Non-stored, non-indexed field may be declared for sorting purposes; don't add it to the document
+		if ( storeType == Store.NO && indexMode == Index.NO ) {
+			return;
+		}
+
 		Field field = new Field( name, indexedString, storeUncompressed ? Field.Store.YES : Field.Store.NO, indexMode, termVector );
 		setBoost( field );
 		document.add( field );
 	}
 
 	private void compressedFieldAdd(String name, String indexedString, Document document) {
+		// Non-stored, non-indexed field may be declared for sorting purposes; don't add it to the document
+		if ( storeType == Store.NO && indexMode == Index.NO ) {
+			return;
+		}
+
 		byte[] compressedString = CompressionTools.compressString( indexedString );
 		// indexed is implicitly set to false when using byte[]
 		Field field = new Field( name, compressedString, TYPE_COMPRESSED );
@@ -137,7 +163,7 @@ public class LuceneOptionsImpl implements LuceneOptions {
 				//FIXME This isn't entirely accurate as in some cases the LuceneOptionsImpl
 				//is being reused for multiple fields: this needs to be significantly different,
 				//potentially dropping the LuceneOptionsImpl usage.
-				field.setBoost( fieldLevelBoost * documentLevelBoost );
+				field.setBoost( fieldLevelBoost * inheritedBoost );
 			}
 			else {
 				field.setBoost( fieldLevelBoost );

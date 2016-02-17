@@ -23,7 +23,7 @@ import com.arjuna.ats.jdbc.TransactionalDriver;
 /**
  * This class provides a DataSource based approach to
  * management of transaction aware database connections.
- * <p/>
+ * <p>
  * It's a XADataSource from which they can obtain a XAResource.
  * Hence it implements both DataSource and XADataSource.
  *
@@ -60,7 +60,7 @@ class XADataSourceWrapper implements XADataSource, DataSource {
 	 * Obtain a direct reference to the wrapped object. This is not
 	 * recommended but may be necessary to e.g. call vendor specific methods.
 	 *
-	 * @return
+	 * @return an XA datasource
 	 */
 	public XADataSource getUnwrappedXADataSource() {
 		return _theXADataSource;

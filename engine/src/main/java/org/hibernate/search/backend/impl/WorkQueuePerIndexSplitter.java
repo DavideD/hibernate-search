@@ -15,18 +15,15 @@ import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.indexes.spi.IndexManager;
 
 /**
- * Used by {@link org.hibernate.search.backend.impl.ContextAwareSelectionDelegate} to split a list of operations
+ * Used by {@link org.hibernate.search.backend.impl.TransactionalOperationExecutor} to split a list of operations
  * according to the multiple IndexManagers it needs to be routed to.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public class WorkQueuePerIndexSplitter {
 
 	private final HashMap<String,WorkPlan> queues = new HashMap<String,WorkPlan>();
 
-	/**
-	 * @param indexManager
-	 */
 	public List<LuceneWork> getIndexManagerQueue(final IndexManager indexManager) {
 		final String indexName = indexManager.getIndexName();
 		WorkPlan plan = queues.get( indexName );

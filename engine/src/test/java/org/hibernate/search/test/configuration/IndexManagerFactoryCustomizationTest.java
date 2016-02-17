@@ -37,7 +37,7 @@ import org.junit.Test;
 /**
  * Test to verify pluggability of an alternative {@code IndexManagerFactory}
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 @TestForIssue(jiraKey = "HSEARCH-1211")
 public class IndexManagerFactoryCustomizationTest {
@@ -124,8 +124,7 @@ public class IndexManagerFactoryCustomizationTest {
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
-		public <T> LinkedHashSet<T> loadJavaServices(Class<T> serviceContract) {
+		public <T> Iterable<T> loadJavaServices(Class<T> serviceContract) {
 			if ( fakedDiscoveredServices.containsKey( serviceContract ) ) {
 				LinkedHashSet<T> services = new LinkedHashSet<T>( 1 );
 				Class<T> clazz = classForName( fakedDiscoveredServices.get( serviceContract ) );

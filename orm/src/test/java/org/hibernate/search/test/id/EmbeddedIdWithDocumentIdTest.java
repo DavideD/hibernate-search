@@ -7,18 +7,16 @@
 package org.hibernate.search.test.id;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.search.Query;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import org.hibernate.cfg.Configuration;
 import org.hibernate.search.Search;
 import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.test.SearchTestBase;
-import org.hibernate.search.testsupport.backend.LeakingLuceneBackend;
+import org.hibernate.search.testsupport.backend.LeakingBackendQueueProcessor;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -27,13 +25,13 @@ import static org.junit.Assert.assertEquals;
  * Related to HSEARCH-1050: check we deal nicely with weird DocumentId
  * configurations.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2012 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
 public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 
 	@Test
 	public void testFieldBridge() throws Exception {
-		LeakingLuceneBackend.reset();
+		LeakingBackendQueueProcessor.reset();
 
 		PersonPK johnDoePk = new PersonPK();
 		johnDoePk.setFirstName( "John" );
@@ -49,7 +47,7 @@ public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 		tx.commit();
 		s.clear();
 
-		List<LuceneWork> lastProcessedQueue = LeakingLuceneBackend.getLastProcessedQueue();
+		List<LuceneWork> lastProcessedQueue = LeakingBackendQueueProcessor.getLastProcessedQueue();
 		assertEquals( 1, lastProcessedQueue.size() );
 		LuceneWork luceneWork = lastProcessedQueue.get( 0 );
 		assertEquals( "AB123", luceneWork.getIdInString() );
@@ -77,14 +75,13 @@ public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[]{ PersonCustomDocumentId.class };
 	}
 
 	@Override
-	protected void configure(Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default.worker.backend", LeakingLuceneBackend.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default.worker.backend", LeakingBackendQueueProcessor.class.getName() );
 	}
 
 }

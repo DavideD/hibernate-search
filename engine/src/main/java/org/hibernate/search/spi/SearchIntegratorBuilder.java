@@ -195,7 +195,7 @@ public class SearchIntegratorBuilder {
 
 		factoryState.setSearchMapping( mapping ); // might be null if feature is not used
 
-		factoryState.setIndexingStrategy( defineIndexingStrategy( cfg ) );//need to be done before the document builds
+		factoryState.setIndexingMode( defineIndexingMode( cfg ) );//need to be done before the document builds
 		initDocumentBuilders( cfg, buildContext, mapping );
 
 		final Map<Class<?>, EntityIndexBinding> documentBuildersIndexedEntities = factoryState.getIndexBindings();
@@ -275,7 +275,6 @@ public class SearchIntegratorBuilder {
 			rootFactory = new MutableSearchFactory();
 			factoryState.setDocumentBuildersIndexedEntities( new ConcurrentHashMap<Class<?>, EntityIndexBinding>() );
 			factoryState.setDocumentBuildersContainedEntities( new ConcurrentHashMap<Class<?>, DocumentBuilderContainedEntity>() );
-			factoryState.setFilterDefinitions( new ConcurrentHashMap<String, FilterDef>() );
 			factoryState.setIndexHierarchy( new PolymorphicIndexHierarchy() );
 			factoryState.setConfigurationProperties( cfg.getProperties() );
 			factoryState.setServiceManager(
@@ -393,8 +392,8 @@ public class SearchIntegratorBuilder {
 				documentBuildersContainedEntities
 		);
 
-		factoryState.setFilterDefinitions( configContext.initFilters() );
-		factoryState.setAnalyzers( configContext.initLazyAnalyzers() );
+		factoryState.addFilterDefinitions( configContext.initFilters() );
+		factoryState.addAnalyzers( configContext.initLazyAnalyzers() );
 	}
 
 	/**
@@ -486,12 +485,9 @@ public class SearchIntegratorBuilder {
 		return reflectionManager;
 	}
 
-	private static String defineIndexingStrategy(SearchConfiguration cfg) {
-		String indexingStrategy = cfg.getProperties().getProperty( Environment.INDEXING_STRATEGY, "event" );
-		if ( !( "event".equals( indexingStrategy ) || "manual".equals( indexingStrategy ) ) ) {
-			throw new SearchException( Environment.INDEXING_STRATEGY + " unknown: " + indexingStrategy );
-		}
-		return indexingStrategy;
+	private static IndexingMode defineIndexingMode(SearchConfiguration cfg) {
+		String indexingStrategy = cfg.getProperties().getProperty( Environment.INDEXING_STRATEGY, IndexingMode.EVENT.toExternalRepresentation() );
+		return IndexingMode.fromExternalRepresentation( indexingStrategy );
 	}
 
 	private ErrorHandler createErrorHandler(SearchConfiguration searchConfiguration) {
@@ -538,8 +534,14 @@ public class SearchIntegratorBuilder {
 		}
 
 		@Override
+		@Deprecated
 		public String getIndexingStrategy() {
-			return factoryState.getIndexingStrategy();
+			return factoryState.getIndexingMode().toExternalRepresentation();
+		}
+
+		@Override
+		public IndexingMode getIndexingMode() {
+			return factoryState.getIndexingMode();
 		}
 
 		@Override
@@ -560,6 +562,11 @@ public class SearchIntegratorBuilder {
 		@Override
 		public InstanceInitializer getInstanceInitializer() {
 			return factoryState.getInstanceInitializer();
+		}
+
+		@Override
+		public boolean enlistWorkerInTransaction() {
+			return factoryState.enlistWorkerInTransaction();
 		}
 
 		@Override

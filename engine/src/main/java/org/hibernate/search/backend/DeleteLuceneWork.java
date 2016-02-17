@@ -8,27 +8,30 @@ package org.hibernate.search.backend;
 
 import java.io.Serializable;
 
-import org.hibernate.search.backend.impl.WorkVisitor;
-
 /**
  * @author Emmanuel Bernard
  */
-public class DeleteLuceneWork extends LuceneWork implements Serializable {
+public class DeleteLuceneWork extends LuceneWork {
 
 	private static final long serialVersionUID = -854604138119230246L;
 
 	public DeleteLuceneWork(Serializable id, String idInString, Class<?> entity) {
-		super( id, idInString, entity );
+		this( null, id, idInString, entity );
+	}
+
+	public DeleteLuceneWork(String tenantId, Serializable id, String idInString, Class<?> entity) {
+		super( tenantId, id, idInString, entity );
 	}
 
 	@Override
-	public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
-		return visitor.getDelegate( this );
+	public <P, R> R acceptIndexWorkVisitor(IndexWorkVisitor<P, R> visitor, P p) {
+		return visitor.visitDeleteWork( this, p );
 	}
 
 	@Override
 	public String toString() {
-		return "DeleteLuceneWork: " + this.getEntityClass().getName() + "#" + this.getIdInString();
+		String tenant = getTenantId() == null ? "" : " [" + getTenantId() + "] ";
+		return "DeleteLuceneWork" + tenant + ": " + this.getEntityClass().getName() + "#" + this.getIdInString();
 	}
 
 }

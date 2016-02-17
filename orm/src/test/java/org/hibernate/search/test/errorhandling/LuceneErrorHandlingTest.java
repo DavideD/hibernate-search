@@ -8,15 +8,16 @@ package org.hibernate.search.test.errorhandling;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.lucene.index.IndexWriter;
 import org.hibernate.search.backend.DeleteLuceneWork;
+import org.hibernate.search.backend.IndexWorkVisitor;
 import org.hibernate.search.backend.IndexingMonitor;
 import org.hibernate.search.backend.LuceneWork;
-import org.hibernate.search.backend.impl.StreamingSelectionVisitor;
-import org.hibernate.search.backend.impl.WorkVisitor;
-import org.hibernate.search.backend.impl.lucene.works.LuceneWorkDelegate;
+import org.hibernate.search.backend.impl.StreamingOperationExecutorSelector;
+import org.hibernate.search.backend.impl.lucene.IndexWriterDelegate;
+import org.hibernate.search.backend.impl.lucene.works.LuceneWorkExecutor;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
@@ -93,14 +94,13 @@ public class LuceneErrorHandlingTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { Foo.class };
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( Environment.ERROR_HANDLER, MockErrorHandler.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( Environment.ERROR_HANDLER, MockErrorHandler.class.getName() );
 	}
 
 	/**
@@ -114,14 +114,14 @@ public class LuceneErrorHandlingTest extends SearchTestBase {
 		}
 
 		@Override
-		public <T> T getWorkDelegate(WorkVisitor<T> visitor) {
-			if ( visitor instanceof StreamingSelectionVisitor ) {
+		public <P, R> R acceptIndexWorkVisitor(IndexWorkVisitor<P, R> visitor, P p) {
+			if ( visitor instanceof StreamingOperationExecutorSelector ) {
 				//during shard-selection visitor this work is applied to
 				//all DirectoryProviders as this extends DeleteLuceneWork
-				return visitor.getDelegate( this );
+				return visitor.visitDeleteWork( this, p );
 			}
 			else {
-				return (T) new NoOpLuceneWorkDelegate();
+				return (R) new NoOpLuceneWorkDelegate();
 			}
 		}
 
@@ -132,13 +132,13 @@ public class LuceneErrorHandlingTest extends SearchTestBase {
 
 	}
 
-	static class NoOpLuceneWorkDelegate implements LuceneWorkDelegate {
+	static class NoOpLuceneWorkDelegate implements LuceneWorkExecutor {
 
 		public void logWorkDone(LuceneWork work, MassIndexerProgressMonitor monitor) {
 		}
 
 		@Override
-		public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+		public void performWork(LuceneWork work, IndexWriterDelegate delegate, IndexingMonitor monitor) {
 			WORK_COUNTER.incrementAndGet();
 		}
 
@@ -155,14 +155,14 @@ public class LuceneErrorHandlingTest extends SearchTestBase {
 		}
 
 		@Override
-		public <T> T getWorkDelegate(WorkVisitor<T> visitor) {
-			if ( visitor instanceof StreamingSelectionVisitor ) {
+		public <P, R> R acceptIndexWorkVisitor(IndexWorkVisitor<P, R> visitor, P p) {
+			if ( visitor instanceof StreamingOperationExecutorSelector ) {
 				//during shard-selection visitor this work is applied to
 				//all DirectoryProviders as this extends DeleteLuceneWork
-				return visitor.getDelegate( this );
+				return visitor.visitDeleteWork( this, p );
 			}
 			else {
-				return (T) new FailingLuceneWorkDelegate();
+				return (R) new FailingLuceneWorkDelegate();
 			}
 		}
 
@@ -173,13 +173,13 @@ public class LuceneErrorHandlingTest extends SearchTestBase {
 
 	}
 
-	static class FailingLuceneWorkDelegate implements LuceneWorkDelegate {
+	static class FailingLuceneWorkDelegate implements LuceneWorkExecutor {
 
 		public void logWorkDone(LuceneWork work, MassIndexerProgressMonitor monitor) {
 		}
 
 		@Override
-		public void performWork(LuceneWork work, IndexWriter writer, IndexingMonitor monitor) {
+		public void performWork(LuceneWork work, IndexWriterDelegate delegate, IndexingMonitor monitor) {
 			throw new SearchException( "failed work message" );
 		}
 	}

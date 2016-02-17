@@ -7,6 +7,7 @@
 package org.hibernate.search.test.performance.optimizer;
 
 import java.io.File;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,7 @@ import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.test.SearchTestBase;
+import org.hibernate.search.test.util.TargetDirHelper;
 import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.util.impl.FileHelper;
 import org.junit.After;
@@ -36,8 +38,7 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 	@Override
 	@Before
 	public void setUp() throws Exception {
-		forceConfigurationRebuild();
-		String indexBase = TestConstants.getIndexDirectory( OptimizerPerformanceTest.class );
+		String indexBase = TestConstants.getIndexDirectory( TargetDirHelper.getTargetDir() );
 		File indexDir = new File(indexBase);
 		FileHelper.delete( indexDir );
 		indexDir.mkdirs();
@@ -54,7 +55,7 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 	@After
 	public void tearDown() throws Exception {
 		super.tearDown();
-		String indexBase = TestConstants.getIndexDirectory( OptimizerPerformanceTest.class );
+		String indexBase = TestConstants.getIndexDirectory( TargetDirHelper.getTargetDir() );
 		File indexDir = new File(indexBase);
 		FileHelper.delete( indexDir );
 	}
@@ -105,9 +106,9 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 
 				s = sf.openSession();
 				tx = s.beginTransaction();
-				w = (Worker) s.get( Worker.class, w.getId() );
+				w = s.get( Worker.class, w.getId() );
 				w.setName( "Gavin" );
-				c = (Construction) s.get( Construction.class, c.getId() );
+				c = s.get( Construction.class, c.getId() );
 				c.setName( "W Hotel" );
 				tx.commit();
 				s.close();
@@ -122,10 +123,7 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 				s = sf.openSession();
 				tx = s.beginTransaction();
 				FullTextSession fts = Search.getFullTextSession( s );
-				QueryParser parser = new QueryParser(
-						TestConstants.getTargetLuceneVersion(),
-						"id", TestConstants.stopAnalyzer
-				);
+				QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 				Query query;
 				try {
 					query = parser.parse( "name:Gavin" );
@@ -141,9 +139,9 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 
 				s = sf.openSession();
 				tx = s.beginTransaction();
-				w = (Worker) s.get( Worker.class, w.getId() );
+				w = s.get( Worker.class, w.getId() );
 				s.delete( w );
-				c = (Construction) s.get( Construction.class, c.getId() );
+				c = s.get( Construction.class, c.getId() );
 				s.delete( c );
 				tx.commit();
 				s.close();
@@ -156,7 +154,7 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 	}
 
 	protected static class ReverseWork implements Runnable {
-		private SessionFactory sf;
+		private final SessionFactory sf;
 
 		public ReverseWork(SessionFactory sf) {
 			this.sf = sf;
@@ -176,18 +174,18 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 
 				s = sf.openSession();
 				tx = s.beginTransaction();
-				w = (Worker) s.get( Worker.class, w.getId() );
+				w = s.get( Worker.class, w.getId() );
 				w.setName( "Remi" );
-				c = (Construction) s.get( Construction.class, c.getId() );
+				c = s.get( Construction.class, c.getId() );
 				c.setName( "Palais des festivals" );
 				tx.commit();
 				s.close();
 
 				s = sf.openSession();
 				tx = s.beginTransaction();
-				w = (Worker) s.get( Worker.class, w.getId() );
+				w = s.get( Worker.class, w.getId() );
 				s.delete( w );
-				c = (Construction) s.get( Construction.class, c.getId() );
+				c = s.get( Construction.class, c.getId() );
 				s.delete( c );
 				tx.commit();
 				s.close();
@@ -199,15 +197,14 @@ public class OptimizerPerformanceTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( "hibernate.search.default.indexBase", TestConstants.getIndexDirectory( OptimizerPerformanceTest.class ) );
-		cfg.setProperty( "hibernate.search.default.directory_provider", "filesystem" );
-		cfg.setProperty( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default.indexBase", TestConstants.getIndexDirectory( TargetDirHelper.getTargetDir() ) );
+		cfg.put( "hibernate.search.default.directory_provider", "filesystem" );
+		cfg.put( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Worker.class,
 				Construction.class

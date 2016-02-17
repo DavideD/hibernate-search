@@ -12,26 +12,32 @@ import java.util.Map;
 
 import org.apache.lucene.document.Document;
 
-import org.hibernate.search.backend.impl.WorkVisitor;
-
 /**
  * Carries a Lucene update operation from the engine to the backend
  *
  * @since 4.0
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
-public class UpdateLuceneWork extends LuceneWork implements Serializable {
+public class UpdateLuceneWork extends LuceneWork {
 
 	private static final long serialVersionUID = -5267394465359187688L;
 
 	private final Map<String, String> fieldToAnalyzerMap;
 
 	public UpdateLuceneWork(Serializable id, String idInString, Class<?> entity, Document document) {
-		this( id, idInString, entity, document, null );
+		this( null, id, idInString, entity, document, null );
+	}
+
+	public UpdateLuceneWork(String tenantId, Serializable id, String idInString, Class<?> entity, Document document) {
+		this( tenantId, id, idInString, entity, document, null );
 	}
 
 	public UpdateLuceneWork(Serializable id, String idInString, Class<?> entity, Document document, Map<String, String> fieldToAnalyzerMap) {
-		super( id, idInString, entity, document );
+		this( null, id, idInString, entity, document );
+	}
+
+	public UpdateLuceneWork(String tenantId, Serializable id, String idInString, Class<?> entity, Document document, Map<String, String> fieldToAnalyzerMap) {
+		super( tenantId, id, idInString, entity, document );
 		this.fieldToAnalyzerMap = fieldToAnalyzerMap;
 	}
 
@@ -41,13 +47,14 @@ public class UpdateLuceneWork extends LuceneWork implements Serializable {
 	}
 
 	@Override
-	public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
-		return visitor.getDelegate( this );
+	public <P, R> R acceptIndexWorkVisitor(IndexWorkVisitor<P, R> visitor, P p) {
+		return visitor.visitUpdateWork( this, p );
 	}
 
 	@Override
 	public String toString() {
-		return "UpdateLuceneWork: " + this.getEntityClass().getName() + "#" + this.getIdInString();
+		String tenant = getTenantId() == null ? "" : " [" + getTenantId() + "] ";
+		return "UpdateLuceneWork" + tenant + ": " + this.getEntityClass().getName() + "#" + this.getIdInString();
 	}
 
 }

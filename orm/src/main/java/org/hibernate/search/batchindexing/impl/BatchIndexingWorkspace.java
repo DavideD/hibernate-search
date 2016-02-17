@@ -7,17 +7,20 @@
 package org.hibernate.search.batchindexing.impl;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
 
 import org.hibernate.CacheMode;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.search.exception.SearchException;
-import org.hibernate.search.backend.impl.batch.BatchBackend;
+import org.hibernate.search.backend.spi.BatchBackend;
 import org.hibernate.search.batchindexing.MassIndexerProgressMonitor;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
+import org.hibernate.search.exception.AssertionFailure;
 import org.hibernate.search.exception.ErrorHandler;
+import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.util.impl.Executors;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
@@ -56,6 +59,11 @@ public class BatchIndexingWorkspace extends ErrorHandledRunnable {
 	private final long objectsLimit;
 
 	private final int idFetchSize;
+	private final Integer transactionTimeout;
+
+	private final String tenantId;
+
+	private final List<Future<?>> tasks = new ArrayList<>();
 
 	public BatchIndexingWorkspace(ExtendedSearchIntegrator extendedIntegrator,
 								SessionFactoryImplementor sessionFactory,
@@ -67,10 +75,14 @@ public class BatchIndexingWorkspace extends ErrorHandledRunnable {
 								MassIndexerProgressMonitor monitor,
 								BatchBackend backend,
 								long objectsLimit,
-								int idFetchSize) {
+								int idFetchSize,
+								Integer transactionTimeout,
+								String tenantId) {
 		super( extendedIntegrator );
 		this.indexedType = entityType;
 		this.idFetchSize = idFetchSize;
+		this.transactionTimeout = transactionTimeout;
+		this.tenantId = tenantId;
 		this.idNameOfIndexedType = extendedIntegrator.getIndexBinding( entityType )
 				.getDocumentBuilder()
 				.getIdentifierName();
@@ -97,9 +109,13 @@ public class BatchIndexingWorkspace extends ErrorHandledRunnable {
 
 	@Override
 	public void runWithErrorHandler() {
+		if ( tasks.size() > 0 ) {
+			throw new AssertionFailure( "BatchIndexingWorkspace instance not expected to be reused - tasks should be empty" );
+		}
+
 		try {
 			final ErrorHandler errorHandler = extendedIntegrator.getErrorHandler();
-			final BatchTransactionalContext transactionalContext = new BatchTransactionalContext( extendedIntegrator, sessionFactory, errorHandler );
+			final BatchTransactionalContext transactionalContext = new BatchTransactionalContext( extendedIntegrator, sessionFactory, errorHandler, tenantId );
 			//first start the consumers, then the producers (reverse order):
 			//from primary keys to LuceneWork ADD operations:
 			startTransformationToLuceneWork( transactionalContext, errorHandler );
@@ -110,9 +126,15 @@ public class BatchIndexingWorkspace extends ErrorHandledRunnable {
 				log.debugf( "All work for type %s has been produced", indexedType.getName() );
 			}
 			catch (InterruptedException e) {
+				// on thread interruption cancel each pending task - thread executing the task must be interrupted
+				for ( Future<?> task : tasks ) {
+					if ( !task.isDone() ) {
+						task.cancel( true );
+					}
+				}
 				//restore interruption signal:
 				Thread.currentThread().interrupt();
-				throw new SearchException( "Interrupted on batch Indexing; index will be left in unknown state!", e );
+				throw new SearchException( "Interrupted on batch Indexing; index will be left in unknown state!" );
 			}
 		}
 		finally {
@@ -125,12 +147,15 @@ public class BatchIndexingWorkspace extends ErrorHandledRunnable {
 				new IdentifierProducer(
 						primaryKeyStream, sessionFactory,
 						objectLoadingBatchSize, indexedType, monitor,
-						objectsLimit, errorHandler, idFetchSize
-				));
+						objectsLimit, errorHandler, idFetchSize,
+						tenantId
+				),
+				transactionTimeout,
+				tenantId);
 		//execIdentifiersLoader has size 1 and is not configurable: ensures the list is consistent as produced by one transaction
 		final ThreadPoolExecutor execIdentifiersLoader = Executors.newFixedThreadPool( 1, "identifierloader" );
 		try {
-			execIdentifiersLoader.execute( primaryKeyOutputter );
+			tasks.add( execIdentifiersLoader.submit( primaryKeyOutputter ) );
 		}
 		finally {
 			execIdentifiersLoader.shutdown();
@@ -138,22 +163,20 @@ public class BatchIndexingWorkspace extends ErrorHandledRunnable {
 	}
 
 	private void startTransformationToLuceneWork(BatchTransactionalContext transactionalContext, ErrorHandler errorHandler) {
-		final Runnable documentOutputter = new OptionallyWrapInJTATransaction( transactionalContext,
-				new IdentifierConsumerDocumentProducer(
-						primaryKeyStream, monitor, sessionFactory, producerEndSignal,
-						cacheMode, indexedType, extendedIntegrator,
-						idNameOfIndexedType, backend, errorHandler
-				));
+		final Runnable documentOutputter = new IdentifierConsumerDocumentProducer(
+				primaryKeyStream, monitor, sessionFactory, producerEndSignal,
+				cacheMode, indexedType, extendedIntegrator,
+				idNameOfIndexedType, backend, errorHandler,
+				transactionTimeout, tenantId
+		);
 		final ThreadPoolExecutor execFirstLoader = Executors.newFixedThreadPool( documentBuilderThreads, "entityloader" );
 		try {
 			for ( int i = 0; i < documentBuilderThreads; i++ ) {
-				execFirstLoader.execute( documentOutputter );
+				tasks.add( execFirstLoader.submit( documentOutputter ) );
 			}
 		}
 		finally {
 			execFirstLoader.shutdown();
 		}
 	}
-
-
 }

@@ -58,6 +58,15 @@ public final class Environment {
 
 
 	public static final String WORKER_SCOPE = "hibernate.search.worker.scope";
+
+	/**
+	 * When set to {@code true} the indexing operations will be passed to the indexing backend within
+	 * the transaction. When {@code false} the indexing backends are invoked as a post-transaction hook.
+	 * Setting this to {@code true} is currently only supported when you use the JMS backends exclusively.
+	 * Defaults to {@code false}.
+	 */
+	public static final String WORKER_ENLIST_IN_TRANSACTION = "hibernate.search.worker.enlist_in_transaction";
+
 	public static final String WORKER_PREFIX = "worker.";
 	public static final String WORKER_BACKEND = WORKER_PREFIX + "backend";
 	public static final String WORKER_EXECUTION = WORKER_PREFIX + "execution";
@@ -112,9 +121,9 @@ public final class Environment {
 	 * Number of times we retry the logic looking for marker files in master's directory before
 	 * giving up and raising an exception.
 	 * This setting is the suffix of an index using FSSlaveDirectoryProvider
-	 * <p/>
+	 * <p>
 	 * Note that we try again after 5 seconds.
-	 * <p/>
+	 * <p>
 	 * Default to 0 (ie no retry).
 	 */
 	public static final String RETRY_MARKER_LOOKUP = "retry_marker_lookup";
@@ -214,10 +223,53 @@ public final class Environment {
 	public static final String INDEX_MANAGER_IMPL_NAME = "indexmanager";
 
 	/**
-	 * Name of the JMS message property containing the index name to which to apply remote work.
+	 * Name of the JMS message property containing the index name to which to apply remote work. <i>JMSXGroupID</i> is
+	 * actually a standard JMS header field which is used for message grouping. See HSEARCH-1922.
 	 */
-	public static final String INDEX_NAME_JMS_PROPERTY = "HSearchIndexName";
+	public static final String INDEX_NAME_JMS_PROPERTY = "JMSXGroupID";
 
+	/**
+	 * Option for setting the locking strategy to be used for locking Lucene directories. Supported values are:
+	 * <ul>
+	 * <li><code>simple</code></li>
+	 * <li><code>native</code></li>
+	 * <li><code>single</code></li>
+	 * <li><code>none</code></li>
+	 * <li>The fully-qualified name of a custom {@link org.hibernate.search.store.LockFactoryProvider} implementation.</li>
+	 * </ul>
+	 * Can be given globally or for specific indexes:
+	 * <ul>
+	 * <li><code>hibernate.search.default.locking_strategy=simple</code></li>
+	 * <li><code>hibernate.search.Books.locking_strategy=org.custom.components.MyLockingFactory</code></li>
+	 * </ul>
+	 */
+	public static final String LOCKING_STRATEGY = "locking_strategy";
+
+	/**
+	 * Option for setting the base directory for storing Lucene indexes when working with file-system based directories.
+	 * To be given globally:
+	 * <p>
+	 * <code>hibernate.search.default.indexBase=/var/lucene/indexes</code>
+	 */
+	public static final String INDEX_BASE_PROP_NAME = "indexBase";
+
+	/**
+	 * Option for specifying an index name for specific entities. To be given per entity:
+	 * <p>
+	 * <code>hibernate.search.com.example.Furniture.indexName=FurnitureIndex</code>
+	 */
+	public static final String INDEX_NAME_PROP_NAME = "indexName";
+
+	/**
+	 * Option for allowing or disallowing index uninverting when sorting on fields not covered by doc value fields. If
+	 * disallowed and and uncovered sort is detected, an exception will be raised, otherwise only a warning will be
+	 * logged.
+	 * <p>
+	 * Allowed values are "true" and "false". Defaults to "true".
+	 *
+	 * @see org.hibernate.search.annotations.SortableField
+	 */
+	public static final String INDEX_UNINVERTING_ALLOWED = "hibernate.search.index_uninverting_allowed";
 
 	public static final Map<Class<? extends Service>, String> DEFAULT_SERVICES_MAP;
 	// TODO for now we hard code the default services. This could/should be made configurable (HF)

@@ -24,7 +24,7 @@ import java.util.List;
  * The SpatialQueryBuilder holds builder methods for Hash, Distance and Spatial (Hash+Distance) filters
  * and queries
  *
- * @author Nicolas Helleringer <nicolas.helleringer@novacodex.net>
+ * @author Nicolas Helleringer
  */
 public abstract class SpatialQueryBuilderFromCoordinates {
 
@@ -180,8 +180,8 @@ public abstract class SpatialQueryBuilderFromCoordinates {
 		}
 
 		BooleanQuery boxQuery = new BooleanQuery();
-		boxQuery.add( latQuery, BooleanClause.Occur.MUST );
-		boxQuery.add( longQuery, BooleanClause.Occur.MUST );
+		boxQuery.add( latQuery, BooleanClause.Occur.FILTER );
+		boxQuery.add( longQuery, BooleanClause.Occur.FILTER );
 
 		return new FilteredQuery(
 				new MatchAllDocsQuery(),

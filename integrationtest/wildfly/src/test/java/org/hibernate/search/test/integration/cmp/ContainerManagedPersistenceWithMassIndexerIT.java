@@ -28,7 +28,7 @@ import org.junit.runner.RunWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.hibernate.search.test.integration.VersionTestHelper.addDependencyToSearchModule;
+import static org.hibernate.search.test.integration.VersionTestHelper.getWildFlyModuleIdentifier;
 
 /**
  * @author Hardy Ferentschik
@@ -47,7 +47,6 @@ public class ContainerManagedPersistenceWithMassIndexerIT {
 		JavaArchive ejb = ShrinkWrap
 				.create( JavaArchive.class, EJB_ARCHIVE_NAME )
 				.addClasses( Singer.class, SingersSingleton.class );
-		addDependencyToSearchModule( ejb );
 
 		WebArchive war = ShrinkWrap
 				.create( WebArchive.class, WAR_ARCHIVE_NAME )
@@ -70,10 +69,11 @@ public class ContainerManagedPersistenceWithMassIndexerIT {
 				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
 				.clazz( Singer.class.getName() )
 				.getOrCreateProperties()
-				.createProperty().name( "hibernate.hbm2ddl.auto" ).value( "create" ).up()
-				.createProperty().name( "hibernate.search.default.lucene_version" ).value( "LUCENE_CURRENT" ).up()
-				.createProperty().name( "hibernate.search.default.directory_provider" ).value( "ram" ).up()
-				.createProperty().name( "hibernate.search.indexing_strategy" ).value( "manual" ).up()
+					.createProperty().name( "hibernate.hbm2ddl.auto" ).value( "create" ).up()
+					.createProperty().name( "hibernate.search.default.lucene_version" ).value( "LUCENE_CURRENT" ).up()
+					.createProperty().name( "hibernate.search.default.directory_provider" ).value( "ram" ).up()
+					.createProperty().name( "hibernate.search.indexing_strategy" ).value( "manual" ).up()
+					.createProperty().name( "wildfly.jpa.hibernate.search.module" ).value( getWildFlyModuleIdentifier() ).up()
 				.up().up()
 				.exportAsString();
 		return new StringAsset( persistenceXml );

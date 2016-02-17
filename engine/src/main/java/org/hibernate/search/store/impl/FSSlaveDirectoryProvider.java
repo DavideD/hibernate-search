@@ -19,25 +19,26 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.store.RAMDirectory;
+import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.engine.service.spi.ServiceManager;
+import org.hibernate.search.exception.AssertionFailure;
+import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.indexes.spi.DirectoryBasedIndexManager;
 import org.hibernate.search.spi.BuildContext;
 import org.hibernate.search.store.DirectoryProvider;
+import org.hibernate.search.store.spi.DirectoryHelper;
 import org.hibernate.search.util.configuration.impl.ConfigurationParseHelper;
 import org.hibernate.search.util.impl.FileHelper;
 import org.hibernate.search.util.logging.impl.Log;
-import org.hibernate.search.exception.AssertionFailure;
-import org.hibernate.search.cfg.Environment;
-import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
 /**
  * File based directory provider that takes care of getting a version of the index
  * from a given source.
- * The base directory is represented by hibernate.search.<index>.indexBase
- * The index is created in <base directory>/<index name>
- * The source (aka copy) directory is built from <sourceBase>/<index name>
- * <p/>
+ * The base directory is represented by hibernate.search.{@literal <index>}.indexBase
+ * The index is created in {@literal <base directory>/<index name>}
+ * The source (aka copy) directory is built from {@literal <sourceBase>/<index name>}
+ * <p>
  * A copy is triggered every refresh seconds
  *
  * @author Emmanuel Bernard
@@ -77,7 +78,7 @@ public class FSSlaveDirectoryProvider implements DirectoryProvider<Directory> {
 		//source guessing
 		sourceIndexDir = DirectoryProviderHelper.getSourceDirectory( directoryProviderName, properties, false );
 		log.debugf( "Source directory: %s", sourceIndexDir.getPath() );
-		indexDir = DirectoryProviderHelper.getVerifiedIndexDir( directoryProviderName, properties, true );
+		indexDir = DirectoryHelper.getVerifiedIndexDir( directoryProviderName, properties, true );
 		log.debugf( "Index directory: %s", indexDir.getPath() );
 		try {
 			indexName = indexDir.getCanonicalPath();
@@ -195,7 +196,7 @@ public class FSSlaveDirectoryProvider implements DirectoryProvider<Directory> {
 		if ( !started ) {
 			if ( dummyDirectory == null ) {
 				RAMDirectory directory = new RAMDirectory();
-				DirectoryProviderHelper.initializeIndexIfNeeded( directory );
+				DirectoryHelper.initializeIndexIfNeeded( directory );
 				dummyDirectory = directory;
 			}
 			return dummyDirectory;

@@ -6,6 +6,7 @@
  */
 package org.hibernate.search.test.integration.wildfly;
 
+import static org.hibernate.search.test.integration.VersionTestHelper.getWildFlyModuleIdentifier;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -13,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import javax.annotation.Resource;
 import javax.inject.Inject;
 
 import org.hibernate.search.test.integration.VersionTestHelper;
@@ -41,15 +43,27 @@ import org.junit.runner.RunWith;
 @RunWith(Arquillian.class)
 public class ModuleMemberRegistrationIT {
 
+	private static final String EXPECTED_SEARCH_VERSION_RESOURCE = "expectedHibernateSearchVersion";
+
 	@Deployment
 	public static Archive<?> createTestArchive() {
-		WebArchive archive = ShrinkWrap
+		return ShrinkWrap
 				.create( WebArchive.class, ModuleMemberRegistrationIT.class.getSimpleName() + ".war" )
 				.addClasses( Member.class, MemberRegistration.class, Resources.class )
 				.addAsResource( persistenceXml(), "META-INF/persistence.xml" )
-				.add( VersionTestHelper.moduleDependencyManifest(), "META-INF/MANIFEST.MF" )
-				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" );
-		return archive;
+				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" )
+				.addAsWebInfResource( webXml(), "web.xml" );
+	}
+
+	private static Asset webXml() {
+		String webXml = Descriptors.create( org.jboss.shrinkwrap.descriptor.api.webapp31.WebAppDescriptor.class )
+			.createEnvEntry()
+				.envEntryName( EXPECTED_SEARCH_VERSION_RESOURCE )
+				.envEntryValue( VersionTestHelper.getDependencyVersionHibernateSearch() )
+				.envEntryType( "java.lang.String" )
+				.up()
+			.exportAsString();
+		return new StringAsset( webXml );
 	}
 
 	private static Asset persistenceXml() {
@@ -58,11 +72,13 @@ public class ModuleMemberRegistrationIT {
 			.createPersistenceUnit()
 				.name( "primary" )
 				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
+				// The deployment Scanner is disabled as the JipiJapa integration is not available because of the custom Hibernate ORM module:
+				.clazz( Member.class.getName() )
 				.getOrCreateProperties()
 					.createProperty().name( "hibernate.hbm2ddl.auto" ).value( "create-drop" ).up()
 					.createProperty().name( "hibernate.search.default.lucene_version" ).value( "LUCENE_CURRENT" ).up()
 					.createProperty().name( "hibernate.search.default.directory_provider" ).value( "ram" ).up()
-					.createProperty().name( "hibernate.search.autoregister_listeners" ).value( "true" ).up()
+					.createProperty().name( "wildfly.jpa.hibernate.search.module" ).value( getWildFlyModuleIdentifier() ).up()
 				.up().up()
 			.exportAsString();
 		return new StringAsset( persistenceXml );
@@ -70,6 +86,14 @@ public class ModuleMemberRegistrationIT {
 
 	@Inject
 	MemberRegistration memberRegistration;
+
+	@Resource(name = EXPECTED_SEARCH_VERSION_RESOURCE)
+	String expectedSearchVersion;
+
+	@Test
+	public void HibernateSearchVersion() throws Exception {
+		assertEquals( expectedSearchVersion, memberRegistration.getHibernateSearchVersionString() );
+	}
 
 	@Test
 	public void testRegister() throws Exception {

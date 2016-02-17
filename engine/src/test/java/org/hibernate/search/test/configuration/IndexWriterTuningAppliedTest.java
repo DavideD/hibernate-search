@@ -17,7 +17,7 @@ import org.hibernate.search.annotations.Indexed;
 import org.hibernate.search.backend.impl.lucene.AbstractWorkspaceImpl;
 import org.hibernate.search.testsupport.TestForIssue;
 import org.hibernate.search.testsupport.junit.SearchFactoryHolder;
-import org.hibernate.search.util.logging.impl.LoggerInfoStream;
+import org.hibernate.search.util.logging.impl.LogCategory;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,21 +39,9 @@ public class IndexWriterTuningAppliedTest {
 		.withProperty( "hibernate.search.index2.indexwriter.infostream", "true" );
 
 	@Test
-	public void testIndexWriterTuningApplied() throws IOException {
-		AbstractWorkspaceImpl dvdsWorkspace = sfHolder.extractWorkspace( Dvd.class );
-		IndexWriter dvdsIndexWriter = dvdsWorkspace.getIndexWriter();
-		try {
-			Assert.assertEquals( 23, dvdsIndexWriter.getConfig().getMaxThreadStates() );
-		}
-		finally {
-			dvdsIndexWriter.close( false );
-		}
-	}
-
-	@Test
 	public void testInfoStream() throws IOException {
 		//Enable trace level on the magic category:
-		Logger.getLogger( LoggerInfoStream.INFOSTREAM_LOGGER_CATEGORY ).setLevel( Level.TRACE );
+		Logger.getLogger( LogCategory.INFOSTREAM_LOGGER_CATEGORY.getName() ).setLevel( Level.TRACE );
 		AbstractWorkspaceImpl dvdsWorkspace = sfHolder.extractWorkspace( Dvd.class );
 		AbstractWorkspaceImpl booksWorkspace = sfHolder.extractWorkspace( Book.class );
 		IndexWriter dvdsIndexWriter = dvdsWorkspace.getIndexWriter();
@@ -63,20 +51,8 @@ public class IndexWriterTuningAppliedTest {
 			Assert.assertTrue( booksIndexWriter.getConfig().getInfoStream().isEnabled( "IW" ) );
 		}
 		finally {
-			booksIndexWriter.close( false );
-			dvdsIndexWriter.close( false );
-		}
-	}
-
-	@Test
-	public void testIndexWriterTuningAppliedOnDefault() throws IOException {
-		AbstractWorkspaceImpl booksWorkspace = sfHolder.extractWorkspace( Book.class );
-		IndexWriter booksIndexWriter = booksWorkspace.getIndexWriter();
-		try {
-			Assert.assertEquals( 7, booksIndexWriter.getConfig().getMaxThreadStates() );
-		}
-		finally {
-			booksIndexWriter.close( false );
+			booksIndexWriter.close();
+			dvdsIndexWriter.close();
 		}
 	}
 

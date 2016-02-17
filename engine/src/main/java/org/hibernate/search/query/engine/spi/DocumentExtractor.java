@@ -22,7 +22,7 @@ import org.apache.lucene.search.TopDocs;
  *
  * DocumentExtractor objects *must* be closed when the results are no longer traversed. See {@link #close()}
  *
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public interface DocumentExtractor extends Closeable {
 
@@ -37,6 +37,7 @@ public interface DocumentExtractor extends Closeable {
 	/**
 	 * @hsearch.experimental We are thinking at ways to encapsulate needs for exposing TopDocs (and whether or not it makes sense)
 	 * Try to avoid it if you can
+	 * @return {@link TopDocs} instance
 	 */
 	TopDocs getTopDocs();
 

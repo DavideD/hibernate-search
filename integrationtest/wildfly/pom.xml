@@ -12,7 +12,7 @@
     <parent>
         <artifactId>hibernate-search-parent</artifactId>
         <groupId>org.hibernate</groupId>
-        <version>5.0.0-SNAPSHOT</version>
+        <version>5.6.0-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -27,8 +27,9 @@
         here due to dependency conflicts with specific versions of WildFly
         -->
         <enforcer.skip>true</enforcer.skip>
-
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <byteman.agent.path>${org.jboss.byteman:byteman:jar}</byteman.agent.path>
+        <byteman.script.path>${basedir}${file.separator}src${file.separator}test${file.separator}resources${file.separator}disablejpadapters.btm</byteman.script.path>
     </properties>
 
     <dependencyManagement>
@@ -71,10 +72,12 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Infinispan -->
+        <!-- Take the JGroups testing configuration files from our base tests -->
         <dependency>
-            <groupId>org.infinispan</groupId>
-            <artifactId>infinispan-core</artifactId>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-search-backend-jgroups</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
 
@@ -96,11 +99,19 @@
             <type>pom</type>
         </dependency>
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>org.wildfly.arquillian</groupId>
             <artifactId>wildfly-arquillian-container-managed</artifactId>
-            <version>${wildflyVersion}</version>
+            <version>${arquillianContainerVersion}</version>
             <scope>test</scope>
             <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logmanager</groupId>
+                    <artifactId>jboss-logmanager</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.logmanager</groupId>
+                    <artifactId>log4j-jboss-logmanager</artifactId>
+                </exclusion>
                 <!-- This exclusion is needed to be able to setup the project in Windows:
                      it otherwise includes transitive dependency to the JDK JConsole -->
                 <exclusion>
@@ -122,13 +133,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
-        <!-- Java EE API -->
         <dependency>
-            <groupId>org.jboss.spec.javax.annotation</groupId>
-            <artifactId>jboss-annotations-api_1.2_spec</artifactId>
+            <groupId>org.jboss.byteman</groupId>
+            <artifactId>byteman</artifactId>
             <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>org.jboss.spec.javax.ejb</groupId>
             <artifactId>jboss-ejb-api_3.2_spec</artifactId>
@@ -136,15 +146,32 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.jboss.ejb3</groupId>
+            <artifactId>jboss-ejb3-ext-api</artifactId>
+            <version>2.1.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
-            <version>1.1</version>
+            <version>1.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.jboss.spec.javax.jms</groupId>
             <artifactId>jboss-jms-api_2.0_spec</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.transaction</groupId>
+            <artifactId>jboss-transaction-api_1.2_spec</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Avoid warnings during build -->
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging-annotations</artifactId>
         </dependency>
     </dependencies>
 
@@ -156,6 +183,29 @@
             </testResource>
         </testResources>
         <plugins>
+            <plugin>
+                <!-- Allows to find the absolute path to dependencies -->
+                <groupId>org.bitstrings.maven.plugins</groupId>
+                <artifactId>dependencypath-maven-plugin</artifactId>
+                <version>1.1.1</version>
+                <executions>
+                    <execution>
+                        <id>set-all</id>
+                        <goals>
+                            <goal>set</goal>
+                        </goals>
+                        <configuration>
+                        <propertySets>
+                            <propertySet>
+                                <includes>
+                                    <include>org.jboss.byteman:byteman:jar</include>
+                                </includes>
+                            </propertySet>
+                        </propertySets>
+                    </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -185,13 +235,6 @@
                         </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <systemPropertyVariables>
-                        <hibernate.search.module.slot.version>${hibernate.search.module.slot}</hibernate.search.module.slot.version>
-                        <dependency.version.Lucene>${luceneVersion}</dependency.version.Lucene>
-                        <dependency.version.HibernateCommonsAnnotations>${hibernateCommonsAnnotationVersion}</dependency.version.HibernateCommonsAnnotations>
-                    </systemPropertyVariables>
-                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -208,7 +251,7 @@
                                     <groupId>org.wildfly</groupId>
                                     <artifactId>wildfly-dist</artifactId>
                                     <version>${wildflyVersion}</version>
-                                    <type>tar.gz</type>
+                                    <type>zip</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/node1</outputDirectory>
                                 </artifactItem>
@@ -216,31 +259,15 @@
                                     <groupId>org.wildfly</groupId>
                                     <artifactId>wildfly-dist</artifactId>
                                     <version>${wildflyVersion}</version>
-                                    <type>tar.gz</type>
+                                    <type>zip</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/node2</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
-                                    <groupId>org.infinispan</groupId>
-                                    <artifactId>infinispan-as-embedded-modules</artifactId>
-                                    <version>${infinispanVersion}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.build.directory}/node1/wildfly-${wildflyVersion}/modules</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.infinispan</groupId>
-                                    <artifactId>infinispan-as-embedded-modules</artifactId>
-                                    <version>${infinispanVersion}</version>
-                                    <type>zip</type>
-                                    <overWrite>true</overWrite>
-                                    <outputDirectory>${project.build.directory}/node2/wildfly-${wildflyVersion}/modules</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
                                     <groupId>org.hibernate</groupId>
                                     <artifactId>hibernate-search-modules</artifactId>
                                     <version>${project.version}</version>
-                                    <classifier>wildfly-8-dist</classifier>
+                                    <classifier>wildfly-10-dist</classifier>
                                     <type>zip</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/node1/wildfly-${wildflyVersion}/modules</outputDirectory>
@@ -249,7 +276,7 @@
                                     <groupId>org.hibernate</groupId>
                                     <artifactId>hibernate-search-modules</artifactId>
                                     <version>${project.version}</version>
-                                    <classifier>wildfly-8-dist</classifier>
+                                    <classifier>wildfly-10-dist</classifier>
                                     <type>zip</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${project.build.directory}/node2/wildfly-${wildflyVersion}/modules</outputDirectory>
@@ -258,28 +285,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-            <!-- Temporary workaround to make sure the same lucene version is used in infinispan and hibernate search modules -->
-            <plugin>
-                <groupId>com.google.code.maven-replacer-plugin</groupId>
-                <artifactId>replacer</artifactId>
-                <version>1.5.3</version>
-                <executions>
-                    <execution>
-                        <phase>pre-integration-test</phase>
-                        <goals>
-                            <goal>replace</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <includes>
-                        <include>${project.build.directory}/**/module.xml</include>
-                    </includes>
-                    <xpath><![CDATA[ //module[@name="org.apache.lucene"]/@slot ]]></xpath>
-                    <token>^.*$</token>
-                    <value>${lucene.module.slot}</value>
-                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

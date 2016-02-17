@@ -17,9 +17,9 @@ import org.hibernate.search.exception.AssertionFailure;
  * Internal contract extending {@code BridgeProvider} to handle some of the
  * specificity of Hibernate Search bridges (like annotations requirements).
  *
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
-abstract class ExtendedBridgeProvider implements BridgeProvider {
+public abstract class ExtendedBridgeProvider implements BridgeProvider {
 
 	/**
 	 * Same as {@link org.hibernate.search.bridge.spi.BridgeProvider#provideFieldBridge(org.hibernate.search.bridge.spi.BridgeProvider.BridgeProviderContext)}
@@ -36,7 +36,7 @@ abstract class ExtendedBridgeProvider implements BridgeProvider {
 		return provideFieldBridge( (ExtendedBridgeProviderContext) bridgeProviderContext );
 	}
 
-	interface ExtendedBridgeProviderContext extends BridgeProviderContext {
+	public interface ExtendedBridgeProviderContext extends BridgeProviderContext {
 
 		/**
 		 * Offers access to the annotations hosted on the member seeking a bridge.
@@ -52,5 +52,11 @@ abstract class ExtendedBridgeProvider implements BridgeProvider {
 		 * @return {@code true} if the indexed type is the document id, {@code false} otherwise.
 		 */
 		boolean isId();
+
+		/**
+		 * Whether the field in question is marked as numeric field by means of the {code NumericField} annotation or
+		 * not.
+		 */
+		boolean isExplicitlyMarkedAsNumeric();
 	}
 }

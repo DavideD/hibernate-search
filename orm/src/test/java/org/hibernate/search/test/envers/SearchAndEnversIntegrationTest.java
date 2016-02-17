@@ -14,17 +14,16 @@ import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.Sort;
 import org.apache.lucene.search.SortField;
-
 import org.hibernate.Transaction;
-
+import org.hibernate.dialect.PostgreSQL81Dialect;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
 import org.hibernate.search.test.SearchTestBase;
-import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.testsupport.TestForIssue;
+import org.hibernate.testing.SkipForDialect;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -36,6 +35,7 @@ import static org.junit.Assert.assertNull;
  *
  * @author Davide Di Somma <davide.disomma@gmail.com>
  */
+@SkipForDialect(jiraKey = "HSEARCH-1943", value = PostgreSQL81Dialect.class)
 public class SearchAndEnversIntegrationTest extends SearchTestBase {
 
 	private Person harryPotter;
@@ -318,11 +318,7 @@ public class SearchAndEnversIntegrationTest extends SearchTestBase {
 
 	private Query createLuceneQuery(String term, String value) {
 		String searchQuery = term + ":" + value;
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(),
-				term,
-				new StopAnalyzer( TestConstants.getTargetLuceneVersion() )
-		);
+		QueryParser parser = new QueryParser( term, new StopAnalyzer() );
 		Query luceneQuery;
 		try {
 			luceneQuery = parser.parse( searchQuery );
@@ -334,7 +330,7 @@ public class SearchAndEnversIntegrationTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] { Person.class, Address.class };
 	}
 }

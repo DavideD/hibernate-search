@@ -16,12 +16,11 @@ import java.util.List;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-
-import org.hibernate.search.exception.AssertionFailure;
-import org.hibernate.search.exception.SearchException;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.spi.DocumentBuilderIndexedEntity;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
+import org.hibernate.search.exception.AssertionFailure;
+import org.hibernate.search.exception.SearchException;
 
 /**
  * @author Emmanuel Bernard
@@ -36,7 +35,7 @@ final class Helper {
 	 * return the analyzed value for a given field. If several terms are created, an exception is raised.
 	 */
 	static String getAnalyzedTerm(String fieldName, String value, String name, Analyzer queryAnalyzer, FieldContext fieldContext) {
-		if ( fieldContext.isIgnoreAnalyzer() ) {
+		if ( !fieldContext.applyAnalyzer() ) {
 			return value;
 		}
 
@@ -66,7 +65,7 @@ final class Helper {
 
 		// Can't deal with null at this point. Likely returned by some FieldBridge not recognizing the type.
 		if ( localText == null ) {
-			throw new SearchException( "Search parameter on field " + fieldName + " could not be converted. " +
+			throw new SearchException( "Search parameter on field '" + fieldName + "' could not be converted. " +
 					"Are the parameter and the field of the same type?" +
 					"Alternatively, apply the ignoreFieldBridge() option to " +
 					"pass String parameters" );

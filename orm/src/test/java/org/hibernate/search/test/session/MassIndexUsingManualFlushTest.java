@@ -10,14 +10,13 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.lucene.analysis.core.StopAnalyzer;
 import org.apache.lucene.queryparser.classic.QueryParser;
-
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
 import org.hibernate.Transaction;
-
 import org.hibernate.jdbc.Work;
 import org.hibernate.search.FullTextSession;
 import org.hibernate.search.Search;
@@ -71,7 +70,7 @@ public class MassIndexUsingManualFlushTest extends SearchTestBase {
 		tx.commit();
 		s.clear();
 		tx = s.beginTransaction();
-		QueryParser parser = new QueryParser( TestConstants.getTargetLuceneVersion(), "id", TestConstants.stopAnalyzer );
+		QueryParser parser = new QueryParser( "id", TestConstants.stopAnalyzer );
 		List result = s.createFullTextQuery( parser.parse( "body:create" ) ).list();
 		assertEquals( 14, result.size() );
 		for ( Object object : result ) {
@@ -82,13 +81,12 @@ public class MassIndexUsingManualFlushTest extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Email.class,
 				Domain.class

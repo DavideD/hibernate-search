@@ -25,7 +25,7 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * work send through JMS by the slave nodes.
  *
  * @author Emmanuel Bernard
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * @author Sanne Grinovero (C) 2011 Red Hat Inc.
  */
 public abstract class AbstractJMSHibernateSearchController implements MessageListener {
 
@@ -37,8 +37,8 @@ public abstract class AbstractJMSHibernateSearchController implements MessageLis
 	 * Provides an optional extension point for the case you have to
 	 * do some cleanup after the Message was processed.
 	 *
-	 * This is invoked once by {@see #onMessage(Message)} after processing
-	 * each Message, provided the type of the Message is {@see ObjectMessage}
+	 * This is invoked once by {@link #onMessage(Message)} after processing
+	 * each Message, provided the type of the Message is {@link ObjectMessage}
 	 * as expected.
 	 */
 	protected void afterMessage() {
@@ -60,7 +60,10 @@ public abstract class AbstractJMSHibernateSearchController implements MessageLis
 		final IndexManager indexManager;
 		SearchIntegrator integrator = getSearchIntegrator();
 		try {
-			indexName = objectMessage.getStringProperty( Environment.INDEX_NAME_JMS_PROPERTY );
+			indexName = extractIndexName( objectMessage );
+			if ( log.isDebugEnabled() ) {
+				logMessageDetails( objectMessage, indexName );
+			}
 			indexManager = integrator.getIndexManager( indexName );
 			if ( indexManager == null ) {
 				log.messageReceivedForUndefinedIndex( indexName );
@@ -80,6 +83,20 @@ public abstract class AbstractJMSHibernateSearchController implements MessageLis
 		finally {
 			afterMessage();
 		}
+	}
+
+	private void logMessageDetails(ObjectMessage objectMessage, String indexName) throws JMSException {
+		String id = objectMessage.getStringProperty( "HSearchMsgId" );
+		log.debug( "Message Received for index '" + indexName + "': " + id );
+	}
+
+	private String extractIndexName(ObjectMessage objectMessage) throws JMSException {
+		String name = objectMessage.getStringProperty( Environment.INDEX_NAME_JMS_PROPERTY );
+		if ( name == null ) {
+			//Fall back to try the property name we used before HSEARCH-1922
+			name = objectMessage.getStringProperty( "HSearchIndexName" );
+		}
+		return name;
 	}
 
 }

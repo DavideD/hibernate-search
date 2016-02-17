@@ -40,22 +40,29 @@ public interface BuildContext {
 	 * }
 	 * </pre>
 	 * where directoryProviders is a class variable.
+	 * @return the {@link ExtendedSearchIntegrator} instance
 	 */
 	ExtendedSearchIntegrator getUninitializedSearchIntegrator();
 
 	/**
-	 * Returns the configured indexing strategy (<i>event</i> vs <i>manual</i>).
-	 *
-	 * @return hte configured indexing strategy
-	 * @see org.hibernate.search.cfg.Environment#INDEXING_STRATEGY
+	 * @deprecated Scheduled for removal. Use {@link #getIndexingMode()} instead.
+	 * @return the indexing strategy
 	 */
+	@Deprecated
 	String getIndexingStrategy();
+
+	/**
+	 * @return the current indexing strategy as specified via {@link org.hibernate.search.cfg.Environment#INDEXING_STRATEGY}.
+	 */
+	IndexingMode getIndexingMode();
 
 	/**
 	 * Access the {@code ServiceManager}.
 	 *
 	 * Clients should keep a reference to the {@code ServiceManager} to allow for cleanup, but should not keep a reference
 	 * to the {@code BuildContext}.
+	 *
+	 * @return the {@link ServiceManager}
 	 */
 	ServiceManager getServiceManager();
 

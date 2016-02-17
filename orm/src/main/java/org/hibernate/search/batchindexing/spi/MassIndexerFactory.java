@@ -15,7 +15,7 @@ import org.hibernate.search.spi.SearchIntegrator;
 /**
  * Contains methods that can be used to create a {@link MassIndexer}.
  *
- * @author Davide D'Alto <davide@hibernate.org>
+ * @author Davide D'Alto
  *
  * @since 4.3
  */
@@ -39,7 +39,7 @@ public interface MassIndexerFactory {
 	 *            the {@link org.hibernate.Session} factory
 	 * @param entities
 	 *            the classes of the entities that are going to be indexed
-	 * @return a new MassIndexer
+	 * @return a new {@link MassIndexer}
 	 */
 	MassIndexer createMassIndexer(SearchIntegrator searchIntegrator, SessionFactoryImplementor sessionFactory,
 			Class<?>... entities);

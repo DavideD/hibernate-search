@@ -36,6 +36,7 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.similarities.Similarity;
 import org.apache.lucene.search.similarities.TFIDFSimilarity;
+import org.apache.lucene.util.ArrayUtil;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.CharsRef;
 import org.apache.lucene.util.IOUtils;
@@ -45,8 +46,8 @@ import org.hibernate.search.annotations.Store;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.builtin.NumericFieldBridge;
 import org.hibernate.search.bridge.util.impl.ContextualExceptionBridgeHelper;
-import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.impl.DocumentBuilderHelper;
+import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.metadata.impl.DocumentFieldMetadata;
 import org.hibernate.search.engine.spi.DocumentBuilderIndexedEntity;
 import org.hibernate.search.exception.AssertionFailure;
@@ -56,31 +57,31 @@ import org.hibernate.search.util.impl.PassThroughAnalyzer;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
-import static org.hibernate.search.query.dsl.impl.ConnectedMoreLikeThisQueryBuilder.INPUT_TYPE.ID;
 import static org.hibernate.search.query.dsl.impl.ConnectedMoreLikeThisQueryBuilder.INPUT_TYPE.ENTITY;
+import static org.hibernate.search.query.dsl.impl.ConnectedMoreLikeThisQueryBuilder.INPUT_TYPE.ID;
 
 /**
  * Class inspired and code copied from Apache Lucene MoreLikeThis class.
  * Apache Lucene code copyright the Apache Software Foundation released under the
  * Apache Software License 2.0.
  *
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public class MoreLikeThisBuilder<T> {
 
 	private static final Log log = LoggerFactory.make();
 
-	private int minWordLen = MoreLikeThis.DEFAULT_MIN_WORD_LENGTH;
-	private int maxNumTokensParsed = MoreLikeThis.DEFAULT_MAX_NUM_TOKENS_PARSED;
-	private int maxWordLen = MoreLikeThis.DEFAULT_MAX_WORD_LENGTH;
-	private Set<?> stopWords = MoreLikeThis.DEFAULT_STOP_WORDS;
-	private DocumentBuilderIndexedEntity documentBuilder;
+	private final int minWordLen = MoreLikeThis.DEFAULT_MIN_WORD_LENGTH;
+	private final int maxNumTokensParsed = MoreLikeThis.DEFAULT_MAX_NUM_TOKENS_PARSED;
+	private final int maxWordLen = MoreLikeThis.DEFAULT_MAX_WORD_LENGTH;
+	private final Set<?> stopWords = MoreLikeThis.DEFAULT_STOP_WORDS;
+	private final DocumentBuilderIndexedEntity documentBuilder;
 	// We lower the min defaults to 1 because we don't merge the freq of *all* fields unlike the original MoreLikeThis
 	// TODO: is that hurting performance? Could we guess "small fields" and ony lower these?
-	private int minTermFreq = 1; //MoreLikeThis.DEFAULT_MIN_TERM_FREQ;
-	private int minDocFreq = 1; //MoreLikeThis.DEFAULT_MIN_DOC_FREQ;
-	private int maxDocFreq = MoreLikeThis.DEFAULT_MAX_DOC_FREQ;
-	private int maxQueryTerms = MoreLikeThis.DEFAULT_MAX_QUERY_TERMS;
+	private final int minTermFreq = 1; //MoreLikeThis.DEFAULT_MIN_TERM_FREQ;
+	private final int minDocFreq = 1; //MoreLikeThis.DEFAULT_MIN_DOC_FREQ;
+	private final int maxDocFreq = MoreLikeThis.DEFAULT_MAX_DOC_FREQ;
+	private final int maxQueryTerms = MoreLikeThis.DEFAULT_MAX_QUERY_TERMS;
 	private boolean boost = MoreLikeThis.DEFAULT_BOOST;
 	private float boostFactor = 1;
 	private TFIDFSimilarity similarity;
@@ -124,6 +125,7 @@ public class MoreLikeThisBuilder<T> {
 
 	/**
 	 * Return a query that will return docs like the passed lucene document ID.
+	 * @return a query that will return docs like the passed lucene document ID.
 	 */
 	public Query createQuery() {
 		try {
@@ -316,7 +318,7 @@ public class MoreLikeThisBuilder<T> {
 			//TODO should we keep the fieldToAnalyzerMap around to pass to the analyzer?
 			Map<String,String> fieldToAnalyzerMap = new HashMap<String, String>( );
 			//FIXME by calling documentBuilder we don't honor .comparingField("foo").ignoreFieldBridge(): probably not a problem in practice though
-			maybeDocument = documentBuilder.getDocument( (T) input, null, fieldToAnalyzerMap, null, new ContextualExceptionBridgeHelper(), fieldNames );
+			maybeDocument = documentBuilder.getDocument( null, input, null, fieldToAnalyzerMap, null, new ContextualExceptionBridgeHelper(), fieldNames );
 			vectors = null;
 		}
 		else {
@@ -438,12 +440,16 @@ public class MoreLikeThisBuilder<T> {
 	 * @param vector List of terms and their frequencies for a doc/field
 	 */
 	private void addTermFrequencies(Map<String, Int> termFreqMap, Terms vector) throws IOException {
-		final TermsEnum termsEnum = vector.iterator( null );
-		final CharsRef spare = new CharsRef();
+		final TermsEnum termsEnum = vector.iterator();
+		char[] charBuffer = new char[0];
+		CharsRef outputReference = new CharsRef();
 		BytesRef text;
 		while ( ( text = termsEnum.next() ) != null ) {
-			UnicodeUtil.UTF8toUTF16( text, spare );
-			final String term = spare.toString();
+			charBuffer = ArrayUtil.grow( charBuffer, text.length );
+			final int stringLenght = UnicodeUtil.UTF8toUTF16( text, charBuffer );
+			outputReference.chars = charBuffer;
+			outputReference.length = stringLenght;
+			final String term = outputReference.toString();
 			if ( isNoiseWord( term ) ) {
 				continue;
 			}
@@ -473,7 +479,7 @@ public class MoreLikeThisBuilder<T> {
 			throws IOException {
 		String fieldName = fieldContext.getField();
 		Analyzer analyzer = queryContext.getQueryAnalyzer();
-		if ( fieldContext.isIgnoreAnalyzer() ) {
+		if ( !fieldContext.applyAnalyzer() ) {
 			// essentially does the Reader to String conversion for us
 			analyzer = PassThroughAnalyzer.INSTANCE;
 		}

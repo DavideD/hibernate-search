@@ -11,21 +11,29 @@ import java.util.List;
 import org.hibernate.search.backend.LuceneWork;
 
 /**
- * For clustering we need some way to serialize the {@code LuceneWork} instances.
- * to the other nodes.
- * Implementations need to be threadsafe.
+ * Serialize {@code LuceneWork} instances.
  *
- * @author Sanne Grinovero <sanne@hibernate.org> (C) 2011 Red Hat Inc.
+ * Needed for clustering where we need to serialize the work to remote nodes.
+ * <p>
+ * <b>Note</b>:<br>
+ * Implementations need to be threadsafe.
+ * </p>
+ *
+ * @author Sanne Grinovero &lt;sanne@hibernate.org&gt; (C) 2011 Red Hat Inc.
  */
 public interface LuceneWorkSerializer {
 
 	/**
-	 * Convert a List of LuceneWork into a byte[]
+	 * Convert a List of LuceneWork into a byte[].
+	 * @param works the list of {@link LuceneWork}
+	 * @return the list of {@link LuceneWork} as byte[]
 	 */
 	byte[] toSerializedModel(List<LuceneWork> works);
 
 	/**
-	 * Convert a byte[] to a List of LuceneWork
+	 * Convert a byte[] to a List of LuceneWork.
+	 * @param data the byte array to convert
+	 * @return the list of {@link LuceneWork}
 	 */
 	List<LuceneWork> toLuceneWorks(byte[] data);
 

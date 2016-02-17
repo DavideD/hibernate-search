@@ -8,6 +8,7 @@ package org.hibernate.search.test.performance.reader;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,15 +20,15 @@ import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.Query;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-
+import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.hibernate.search.FullTextQuery;
 import org.hibernate.search.Search;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.test.SearchTestBase;
+import org.hibernate.search.test.util.TargetDirHelper;
 import org.hibernate.search.testsupport.TestConstants;
 import org.hibernate.search.util.impl.FileHelper;
 import org.hibernate.search.util.logging.impl.Log;
@@ -48,8 +49,7 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 	@Override
 	@Before
 	public void setUp() throws Exception {
-		forceConfigurationRebuild();
-		String indexBase = TestConstants.getIndexDirectory( ReaderPerformanceTestCase.class );
+		String indexBase = TestConstants.getIndexDirectory( TargetDirHelper.getTargetDir() );
 		File indexDir = new File(indexBase);
 		indexDir.mkdir();
 		File[] files = indexDir.listFiles();
@@ -65,14 +65,14 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 	@After
 	public void tearDown() throws Exception {
 		super.tearDown();
-		String indexBase = TestConstants.getIndexDirectory( SearchTestBase.class );
+		String indexBase = TestConstants.getIndexDirectory( TargetDirHelper.getTargetDir() );
 		File indexDir = new File(indexBase);
 		FileHelper.delete( indexDir );
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class[] {
 				Detective.class,
 				Suspect.class
@@ -127,8 +127,8 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 	}
 
 	protected class Work implements Runnable {
-		private Random random = new Random();
-		private SessionFactory sf;
+		private final Random random = new Random();
+		private final SessionFactory sf;
 //		public volatile int count = 0;
 		public AtomicInteger count = new AtomicInteger( 0 );
 
@@ -144,7 +144,6 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 				s = sf.openSession();
 				tx = s.beginTransaction();
 				QueryParser parser = new MultiFieldQueryParser(
-						TestConstants.getTargetLuceneVersion(),
 						new String[] { "name", "physicalDescription", "suspectCharge" },
 						TestConstants.standardAnalyzer
 				);
@@ -195,7 +194,7 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 			finally {
 				count.incrementAndGet();
 				try {
-					if ( tx != null && tx.isActive() ) {
+					if ( tx != null && tx.getStatus() == TransactionStatus.ACTIVE ) {
 						tx.rollback();
 					}
 					if ( s != null && s.isOpen() ) {
@@ -221,8 +220,8 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 	}
 
 	protected static class ReverseWork implements Runnable {
-		private SessionFactory sf;
-		private Random random = new Random();
+		private final SessionFactory sf;
+		private final Random random = new Random();
 
 		public ReverseWork(SessionFactory sf) {
 			this.sf = sf;
@@ -233,7 +232,6 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 			Session s = sf.openSession();
 			Transaction tx = s.beginTransaction();
 			QueryParser parser = new MultiFieldQueryParser(
-					TestConstants.getTargetLuceneVersion(),
 					new String[] { "name", "physicalDescription", "suspectCharge" },
 					TestConstants.standardAnalyzer
 			);
@@ -276,14 +274,10 @@ public abstract class ReaderPerformanceTestCase extends SearchTestBase {
 	}
 
 	@Override
-	protected void configure(org.hibernate.cfg.Configuration cfg) {
-		super.configure( cfg );
-		cfg.setProperty(
-				"hibernate.search.default.indexBase",
-				TestConstants.getIndexDirectory( ReaderPerformanceTestCase.class )
-		);
-		cfg.setProperty( "hibernate.search.default.directory_provider", "filesystem" );
-		cfg.setProperty( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
+	public void configure(Map<String,Object> cfg) {
+		cfg.put( "hibernate.search.default.indexBase", TestConstants.getIndexDirectory( TargetDirHelper.getTargetDir() ) );
+		cfg.put( "hibernate.search.default.directory_provider", "filesystem" );
+		cfg.put( Environment.ANALYZER_CLASS, StopAnalyzer.class.getName() );
 	}
 
 }

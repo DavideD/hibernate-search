@@ -6,8 +6,10 @@
  */
 package org.hibernate.search.bridge.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,27 +46,46 @@ import org.hibernate.search.util.logging.impl.LoggerFactory;
  * @author John Griffin
  */
 public final class BridgeFactory {
+
+	private static final String ELASTICSEARCH_BRIDGE_PROVIDER_CLASS = "org.hibernate.search.backend.elasticsearch.impl.ElasticsearchBridgeProvider";
+
 	private static final Log LOG = LoggerFactory.make();
-	private Set<BridgeProvider> annotationBasedProviders;
-	private Set<BridgeProvider> regularProviders;
+
+	private final List<BridgeProvider> annotationBasedProviders = new ArrayList<>( 6 );
+	private final Set<BridgeProvider> regularProviders = new HashSet<>();
 
 	public BridgeFactory(ServiceManager serviceManager) {
-		annotationBasedProviders = new HashSet<>(5);
+		ClassLoaderService classLoaderService = serviceManager.requestService( ClassLoaderService.class );
+
+		// Register ES bridge provider if present; Add it first so it takes precedence over all others
+		try {
+			Class<? extends ExtendedBridgeProvider> esBridgeProviderType = classLoaderService.classForName( ELASTICSEARCH_BRIDGE_PROVIDER_CLASS );
+			annotationBasedProviders.add( esBridgeProviderType.newInstance() );
+		}
+		catch (Exception e) {
+			// ignore
+		}
+
 		annotationBasedProviders.add( new CalendarBridgeProvider() );
 		annotationBasedProviders.add( new DateBridgeProvider() );
 		annotationBasedProviders.add( new NumericBridgeProvider() );
 		annotationBasedProviders.add( new SpatialBridgeProvider() );
 		annotationBasedProviders.add( new TikaBridgeProvider() );
 
-		ClassLoaderService classLoaderService = serviceManager.requestService( ClassLoaderService.class );
+		if ( JavaTimeBridgeProvider.isActive() ) {
+			annotationBasedProviders.add( new JavaTimeBridgeProvider() );
+		}
+
 		try {
-			regularProviders = classLoaderService.loadJavaServices( BridgeProvider.class );
-			regularProviders.add( new EnumBridgeProvider() );
-			regularProviders.add( new BasicJDKTypesBridgeProvider( serviceManager ) );
+			for ( BridgeProvider provider : classLoaderService.loadJavaServices( BridgeProvider.class ) ) {
+				regularProviders.add( provider );
+			}
 		}
 		finally {
 			serviceManager.releaseService( ClassLoaderService.class );
 		}
+		regularProviders.add( new EnumBridgeProvider() );
+		regularProviders.add( new BasicJDKTypesBridgeProvider( serviceManager ) );
 	}
 
 	/**
@@ -155,15 +176,17 @@ public final class BridgeFactory {
 
 	public FieldBridge buildFieldBridge(XMember member,
 			boolean isId,
+			boolean isExplicitlyMarkedAsNumeric,
 			ReflectionManager reflectionManager,
 			ServiceManager serviceManager
 	) {
-		return buildFieldBridge( null, member, isId, reflectionManager, serviceManager );
+		return buildFieldBridge( null, member, isId, isExplicitlyMarkedAsNumeric, reflectionManager, serviceManager );
 	}
 
 	public FieldBridge buildFieldBridge(Field field,
 			XMember member,
 			boolean isId,
+			boolean isExplicitlyMarkedAsNumeric,
 			ReflectionManager reflectionManager,
 			ServiceManager serviceManager
 	) {
@@ -173,7 +196,7 @@ public final class BridgeFactory {
 		}
 
 		ExtendedBridgeProvider.ExtendedBridgeProviderContext context = new XMemberBridgeProviderContext(
-				member, isId, reflectionManager, serviceManager
+				member, isId, isExplicitlyMarkedAsNumeric, reflectionManager, serviceManager
 		);
 		ContainerType containerType = getContainerType( member, reflectionManager );
 

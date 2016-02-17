@@ -37,7 +37,7 @@ public interface QueryBuilder {
 	/**
 	 * Build a phrase query (see {@link org.apache.lucene.search.PhraseQuery}).
 	 *
-	 * @return a {@code PhraseContext} instance for building the range query
+	 * @return a {@code PhraseContext} instance for building the phrase query
 	 */
 	PhraseContext phrase();
 
@@ -64,6 +64,7 @@ public interface QueryBuilder {
 
 	/**
 	 * Build a spatial query.
+	 * @return the spatial context as entry point got building the spatial request
 	 */
 	SpatialContext spatial();
 
@@ -73,6 +74,7 @@ public interface QueryBuilder {
 	 * It uses an approach similar to Lucene's {@code MoreLikeThis}
 	 *
 	 * @hsearch.experimental More Like This queries are considered experimental
+	 * @return the entry point for building more a more like this queryt
 	 */
 	MoreLikeThisContext moreLikeThis();
 }

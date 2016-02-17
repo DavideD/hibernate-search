@@ -23,7 +23,7 @@ import org.junit.Test;
 import static org.fest.assertions.Assertions.assertThat;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public class BridgeProviderTest extends SearchTestBase {
 	@Test
@@ -74,7 +74,7 @@ public class BridgeProviderTest extends SearchTestBase {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] {
 				Movie.class,
 				Theater.class

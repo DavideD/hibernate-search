@@ -12,6 +12,8 @@ import static org.hibernate.search.test.performance.task.InsertBookTask.SUMMARIE
 import static org.hibernate.search.test.performance.util.CheckerUncaughtExceptions.initUncaughtExceptionHandler;
 import static org.hibernate.search.test.performance.util.Util.log;
 
+import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -84,10 +86,11 @@ public abstract class TestScenario {
 		Properties properties = new Properties();
 		properties.setProperty( "hibernate.hbm2ddl.auto", "create" );
 		properties.setProperty( "hibernate.search.default.lucene_version", "LUCENE_CURRENT" );
+		properties.setProperty( "wildfly.jpa.hibernate.search.module", "none" );
 		return properties;
 	}
 
-	public final void run(SessionFactory sf) {
+	public final void run(SessionFactory sf) throws IOException {
 		initUncaughtExceptionHandler();
 		initDatabase( sf );
 		performWarmUp( sf );
@@ -184,13 +187,18 @@ public abstract class TestScenario {
 		}
 	}
 
-	protected void performMeasuring(SessionFactory sf) {
+	protected void performMeasuring(SessionFactory sf) throws IOException {
 		log( "starting measuring" );
 
 		TestContext ctx = new TestContext( this, sf );
 		scheduleTasksAndStart( ctx, measuredCyclesCount );
 
-		TestReporter.printReport( ctx );
+		try {
+			TestReporter.printReport( ctx );
+		}
+		catch (UnsupportedEncodingException e) {
+			throw new RuntimeException( e );
+		}
 	}
 
 	protected void scheduleTasksAndStart(TestContext ctx, long cyclesCount) {

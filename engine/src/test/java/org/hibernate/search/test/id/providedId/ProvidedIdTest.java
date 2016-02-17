@@ -6,10 +6,6 @@
  */
 package org.hibernate.search.test.id.providedId;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,6 +30,10 @@ import org.hibernate.search.testsupport.junit.SearchFactoryHolder;
 import org.hibernate.search.testsupport.setup.TransactionContextForTest;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Navin Surtani
@@ -71,9 +71,7 @@ public class ProvidedIdTest {
 
 		tc.end();
 
-		QueryParser parser = new QueryParser(
-				TestConstants.getTargetLuceneVersion(), "name", TestConstants.standardAnalyzer
-		);
+		QueryParser parser = new QueryParser( "name", TestConstants.standardAnalyzer );
 		Query luceneQuery = parser.parse( "Goat" );
 
 		//we cannot use FTQuery because @ProvidedId does not provide the getter id and Hibernate Search Query extension
@@ -101,8 +99,6 @@ public class ProvidedIdTest {
 				lowLevelSearcher, null, null,
 				new TimeoutManagerImpl( luceneQuery, QueryTimeoutException.DEFAULT_TIMEOUT_EXCEPTION_FACTORY, extendedIntegrator.getTimingSource() ),
 				null,
-				false,
-				null,
 				null,
 				null,
 				null
@@ -116,7 +112,6 @@ public class ProvidedIdTest {
 				queryHits, extendedIntegrator, new String[] { "name" },
 				identifiers, false,
 				lowLevelSearcher,
-				luceneQuery,
 				0, 0, //not used in this case
 				targetedClasses
 		);

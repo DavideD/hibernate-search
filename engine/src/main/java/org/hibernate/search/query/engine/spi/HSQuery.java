@@ -49,7 +49,7 @@ import org.hibernate.search.spi.SearchIntegrator;
  * }
  * </pre>
  *
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Emmanuel Bernard
  */
 public interface HSQuery extends ProjectionConstants {
 	/**
@@ -59,6 +59,8 @@ public interface HSQuery extends ProjectionConstants {
 	 * @return {@code this} to allow method chaining
 	 */
 	HSQuery luceneQuery(Query query);
+
+	HSQuery tenantIdentifier(String tenantId);
 
 	/**
 	 * Defines the targeted entities. This helps to reduce the number of targeted indexes.
@@ -101,10 +103,10 @@ public interface HSQuery extends ProjectionConstants {
 	 * Defines the Lucene field names projected and returned in a query result
 	 * Each field is converted back to it's object representation, an Object[] being returned for each "row"
 	 * (similar to an HQL or a Criteria API projection).
-	 * <p/>
+	 * <p>
 	 * A projectable field must be stored in the Lucene index and use a {@link org.hibernate.search.bridge.TwoWayFieldBridge}
 	 * Unless notified in their JavaDoc, all built-in bridges are two-way. All @DocumentId fields are projectable by design.
-	 * <p/>
+	 * <p>
 	 * If the projected field is not a projectable field, null is returned in the object[]
 	 *
 	 * @param fields the projected field names
@@ -137,7 +139,7 @@ public interface HSQuery extends ProjectionConstants {
 	List<Class<?>> getTargetedEntities();
 
 	/**
-	 * WTF does that do exactly
+	 * @return a set of indexed entities corresponding to the class hierarchy of the targeted entities
 	 */
 	Set<Class<?>> getIndexedTargetedEntities();
 
@@ -163,7 +165,7 @@ public interface HSQuery extends ProjectionConstants {
 
 	/**
 	 * Execute the Lucene query and return the list of {@code EntityInfo}s populated with
-	 * metadata and projection. {@link org.hibernate.search.engine.ProjectionConstants#THIS} if projected is <br>not</br> populated.
+	 * metadata and projection. {@link org.hibernate.search.engine.ProjectionConstants#THIS} if projected is <b>not</b> populated.
 	 * It is the responsibility of the object source integration.
 	 *
 	 * @return list of {@code EntityInfo}s populated with metadata and projection
@@ -173,9 +175,9 @@ public interface HSQuery extends ProjectionConstants {
 	/**
 	 * Execute the Lucene query and return a traversable object over the results.
 	 * Results are lazily fetched.
-	 * {@link org.hibernate.search.engine.ProjectionConstants#THIS} if projected is <br>not</br> populated. It is the responsibility
+	 * {@link org.hibernate.search.engine.ProjectionConstants#THIS} if projected is <b>not</b> populated. It is the responsibility
 	 * of the object source integration.
-	 * The returned {@code DocumentExtractor} <br>must</br> be closed by the caller to release Lucene resources.
+	 * The returned {@code DocumentExtractor} <b>must</b> be closed by the caller to release Lucene resources.
 	 *
 	 * @return the {@code DocumentExtractor} instance
 	 */
@@ -183,7 +185,7 @@ public interface HSQuery extends ProjectionConstants {
 
 	/**
 	 * @return the number of hits for this search
-	 *         <p/>
+	 *         <p>
 	 *         Caution:
 	 *         The number of results might be slightly different from
 	 *         what the object source returns if the index is

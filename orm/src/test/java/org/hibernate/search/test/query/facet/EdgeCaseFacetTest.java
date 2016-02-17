@@ -20,8 +20,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author Hardy Ferentschik <hardy@hibernate.org>
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * @author Hardy Ferentschik
+ * @author Emmanuel Bernard
  */
 public class EdgeCaseFacetTest extends AbstractFacetTest {
 	private final String indexFieldName = "cubicCapacity";
@@ -49,7 +49,7 @@ public class EdgeCaseFacetTest extends AbstractFacetTest {
 	}
 
 	@Override
-	protected Class<?>[] getAnnotatedClasses() {
+	public Class<?>[] getAnnotatedClasses() {
 		return new Class<?>[] {
 				Car.class
 		};

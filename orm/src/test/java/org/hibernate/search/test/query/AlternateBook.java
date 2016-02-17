@@ -13,6 +13,8 @@ import org.hibernate.search.annotations.DocumentId;
 import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.FieldBridge;
 import org.hibernate.search.annotations.Indexed;
+import org.hibernate.search.annotations.SortableField;
+import org.hibernate.search.annotations.Store;
 import org.hibernate.search.test.bridge.PaddedIntegerBridge;
 
 /**
@@ -21,11 +23,14 @@ import org.hibernate.search.test.bridge.PaddedIntegerBridge;
 @Entity
 @Indexed(index = "Book")
 public class AlternateBook {
+
 	@Id
 	@DocumentId
+	@SortableField
 	@FieldBridge(impl = PaddedIntegerBridge.class)
 	private Integer id;
-	@Field
+
+	@Field(store = Store.YES)
 	private String summary;
 
 

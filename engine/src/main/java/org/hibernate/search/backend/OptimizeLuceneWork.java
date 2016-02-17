@@ -6,9 +6,6 @@
  */
 package org.hibernate.search.backend;
 
-import java.io.Serializable;
-
-import org.hibernate.search.backend.impl.WorkVisitor;
 
 /**
  * A unit of work triggering an optimize operation.
@@ -18,28 +15,28 @@ import org.hibernate.search.backend.impl.WorkVisitor;
  * @author Andrew Hahn
  * @author Emmanuel Bernard
  */
-public class OptimizeLuceneWork extends LuceneWork implements Serializable {
+public class OptimizeLuceneWork extends LuceneWork {
 
 	public static final OptimizeLuceneWork INSTANCE = new OptimizeLuceneWork();
 
 	/**
 	 * Optimizes the index(es) of a specific entity
-	 * @param entity
+	 * @param entity the entity type
 	 */
 	public OptimizeLuceneWork(Class<?> entity) {
-		super( null, null, entity );
+		super( null, null, null, entity );
 	}
 
 	/**
 	 * Optimizes any index
 	 */
 	private OptimizeLuceneWork() {
-		super( null, null, null );
+		super( null, null, null, null );
 	}
 
 	@Override
-	public <T> T getWorkDelegate(final WorkVisitor<T> visitor) {
-		return visitor.getDelegate( this );
+	public <P, R> R acceptIndexWorkVisitor(IndexWorkVisitor<P, R> visitor, P p) {
+		return visitor.visitOptimizeWork( this, p );
 	}
 
 	@Override

@@ -11,10 +11,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.lucene.util.AttributeImpl;
+import org.hibernate.search.backend.spi.DeletionQuery;
 import org.hibernate.search.bridge.spi.ConversionContext;
 
 /**
- * @author Emmanuel Bernard <emmanuel@hibernate.org>
+ * During de-serialization a {@code Deserializer} needs to build a list of {@code LuceneWork} instances from
+ * binary data. To do so, it gets passed a {@code LuceneWorksBuilder} instance which defines "template
+ * methods" to assemble the work instances.
+ * <p>
+ * Note:<br>
+ * The order in which calls need to be made is not clearly defined making this API rather fragile. Refer to
+ * {@code AvroDeserializer} to see how the builder is used.
+ * </p>
+ *
+ * @see Deserializer
+ *
+ * @author Emmanuel Bernard &lt;emmanuel@hibernate.org&gt;
  */
 public interface LuceneWorksBuilder {
 	void addOptimizeAll();
@@ -28,6 +40,8 @@ public interface LuceneWorksBuilder {
 	void addId(Serializable id);
 
 	void addDeleteLuceneWork(String entityClassName, ConversionContext conversionContext);
+
+	void addDeleteByQueryLuceneWork(String entityClassName, DeletionQuery deletionQuery);
 
 	void addAddLuceneWork(String entityClassName, Map<String, String> fieldToAnalyzerMap, ConversionContext conversionContext);
 
@@ -74,4 +88,8 @@ public interface LuceneWorksBuilder {
 	void addOffsetAttribute(int startOffset, int endOffset);
 
 	void addToken();
+
+	void addDocValuesFieldWithBinaryData(String name, String type, byte[] value, int offset, int length);
+
+	void addDocValuesFieldWithNumericData(String name, String type, long value);
 }

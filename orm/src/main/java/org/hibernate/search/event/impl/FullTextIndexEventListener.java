@@ -19,6 +19,7 @@ import javax.transaction.Synchronization;
 import org.hibernate.Session;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.EntityEntry;
+import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.event.spi.AbstractCollectionEvent;
 import org.hibernate.event.spi.AbstractEvent;
 import org.hibernate.event.spi.EventSource;
@@ -43,8 +44,9 @@ import org.hibernate.search.backend.spi.WorkType;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.spi.AbstractDocumentBuilder;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
-import org.hibernate.search.util.impl.ReflectionHelper;
+import org.hibernate.search.spi.IndexingMode;
 import org.hibernate.search.util.impl.Maps;
+import org.hibernate.search.util.impl.ReflectionHelper;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
@@ -66,8 +68,6 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 		Serializable {
 
 	private static final Log log = LoggerFactory.make();
-	private static final String INDEXING_STRATEGY_MANUAL = "manual";
-	private static final String INDEXING_STRATEGY_EVENT = "event";
 
 	private boolean disabled;
 	private boolean skipDirtyChecks = true;
@@ -94,7 +94,7 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 					.getFactory()
 					.getSettings()
 					.isIdentifierRollbackEnabled();
-			processWork( entity, event.getId(), WorkType.DELETE, event, identifierRollbackEnabled );
+			processWork( tenantIdentifier( event ), entity, event.getId(), WorkType.DELETE, event, identifierRollbackEnabled );
 		}
 	}
 
@@ -107,8 +107,16 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 		final Object entity = event.getEntity();
 		if ( getDocumentBuilder( entity ) != null ) {
 			Serializable id = event.getId();
-			processWork( entity, id, WorkType.ADD, event, false );
+			processWork( tenantIdentifier( event ), entity, id, WorkType.ADD, event, false );
 		}
+	}
+
+	private String tenantIdentifier(AbstractEvent event) {
+		EventSource session = event.getSession();
+		if ( session instanceof SessionImplementor ) {
+			return ( (SessionImplementor) session ).getTenantIdentifier();
+		}
+		return null;
 	}
 
 	@Override
@@ -125,7 +133,7 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 				)
 		) ) ) {
 			Serializable id = event.getId();
-			processWork( entity, id, WorkType.UPDATE, event, false );
+			processWork( tenantIdentifier( event ), entity, id, WorkType.UPDATE, event, false );
 		}
 	}
 
@@ -187,15 +195,16 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 	}
 
 	/**
-	 * Initialize method called by Hibernate Core when the SessionFactory starts
+	 * Initialize method called by Hibernate Core when the SessionFactory starts.
+	 * @param extendedIntegrator the {@link ExtendedSearchIntegrator}
 	 */
 	public void initialize(ExtendedSearchIntegrator extendedIntegrator) {
 		this.extendedIntegrator = extendedIntegrator;
-		String indexingStrategy = extendedIntegrator.getIndexingStrategy();
-		if ( INDEXING_STRATEGY_EVENT.equals( indexingStrategy ) ) {
+
+		if ( extendedIntegrator.getIndexingMode() == IndexingMode.EVENT ) {
 			disabled = extendedIntegrator.getIndexBindings().size() == 0;
 		}
-		else if ( INDEXING_STRATEGY_MANUAL.equals( indexingStrategy ) ) {
+		else if ( extendedIntegrator.getIndexingMode() == IndexingMode.MANUAL ) {
 			disabled = true;
 		}
 
@@ -222,8 +231,8 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 		this.flushSynch.put( eventSource, synchronization );
 	}
 
-	protected void processWork(Object entity, Serializable id, WorkType workType, AbstractEvent event, boolean identifierRollbackEnabled) {
-		Work work = new Work( entity, id, workType, identifierRollbackEnabled );
+	protected void processWork(String tenantIdentifier, Object entity, Serializable id, WorkType workType, AbstractEvent event, boolean identifierRollbackEnabled) {
+		Work work = new Work( tenantIdentifier, entity, id, workType, identifierRollbackEnabled );
 		final EventSourceTransactionContext transactionContext = new EventSourceTransactionContext( event.getSession() );
 		extendedIntegrator.getWorker().performWork( work, transactionContext );
 	}
@@ -261,7 +270,7 @@ public final class FullTextIndexEventListener implements PostDeleteEventListener
 				log.idCannotBeExtracted( event.getAffectedOwnerEntityName() );
 				return;
 			}
-			processWork( entity, id, WorkType.COLLECTION, event, false );
+			processWork( tenantIdentifier( event ), entity, id, WorkType.COLLECTION, event, false );
 		}
 	}
 
