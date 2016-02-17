@@ -7,12 +7,15 @@
 
 package org.hibernate.search.engine.metadata.impl;
 
+import static org.hibernate.search.engine.impl.AnnotationProcessingHelper.getFieldName;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,7 @@ import org.hibernate.search.annotations.Latitude;
 import org.hibernate.search.annotations.Longitude;
 import org.hibernate.search.annotations.Norms;
 import org.hibernate.search.annotations.NumericField;
+import org.hibernate.search.annotations.NumericFields;
 import org.hibernate.search.annotations.ProvidedId;
 import org.hibernate.search.annotations.SortableField;
 import org.hibernate.search.annotations.SortableFields;
@@ -89,8 +93,6 @@ import org.hibernate.search.util.impl.ReflectionHelper;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
-import static org.hibernate.search.engine.impl.AnnotationProcessingHelper.getFieldName;
-
 /**
  * A metadata provider which extracts the required information from annotations.
  *
@@ -107,10 +109,33 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 	private final ConfigContext configContext;
 	private final BridgeFactory bridgeFactory;
 
+	private final Class<? extends Annotation> jpaIdClass;
+	private final Class<? extends Annotation> jpaEmbeddedIdClass;
+
 	public AnnotationMetadataProvider(ReflectionManager reflectionManager, ConfigContext configContext) {
 		this.reflectionManager = reflectionManager;
 		this.configContext = configContext;
 		this.bridgeFactory = new BridgeFactory( configContext.getServiceManager() );
+
+		if ( configContext.isJpaPresent() ) {
+			this.jpaIdClass = loadAnnotationClass( "javax.persistence.Id", configContext );
+			this.jpaEmbeddedIdClass = loadAnnotationClass( "javax.persistence.EmbeddedId", configContext );
+		}
+		else {
+			this.jpaIdClass = null;
+			this.jpaEmbeddedIdClass = null;
+		}
+	}
+
+	private Class<? extends Annotation> loadAnnotationClass(String className, ConfigContext configContext) {
+		try {
+			@SuppressWarnings("unchecked")
+			Class<? extends Annotation> idClass = ClassLoaderHelper.classForName( className, configContext.getServiceManager() );
+			return idClass;
+		}
+		catch (ClassLoadingException e) {
+			throw new SearchException( "Unable to load class " + className + " even though it should be present?!" );
+		}
 	}
 
 	@Override
@@ -167,9 +192,15 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 			String prefix,
 			ConfigContext configContext,
 			PathsContext pathsContext,
-			ParseContext parseContext) {
+			ParseContext parseContext,
+			boolean hasExplicitDocumentId) {
 		Annotation idAnnotation = getIdAnnotation( member, typeMetadataBuilder, configContext );
 		if ( idAnnotation == null ) {
+			return;
+		}
+
+		// Ignore JPA @Id/@DocumentId if @DocumentId is present at another property
+		if ( hasExplicitDocumentId && idAnnotation.annotationType() != DocumentId.class ) {
 			return;
 		}
 
@@ -246,7 +277,7 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 				throw log.duplicateDocumentIdFound( typeMetadataBuilder.getIndexedType().getName() );
 			}
 			else {
-				// If it's not a DocumentId it's a JPA @Id: ignore it as we already have a @DocumentId
+				// If it's not a DocumentId it's a JPA @Id/@EmbeddedId: ignore it as we already have a @DocumentId
 				return;
 			}
 		}
@@ -298,6 +329,14 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		checkForSortableField( member, typeMetadataBuilder, propertyMetadataBuilder, "", true, null, parseContext );
 		checkForSortableFields( member, typeMetadataBuilder, propertyMetadataBuilder, "", true, null, parseContext );
 
+		if ( idBridge instanceof MetadataProvidingFieldBridge ) {
+			FieldMetadataBuilderImpl bridgeDefinedMetadata = getBridgeContributedFieldMetadata( path, (MetadataProvidingFieldBridge) idBridge );
+
+			for ( BridgeDefinedField bridgeDefinedField : bridgeDefinedMetadata.getFields() ) {
+				propertyMetadataBuilder.addBridgeDefinedField( bridgeDefinedField );
+			}
+		}
+
 		PropertyMetadata idPropertyMetadata = propertyMetadataBuilder
 				.build();
 
@@ -305,15 +344,13 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 	}
 
 	/**
-	 * Checks whether the specified property contains an annotation used as document id.
-	 * This can either be an explicit <code>@DocumentId</code> or if no <code>@DocumentId</code> is specified a
-	 * JPA <code>@Id</code> annotation. The check for the JPA annotation is indirectly to avoid a hard dependency
-	 * to Hibernate Annotations.
+	 * Checks whether the specified property contains an annotation used as document id. This can either be an explicit
+	 * {@code @DocumentId} or if no {@code @DocumentId} is specified a JPA {@code @Id} / {@code @EmbeddedId} annotation.
+	 * The check for the JPA annotations is indirectly to avoid a hard dependency to Hibernate Annotations.
 	 *
 	 * @param member the property to check for the id annotation.
 	 * @param context Handle to default configuration settings.
-	 *
-	 * @return the annotation used as document id or <code>null</code> if id annotation is specified on the property.
+	 * @return the annotation used as document id or {@code null} if no id annotation is specified on the property.
 	 */
 	private Annotation getIdAnnotation(XProperty member, TypeMetadata.Builder typeMetadataBuilder, ConfigContext context) {
 		Annotation idAnnotation = null;
@@ -323,26 +360,24 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		if ( documentIdAnnotation != null ) {
 			idAnnotation = documentIdAnnotation;
 		}
-		// check for JPA @Id
+		// check for JPA @Id/@EmbeddedId
 		if ( context.isJpaPresent() ) {
-			Annotation jpaId;
-			try {
-				@SuppressWarnings("unchecked")
-				Class<? extends Annotation> jpaIdClass =
-						ClassLoaderHelper.classForName( "javax.persistence.Id", configContext.getServiceManager() );
-				jpaId = member.getAnnotation( jpaIdClass );
+			Annotation jpaId = member.getAnnotation( jpaIdClass );
+
+			if ( jpaId == null ) {
+				jpaId = member.getAnnotation( jpaEmbeddedIdClass );
 			}
-			catch (ClassLoadingException e) {
-				throw new SearchException( "Unable to load @Id.class even though it should be present ?!" );
-			}
+
 			if ( jpaId != null ) {
 				typeMetadataBuilder.jpaProperty( member );
-				if ( documentIdAnnotation == null ) {
+
+				if ( idAnnotation == null ) {
 					log.debug( "Found JPA id and using it as document id" );
 					idAnnotation = jpaId;
 				}
 			}
 		}
+
 		return idAnnotation;
 	}
 
@@ -386,13 +421,11 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 	 */
 	private String getIdAttributeName(XProperty member, Annotation idAnnotation) {
 		String name = null;
-		try {
-			Method m = idAnnotation.getClass().getMethod( "name" );
-			name = (String) m.invoke( idAnnotation );
+
+		if ( idAnnotation.annotationType() == DocumentId.class ) {
+			name = ( (DocumentId) idAnnotation ).name();
 		}
-		catch (Exception e) {
-			// ignore
-		}
+
 		return ReflectionHelper.getAttributeName( member, name );
 	}
 
@@ -421,8 +454,9 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		ProvidedId explicitProvidedIdAnnotation = null;
 		XClass providedIdHostingClass = null;
 		for ( XClass currentClass : hierarchy ) {
-			if ( currentClass.getAnnotation( ProvidedId.class ) != null ) {
-				explicitProvidedIdAnnotation = currentClass.getAnnotation( ProvidedId.class );
+			ProvidedId providedId = currentClass.getAnnotation( ProvidedId.class );
+			if ( providedId != null ) {
+				explicitProvidedIdAnnotation = providedId;
 				providedIdHostingClass = currentClass;
 			}
 
@@ -447,6 +481,8 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		// iterate again for the properties and fields
 		for ( XClass currentClass : hierarchy ) {
 			parseContext.setCurrentClass( currentClass );
+			boolean hasExplicitDocumentId = hasExplicitDocumentId( currentClass );
+
 			// rejecting non properties (ie regular methods) because the object is loaded from Hibernate,
 			// so indexing a non property does not make sense
 			List<XProperty> methods = currentClass.getDeclaredProperties( XClass.ACCESS_PROPERTY );
@@ -460,7 +496,8 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 						isProvidedId,
 						configContext,
 						pathsContext,
-						parseContext
+						parseContext,
+						hasExplicitDocumentId
 				);
 			}
 
@@ -475,7 +512,8 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 						isProvidedId,
 						configContext,
 						pathsContext,
-						parseContext
+						parseContext,
+						hasExplicitDocumentId
 				);
 			}
 
@@ -618,7 +656,11 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		if ( fieldBridge instanceof MetadataProvidingFieldBridge ) {
 			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) fieldBridge;
-			typeMetadataBuilder.addClassBridgeSortableFields( getSortableFieldNames( fieldName, metadataProvidingFieldBridge ) );
+
+			FieldMetadataBuilderImpl classBridgeContributedFieldMetadata = getBridgeContributedFieldMetadata( fieldName, metadataProvidingFieldBridge );
+
+			typeMetadataBuilder.addClassBridgeSortableFields( classBridgeContributedFieldMetadata.getSortableFields() );
+			typeMetadataBuilder.addClassBridgeDefinedFields( classBridgeContributedFieldMetadata.getFields() );
 		}
 		Analyzer analyzer = AnnotationProcessingHelper.getAnalyzer( classBridgeAnnotation.analyzer(), configContext );
 		typeMetadataBuilder.addToScopedAnalyzer( fieldName, analyzer, index );
@@ -693,7 +735,7 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		if ( spatialBridge instanceof MetadataProvidingFieldBridge ) {
 			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) spatialBridge;
-			typeMetadataBuilder.addClassBridgeSortableFields( getSortableFieldNames( fieldName, metadataProvidingFieldBridge ) );
+			typeMetadataBuilder.addClassBridgeSortableFields( getBridgeContributedFieldMetadata( fieldName, metadataProvidingFieldBridge ).getSortableFields() );
 		}
 
 		Analyzer analyzer = typeMetadataBuilder.getAnalyzer();
@@ -807,6 +849,10 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		}
 
 		if ( !sortedFieldName.equals( idFieldName ) && !containsField( propertyMetadataBuilder, sortedFieldName ) ) {
+			if ( parseContext.getLevel() != 0 ) {
+				// Sortable defined on a property not indexed when the entity is embedded. We can skip it.
+				return;
+			}
 			throw log.sortableFieldRefersToUndefinedField( typeMetadataBuilder.getIndexedType(), propertyMetadataBuilder.getPropertyAccessor().getName(), sortedFieldName );
 		}
 
@@ -835,15 +881,16 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 			boolean isProvidedId,
 			ConfigContext configContext,
 			PathsContext pathsContext,
-			ParseContext parseContext) {
+			ParseContext parseContext,
+			boolean hasExplicitDocumentId) {
 
 		PropertyMetadata.Builder propertyMetadataBuilder = new PropertyMetadata.Builder( member )
 			.dynamicBoostStrategy( AnnotationProcessingHelper.getDynamicBoost( member ) );
 
-		NumericFieldsConfiguration numericFields = new NumericFieldsConfiguration( typeMetadataBuilder.getIndexedType(), member );
+		NumericFieldsConfiguration numericFields = buildNumericFieldsConfiguration( typeMetadataBuilder.getIndexedType(), member, prefix, pathsContext, parseContext );
 
 		if ( !isProvidedId ) {
-			checkDocumentId( member, typeMetadataBuilder, propertyMetadataBuilder, numericFields, isRoot, prefix, configContext, pathsContext, parseContext );
+			checkDocumentId( member, typeMetadataBuilder, propertyMetadataBuilder, numericFields, isRoot, prefix, configContext, pathsContext, parseContext, hasExplicitDocumentId );
 		}
 
 		checkForField( member, typeMetadataBuilder, propertyMetadataBuilder, numericFields, prefix, configContext, pathsContext, parseContext );
@@ -874,50 +921,56 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 	}
 
 	private void checkForContainedIn(XProperty member, TypeMetadata.Builder typeMetadataBuilder, ParseContext parseContext) {
-		ContainedIn containedInAnnotation = member.getAnnotation( ContainedIn.class );
-		if ( containedInAnnotation == null ) {
+		if ( !member.isAnnotationPresent( ContainedIn.class ) ) {
 			return;
 		}
 
-		ContainedInMetadataBuilder containedInMetadataBuilder = new ContainedInMetadataBuilder( member );
-		updateContainedInMaxDepths( containedInMetadataBuilder, member );
-		typeMetadataBuilder.addContainedIn( containedInMetadataBuilder.createContainedInMetadata() );
+		ContainedInMetadata containedInMetadata = createContainedInMetadata( member );
+		typeMetadataBuilder.addContainedIn( containedInMetadata );
 
 		parseContext.collectUnqualifiedCollectionRole( member.getName() );
 	}
 
-	private void updateContainedInMaxDepths(ContainedInMetadataBuilder containedInMetadataBuilder, XProperty member) {
-		updateContainedInMaxDepth( containedInMetadataBuilder, member, XClass.ACCESS_FIELD );
-		updateContainedInMaxDepth( containedInMetadataBuilder, member, XClass.ACCESS_PROPERTY );
+	private ContainedInMetadata createContainedInMetadata(XProperty member) {
+		ContainedInMetadataBuilder containedInMetadataBuilder = new ContainedInMetadataBuilder( member );
+		updateContainedInMetadata( containedInMetadataBuilder, member, XClass.ACCESS_FIELD );
+		updateContainedInMetadata( containedInMetadataBuilder, member, XClass.ACCESS_PROPERTY );
+		return containedInMetadataBuilder.createContainedInMetadata();
 	}
 
-	private void updateContainedInMaxDepth(ContainedInMetadataBuilder containedInMetadataBuilder, XMember memberWithContainedIn, String accessType) {
-		XClass memberReturnedType = memberWithContainedIn.getElementClass();
-		String mappedBy = mappedBy( memberWithContainedIn );
+	private void updateContainedInMetadata(ContainedInMetadataBuilder containedInMetadataBuilder, XProperty propertyWithContainedIn, String accessType) {
+		XClass memberReturnedType = propertyWithContainedIn.getElementClass();
+		String mappedBy = mappedBy( propertyWithContainedIn );
 		List<XProperty> returnedTypeProperties = memberReturnedType.getDeclaredProperties( accessType );
 		for ( XProperty property : returnedTypeProperties ) {
-			if ( isCorrespondingIndexedEmbedded( mappedBy, property ) ) {
-				updateDepthProperties( containedInMetadataBuilder, property );
+			if ( isCorrespondingIndexedEmbedded( propertyWithContainedIn, mappedBy, property ) ) {
+				updateContainedInMetadataForProperty( containedInMetadataBuilder, property );
 				break;
 			}
 		}
 	}
 
-	private boolean isCorrespondingIndexedEmbedded(String mappedBy, XProperty property) {
-		if ( !property.isAnnotationPresent( IndexedEmbedded.class ) ) {
+	private boolean isCorrespondingIndexedEmbedded(XProperty memberWithContainedIn, String mappedBy, XProperty candidateProperty) {
+		if ( !candidateProperty.isAnnotationPresent( IndexedEmbedded.class ) ) {
 			return false;
 		}
-		if ( mappedBy.isEmpty() ) {
+		else if ( mappedBy.equals( candidateProperty.getName() ) ) {
 			return true;
 		}
-		if ( mappedBy.equals( property.getName() ) ) {
-			return true;
+		else if ( mappedBy.isEmpty() ) { // Last chance: the mappedBy may be on the other side
+			String reverseMappedBy = mappedBy( candidateProperty );
+			return reverseMappedBy.equals( memberWithContainedIn.getName() );
 		}
-		return false;
+		else {
+			return false;
+		}
 	}
 
-	private void updateDepthProperties(ContainedInMetadataBuilder containedInMetadataBuilder, XProperty property) {
-		containedInMetadataBuilder.maxDepth( property.getAnnotation( IndexedEmbedded.class ).depth() );
+	private void updateContainedInMetadataForProperty(ContainedInMetadataBuilder containedInMetadataBuilder, XProperty property) {
+		IndexedEmbedded indexedEmbeddedAnnotation = property.getAnnotation( IndexedEmbedded.class );
+		containedInMetadataBuilder.maxDepth( indexedEmbeddedAnnotation.depth() );
+		containedInMetadataBuilder.prefix( buildEmbeddedPrefix( "", indexedEmbeddedAnnotation, property ) );
+		containedInMetadataBuilder.includePaths( indexedEmbeddedAnnotation.includePaths() );
 	}
 
 	private String mappedBy(XMember member) {
@@ -951,6 +1004,45 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		catch (InvocationTargetException e) {
 			return UNKNOWN_MAPPED_BY_ROLE;
 		}
+	}
+
+	private NumericFieldsConfiguration buildNumericFieldsConfiguration(Class<?> indexedType,
+			XProperty member,
+			String prefix,
+			PathsContext pathsContext,
+			ParseContext parseContext) {
+		Map<String, NumericField> fieldsMarkedAsNumeric = new HashMap<>();
+
+		NumericField numericFieldAnnotation = member.getAnnotation( NumericField.class );
+		if ( numericFieldAnnotation != null ) {
+			if ( isFieldInPath(
+					numericFieldAnnotation,
+					member,
+					pathsContext,
+					prefix
+			) || !parseContext.isMaxLevelReached() ) {
+				fieldsMarkedAsNumeric.put( numericFieldAnnotation.forField(), numericFieldAnnotation );
+			}
+		}
+
+		NumericFields numericFieldsAnnotation = member.getAnnotation( NumericFields.class );
+		if ( numericFieldsAnnotation != null ) {
+			for ( NumericField numericField : numericFieldsAnnotation.value() ) {
+				if ( isFieldInPath(
+						numericFieldAnnotation,
+						member,
+						pathsContext,
+						prefix
+				) || !parseContext.isMaxLevelReached() ) {
+					NumericField existing = fieldsMarkedAsNumeric.put( numericField.forField(), numericField );
+					if ( existing != null ) {
+						throw log.severalNumericFieldAnnotationsForSameField( indexedType, member.getName() );
+					}
+				}
+			}
+		}
+
+		return new NumericFieldsConfiguration( indexedType, member, fieldsMarkedAsNumeric );
 	}
 
 	private void checkForField(XProperty member,
@@ -1048,12 +1140,17 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		if ( fieldBridge instanceof MetadataProvidingFieldBridge ) {
 			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) fieldBridge;
+			FieldMetadataBuilderImpl bridgeContributedMetadata = getBridgeContributedFieldMetadata( fieldName, metadataProvidingFieldBridge );
 
-			for ( String sortableField : getSortableFieldNames( fieldName, metadataProvidingFieldBridge ) ) {
+			for ( String sortableField : bridgeContributedMetadata.getSortableFields() ) {
 				SortableFieldMetadata sortableFieldMetadata = new SortableFieldMetadata.Builder()
 					.fieldName( sortableField )
 					.build();
 				propertyMetadataBuilder.addSortableField( sortableFieldMetadata );
+			}
+
+			for ( BridgeDefinedField field : bridgeContributedMetadata.getFields() ) {
+				propertyMetadataBuilder.addBridgeDefinedField( field );
 			}
 		}
 
@@ -1746,9 +1843,27 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		return true;
 	}
 
-	private Set<String> getSortableFieldNames(String fieldName, MetadataProvidingFieldBridge metadataProvidingFieldBridge) {
+	private FieldMetadataBuilderImpl getBridgeContributedFieldMetadata(String fieldName, MetadataProvidingFieldBridge metadataProvidingFieldBridge) {
 		FieldMetadataBuilderImpl builder = new FieldMetadataBuilderImpl();
 		metadataProvidingFieldBridge.configureFieldMetadata( fieldName, builder );
-		return builder.getSortableFields();
+		return builder;
+	}
+
+	private boolean hasExplicitDocumentId(XClass type) {
+		List<XProperty> methods = type.getDeclaredProperties( XClass.ACCESS_PROPERTY );
+		for ( XProperty method : methods ) {
+			if ( method.isAnnotationPresent( DocumentId.class ) ) {
+				return true;
+			}
+		}
+
+		List<XProperty> fields = type.getDeclaredProperties( XClass.ACCESS_FIELD );
+		for ( XProperty field : fields ) {
+			if ( field.isAnnotationPresent( DocumentId.class ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

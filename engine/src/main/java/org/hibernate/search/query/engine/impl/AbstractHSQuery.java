@@ -6,6 +6,7 @@
  */
 package org.hibernate.search.query.engine.impl;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +33,7 @@ import static org.hibernate.search.util.impl.CollectionHelper.newHashMap;
  *
  * @author Gunnar Morling
  */
-public abstract class AbstractHSQuery implements HSQuery {
+public abstract class AbstractHSQuery implements HSQuery, Serializable {
 
 	private static final Log LOG = LoggerFactory.make();
 
@@ -47,8 +48,7 @@ public abstract class AbstractHSQuery implements HSQuery {
 	protected String tenantId;
 	protected String[] projectedFields;
 	protected int firstResult;
-	protected int maxResults;
-	protected boolean definedMaxResults = false;
+	protected Integer maxResults;
 	protected Coordinates spatialSearchCenter = null;
 	protected String spatialFieldName = null;
 
@@ -144,7 +144,6 @@ public abstract class AbstractHSQuery implements HSQuery {
 			throw new IllegalArgumentException( "'max' pagination parameter less than 0" );
 		}
 		this.maxResults = maxResults;
-		this.definedMaxResults = true;
 		return this;
 	}
 

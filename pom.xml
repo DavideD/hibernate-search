@@ -26,6 +26,7 @@
         <module>serialization/avro</module>
         <module>backends/jgroups</module>
         <module>backends/jms</module>
+        <module>elasticsearch</module>
         <module>orm</module>
         <module>testing</module>
         <module>infinispan</module>
@@ -140,26 +141,37 @@
         <minJdkVersion>1.8</minJdkVersion>
 
         <!-- Slot definitions for JBoss Modules (both generated and consumed modules) -->
-        <lucene.module.slot>5.3</lucene.module.slot>
+        <lucene.module.slot>5.4</lucene.module.slot>
 
         <!-- Dependency versions -->
         <slf4jVersion>1.6.4</slf4jVersion>
-        <luceneVersion>5.3.1</luceneVersion>
-        <infinispanVersion>8.0.1.Final</infinispanVersion>
+        <luceneVersion>5.4.1</luceneVersion>
+        <infinispanVersion>8.1.0.Final</infinispanVersion>
         <jgroupsVersion>3.6.6.Final</jgroupsVersion>
 
         <!-- ORM and transitive deps; Make sure to match ORM's set of versions when updating -->
-        <hibernateVersion>5.0.4.Final</hibernateVersion>
+        <hibernateVersion>5.0.6.Final</hibernateVersion>
         <hibernateCommonsAnnotationVersion>5.0.1.Final</hibernateCommonsAnnotationVersion>
-        <jandexVersion>2.0.0.CR1</jandexVersion>
-        <classMateVersion>0.8.0</classMateVersion>
+        <jandexVersion>2.0.0.Final</jandexVersion>
+        <classMateVersion>1.1.0</classMateVersion>
         <javassistVersion>3.18.1-GA</javassistVersion>
+
+        <!-- OSGi ranges for some primary dependencies -->
+        <!-- Warning:
+            Ranges are maintained as best effort on our knowledge but only the
+            exact versions in this pom are being tested.
+            Essentially we allow older versions when we know no changes were necessary when we upgraded the dependency. -->
+        <luceneOsgiRangeVersion>[5.3.0,5.5.0)</luceneOsgiRangeVersion>
+        <hibernateOrmOsgiRangeVersion>[5.0.0,5.1.0)</hibernateOrmOsgiRangeVersion>
+        <hibernateHcannOsgiRangeVersion>[5,6)</hibernateHcannOsgiRangeVersion>
+        <jGroupsOsgiRangeVersion>[3.6.0,4)</jGroupsOsgiRangeVersion>
+        <jbossLoggingOsgiRangeVersion>[3.3,4.0.0)</jbossLoggingOsgiRangeVersion>
 
         <tikaVersion>1.4</tikaVersion>
         <bytemanVersion>3.0.2</bytemanVersion>
         <jbossLoggingVersion>3.3.0.Final</jbossLoggingVersion>
         <jbossLoggingProcessorVersion>2.0.0.Final</jbossLoggingProcessorVersion>
-        <narayanaVersion>5.2.5.Final</narayanaVersion>
+        <narayanaVersion>5.2.9.Final</narayanaVersion>
         <avroVersion>1.7.6</avroVersion>
         <jacksonAslVersion>1.9.13</jacksonAslVersion>
         <commonsCompressVersion>1.5</commonsCompressVersion>
@@ -173,7 +185,7 @@
         <arquillianVersion>1.1.8.Final</arquillianVersion>
         <arquillianContainerVersion>1.0.0.Final</arquillianContainerVersion>
         <shrinkwrapResolverVersion>2.0.0</shrinkwrapResolverVersion>
-        <wildflyVersion>10.0.0.CR4</wildflyVersion>
+        <wildflyVersion>10.0.0.Final</wildflyVersion>
         <jmhVersion>1.11.2</jmhVersion>
 
         <!-- character encoding -->
@@ -450,6 +462,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-search-backend-elasticsearch</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>commons-logging</groupId>
                 <artifactId>commons-logging</artifactId>
                 <version>${commonsLoggingVersion}</version>
@@ -640,6 +657,11 @@
                 <artifactId>xml-apis</artifactId>
                 <version>1.3.03</version>
             </dependency>
+            <dependency>
+                <groupId>io.takari.junit</groupId>
+                <artifactId>takari-cpsuite</artifactId>
+                <version>1.2.7</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -776,6 +798,20 @@
         </plugins>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <!-- Creates a report by running "mvn clirr:clirr" -->
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>clirr-maven-plugin</artifactId>
+                    <version>2.6.1</version>
+                    <configuration>
+                        <comparisonVersion>5.4.0.Final</comparisonVersion>
+                        <excludes>
+                            <exclude>org/hibernate/search/**/impl/**</exclude>
+                        </excludes>
+                        <logResults>true</logResults>
+                        <minSeverity>info</minSeverity>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>com.github.marschall</groupId>
                     <artifactId>jdeps-maven-plugin</artifactId>
@@ -1162,6 +1198,18 @@
                             </pluginExecutions>
                         </lifecycleMappingMetadata>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>com.github.alexcojocaru</groupId>
+                    <artifactId>elasticsearch-maven-plugin</artifactId>
+                    <version>2.0</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.slf4j</groupId>
+                            <artifactId>slf4j-api</artifactId>
+                            <version>${slf4jVersion}</version>
+                        </dependency>
+                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>
