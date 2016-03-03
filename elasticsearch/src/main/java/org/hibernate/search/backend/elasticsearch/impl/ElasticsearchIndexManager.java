@@ -13,6 +13,8 @@ import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.similarities.Similarity;
+import org.hibernate.search.analyzer.impl.RemoteAnalyzer;
+import org.hibernate.search.analyzer.spi.SupportRemoteAnalyzers;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.backend.BackendFactory;
 import org.hibernate.search.backend.IndexingMonitor;
@@ -41,6 +43,7 @@ import org.hibernate.search.indexes.spi.IndexManager;
 import org.hibernate.search.indexes.spi.ReaderProvider;
 import org.hibernate.search.metadata.NumericFieldSettingsDescriptor.NumericEncodingType;
 import org.hibernate.search.spi.WorkerBuildContext;
+import org.hibernate.search.util.impl.DelegateNamedAnalyzer;
 import org.hibernate.search.util.logging.impl.Log;
 import org.hibernate.search.util.logging.impl.LoggerFactory;
 
@@ -56,7 +59,7 @@ import io.searchbox.indices.mapping.PutMapping;
  *
  * @author Gunnar Morling
  */
-public class ElasticsearchIndexManager implements IndexManager {
+public class ElasticsearchIndexManager implements IndexManager, SupportRemoteAnalyzers {
 
 	private static final Log LOG = LoggerFactory.make();
 
@@ -233,6 +236,14 @@ public class ElasticsearchIndexManager implements IndexManager {
 		field.addProperty( "store", fieldMetadata.getStore() == Store.NO ? false : true );
 		field.addProperty( "index", getIndex( descriptor, fieldMetadata ) );
 
+		if ( fieldMetadata.getAnalyzer() != null ) {
+			String analyzerName = analyzerName( fieldMetadata );
+			// TODO: Should I throw an exception otherwise?
+			if ( analyzerName != null ) {
+				field.addProperty( "analyzer", analyzerName );
+			}
+		}
+
 		if ( fieldMetadata.getBoost() != null ) {
 			field.addProperty( "boost", fieldMetadata.getBoost() );
 		}
@@ -251,6 +262,19 @@ public class ElasticsearchIndexManager implements IndexManager {
 				addFieldMapping( payload, facetMetadata );
 			}
 		}
+	}
+
+	private String analyzerName(DocumentFieldMetadata fieldMetadata) {
+		Analyzer analyzer = fieldMetadata.getAnalyzer();
+		if ( analyzer instanceof DelegateNamedAnalyzer ) {
+			DelegateNamedAnalyzer namedAnalyzer = (DelegateNamedAnalyzer) analyzer;
+			analyzer = namedAnalyzer.getWrappedAnalyzer( fieldMetadata.getFieldName() );
+		}
+		if ( analyzer instanceof RemoteAnalyzer ) {
+			RemoteAnalyzer remoteAnalyzer = (RemoteAnalyzer) analyzer;
+			return remoteAnalyzer.getName();
+		}
+		return null;
 	}
 
 	/**
