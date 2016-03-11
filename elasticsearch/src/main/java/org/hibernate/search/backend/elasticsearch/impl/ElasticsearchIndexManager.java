@@ -13,6 +13,9 @@ import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.search.similarities.Similarity;
+import org.hibernate.search.analyzer.impl.AnalyzerReference;
+import org.hibernate.search.analyzer.impl.RemoteAnalyzerProvider;
+import org.hibernate.search.analyzer.impl.RemoteAnalyzerReference;
 import org.hibernate.search.annotations.Store;
 import org.hibernate.search.backend.BackendFactory;
 import org.hibernate.search.backend.IndexingMonitor;
@@ -61,7 +64,7 @@ import io.searchbox.indices.mapping.PutMapping;
  *
  * @author Gunnar Morling
  */
-public class ElasticsearchIndexManager implements IndexManager {
+public class ElasticsearchIndexManager implements IndexManager, RemoteAnalyzerProvider {
 
 	private static final Log LOG = LoggerFactory.make();
 
@@ -263,6 +266,14 @@ public class ElasticsearchIndexManager implements IndexManager {
 		}
 	}
 
+	private String analyzerName(DocumentFieldMetadata fieldMetadata) {
+		AnalyzerReference analyzer = fieldMetadata.getAnalyzer();
+		if ( analyzer.is( RemoteAnalyzerReference.class ) ) {
+			return analyzer.unwrap( RemoteAnalyzerReference.class ).getName();
+		}
+		return null;
+	}
+
 	/**
 	 * Adds a type mapping for the given field to the given request payload.
 	 */
@@ -279,6 +290,13 @@ public class ElasticsearchIndexManager implements IndexManager {
 		field.addProperty( "type", fieldType );
 		field.addProperty( "store", fieldMetadata.getStore() == Store.NO ? false : true );
 		field.addProperty( "index", getIndex( descriptor, fieldMetadata ) );
+
+		if ( fieldMetadata.getAnalyzer() != null ) {
+			String analyzerName = analyzerName( fieldMetadata );
+			if ( analyzerName != null ) {
+				field.addProperty( "analyzer", analyzerName );
+			}
+		}
 
 		if ( fieldMetadata.getBoost() != null ) {
 			field.addProperty( "boost", fieldMetadata.getBoost() );
@@ -584,5 +602,10 @@ public class ElasticsearchIndexManager implements IndexManager {
 	@Override
 	public String toString() {
 		return "ElasticsearchIndexManager [actualIndexName=" + actualIndexName + "]";
+	}
+
+	@Override
+	public AnalyzerReference getRemoteAnalyzer(String name) {
+		return new RemoteAnalyzerReference( name );
 	}
 }
