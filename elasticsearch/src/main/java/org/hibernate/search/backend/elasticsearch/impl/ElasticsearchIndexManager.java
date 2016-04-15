@@ -12,6 +12,7 @@ import java.util.Properties;
 import java.util.Set;
 
 import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.search.similarities.Similarity;
 import org.hibernate.search.analyzer.impl.AnalyzerReference;
 import org.hibernate.search.analyzer.impl.RemoteAnalyzerProvider;
@@ -25,6 +26,7 @@ import org.hibernate.search.backend.elasticsearch.cfg.IndexManagementStrategy;
 import org.hibernate.search.backend.elasticsearch.client.impl.JestClient;
 import org.hibernate.search.backend.elasticsearch.logging.impl.Log;
 import org.hibernate.search.backend.spi.BackendQueueProcessor;
+import org.hibernate.search.bridge.spi.FieldType;
 import org.hibernate.search.cfg.Environment;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.metadata.impl.BridgeDefinedField;
@@ -297,11 +299,9 @@ public class ElasticsearchIndexManager implements IndexManager, RemoteAnalyzerPr
 		String index = getIndex( descriptor, fieldMetadata );
 		field.addProperty( "index", index );
 
-		if ( isAnalyzed( index ) && fieldMetadata.getAnalyzer() != null ) {
-			String analyzerName = analyzerName( fieldMetadata );
-			if ( analyzerName != null ) {
-				field.addProperty( "analyzer", analyzerName );
-			}
+		String analyzerName = getAnalyzerName( fieldMetadata, index );
+		if ( analyzerName != null ) {
+			field.addProperty( "analyzer", analyzerName );
 		}
 
 		if ( fieldMetadata.getBoost() != null ) {
@@ -324,6 +324,14 @@ public class ElasticsearchIndexManager implements IndexManager, RemoteAnalyzerPr
 		}
 	}
 
+	private String getAnalyzerName(DocumentFieldMetadata fieldMetadata, String index) {
+		String analyzerName = null;
+		if ( isAnalyzed( index ) && fieldMetadata.getAnalyzer() != null ) {
+			analyzerName = analyzerName( fieldMetadata );
+		}
+		return analyzerName;
+	}
+
 	private boolean isAnalyzed(String index) {
 		return ANALYZED.equals( index );
 	}
@@ -338,7 +346,11 @@ public class ElasticsearchIndexManager implements IndexManager, RemoteAnalyzerPr
 			JsonObject field = new JsonObject();
 
 			field.addProperty( "type", getFieldType( bridgeDefinedField ) );
-			field.addProperty( "index", ANALYZED );
+
+			String index = getIndex( bridgeDefinedField );
+			field.addProperty( "index", index );
+
+			// TODO: We need to add the analyzer name
 
 			// we don't overwrite already defined fields. Typically, in the case of spatial, the geo_point field
 			// is defined before the double field and we want to keep the geo_point one
@@ -392,7 +404,22 @@ public class ElasticsearchIndexManager implements IndexManager, RemoteAnalyzerPr
 			return "not_analyzed";
 		}
 
-		switch ( fieldMetadata.getIndex() ) {
+		return getIndexValue( fieldMetadata.getIndex() );
+	}
+
+	@SuppressWarnings("deprecation")
+	private String getIndex(BridgeDefinedField bridgeDefinedField) {
+		// Never analyze boolean
+		if ( bridgeDefinedField.getType().equals( FieldType.BOOLEAN ) ) {
+			return "not_analyzed";
+		}
+
+		Field.Index index = bridgeDefinedField.getIndex();
+		return getIndexValue( index );
+	}
+
+	private String getIndexValue(Field.Index index) {
+		switch ( index ) {
 			case ANALYZED:
 			case ANALYZED_NO_NORMS:
 				return ANALYZED;
@@ -402,7 +429,7 @@ public class ElasticsearchIndexManager implements IndexManager, RemoteAnalyzerPr
 			case NO:
 				return "no";
 			default:
-				throw new IllegalArgumentException( "Unexpected index type: " + fieldMetadata.getIndex() );
+				throw new IllegalArgumentException( "Unexpected index type: " + index );
 		}
 	}
 

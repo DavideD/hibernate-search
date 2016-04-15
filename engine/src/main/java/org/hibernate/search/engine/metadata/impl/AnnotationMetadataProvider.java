@@ -330,7 +330,7 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		checkForSortableFields( member, typeMetadataBuilder, propertyMetadataBuilder, "", true, null, parseContext );
 
 		if ( idBridge instanceof MetadataProvidingFieldBridge ) {
-			FieldMetadataBuilderImpl bridgeDefinedMetadata = getBridgeContributedFieldMetadata( path, (MetadataProvidingFieldBridge) idBridge );
+			FieldMetadataBuilderImpl bridgeDefinedMetadata = getBridgeContributedFieldMetadata( fieldMetadata, (MetadataProvidingFieldBridge) idBridge );
 
 			for ( BridgeDefinedField bridgeDefinedField : bridgeDefinedMetadata.getFields() ) {
 				propertyMetadataBuilder.addBridgeDefinedField( bridgeDefinedField );
@@ -654,7 +654,7 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		typeMetadataBuilder.addClassBridgeField( fieldMetadata );
 
-		contributeClassBridgeDefinedFields( typeMetadataBuilder, fieldName, fieldBridge );
+		contributeClassBridgeDefinedFields( typeMetadataBuilder, fieldMetadata, fieldBridge );
 
 		AnalyzerReference analyzer = AnnotationProcessingHelper.getAnalyzer( classBridgeAnnotation.analyzer(), configContext );
 		typeMetadataBuilder.addToScopedAnalyzer( fieldName, analyzer, index );
@@ -694,7 +694,7 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		if ( fieldBridge instanceof MetadataProvidingFieldBridge ) {
 			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) fieldBridge;
-			FieldMetadataBuilderImpl bridgeContributedMetadata = getBridgeContributedFieldMetadata( fieldName, metadataProvidingFieldBridge );
+			FieldMetadataBuilderImpl bridgeContributedMetadata = getBridgeContributedFieldMetadata( fieldMetadata, metadataProvidingFieldBridge );
 			for ( BridgeDefinedField field : bridgeContributedMetadata.getFields() ) {
 				propertyMetadataBuilder.addBridgeDefinedField( field );
 			}
@@ -735,7 +735,7 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		typeMetadataBuilder.addClassBridgeField( fieldMetadata );
 
-		contributeClassBridgeDefinedFields( typeMetadataBuilder, fieldName, spatialBridge );
+		contributeClassBridgeDefinedFields( typeMetadataBuilder, fieldMetadata, spatialBridge );
 
 		AnalyzerReference analyzer = typeMetadataBuilder.getAnalyzer();
 		if ( analyzer == null ) {
@@ -743,11 +743,11 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		}
 	}
 
-	private void contributeClassBridgeDefinedFields(TypeMetadata.Builder typeMetadataBuilder, String fieldName, FieldBridge fieldBridge) {
+	private void contributeClassBridgeDefinedFields(TypeMetadata.Builder typeMetadataBuilder, DocumentFieldMetadata fieldMetadata, FieldBridge fieldBridge) {
 		if ( fieldBridge instanceof MetadataProvidingFieldBridge ) {
 			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) fieldBridge;
 
-			FieldMetadataBuilderImpl classBridgeContributedFieldMetadata = getBridgeContributedFieldMetadata( fieldName, metadataProvidingFieldBridge );
+			FieldMetadataBuilderImpl classBridgeContributedFieldMetadata = getBridgeContributedFieldMetadata( fieldMetadata, metadataProvidingFieldBridge );
 
 			typeMetadataBuilder.addClassBridgeSortableFields( classBridgeContributedFieldMetadata.getSortableFields() );
 			typeMetadataBuilder.addClassBridgeDefinedFields( classBridgeContributedFieldMetadata.getFields() );
@@ -1148,22 +1148,6 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 				configContext.getServiceManager()
 		);
 
-		if ( fieldBridge instanceof MetadataProvidingFieldBridge ) {
-			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) fieldBridge;
-			FieldMetadataBuilderImpl bridgeContributedMetadata = getBridgeContributedFieldMetadata( fieldName, metadataProvidingFieldBridge );
-
-			for ( String sortableField : bridgeContributedMetadata.getSortableFields() ) {
-				SortableFieldMetadata sortableFieldMetadata = new SortableFieldMetadata.Builder()
-					.fieldName( sortableField )
-					.build();
-				propertyMetadataBuilder.addSortableField( sortableFieldMetadata );
-			}
-
-			for ( BridgeDefinedField field : bridgeContributedMetadata.getFields() ) {
-				propertyMetadataBuilder.addBridgeDefinedField( field );
-			}
-		}
-
 		final NumericEncodingType numericEncodingType = determineNumericFieldEncoding( fieldBridge );
 		final NullMarkerCodec nullTokenCodec = determineNullMarkerCodec( fieldAnnotation, configContext, numericEncodingType, fieldName );
 		if ( nullTokenCodec != NotEncodingCodec.SINGLETON && fieldBridge instanceof TwoWayFieldBridge ) {
@@ -1230,6 +1214,22 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 
 		DocumentFieldMetadata fieldMetadata = fieldMetadataBuilder.build();
 		propertyMetadataBuilder.addDocumentField( fieldMetadata );
+
+		if ( fieldBridge instanceof MetadataProvidingFieldBridge ) {
+			MetadataProvidingFieldBridge metadataProvidingFieldBridge = (MetadataProvidingFieldBridge) fieldBridge;
+			FieldMetadataBuilderImpl bridgeContributedMetadata = getBridgeContributedFieldMetadata( fieldMetadata, metadataProvidingFieldBridge );
+
+			for ( String sortableField : bridgeContributedMetadata.getSortableFields() ) {
+				SortableFieldMetadata sortableFieldMetadata = new SortableFieldMetadata.Builder()
+					.fieldName( sortableField )
+					.build();
+				propertyMetadataBuilder.addSortableField( sortableFieldMetadata );
+			}
+
+			for ( BridgeDefinedField field : bridgeContributedMetadata.getFields() ) {
+				propertyMetadataBuilder.addBridgeDefinedField( field );
+			}
+		}
 
 		// keep track of collection role names for ORM integration optimization based on collection update events
 		parseContext.collectUnqualifiedCollectionRole( member.getName() );
@@ -1853,9 +1853,9 @@ public class AnnotationMetadataProvider implements MetadataProvider {
 		return true;
 	}
 
-	private FieldMetadataBuilderImpl getBridgeContributedFieldMetadata(String fieldName, MetadataProvidingFieldBridge metadataProvidingFieldBridge) {
-		FieldMetadataBuilderImpl builder = new FieldMetadataBuilderImpl();
-		metadataProvidingFieldBridge.configureFieldMetadata( fieldName, builder );
+	private FieldMetadataBuilderImpl getBridgeContributedFieldMetadata(DocumentFieldMetadata fieldMetadata, MetadataProvidingFieldBridge metadataProvidingFieldBridge) {
+		FieldMetadataBuilderImpl builder = new FieldMetadataBuilderImpl( fieldMetadata );
+		metadataProvidingFieldBridge.configureFieldMetadata( fieldMetadata.getFieldName(), builder );
 		return builder;
 	}
 
