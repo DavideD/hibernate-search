@@ -17,7 +17,9 @@ import org.hibernate.search.backend.LuceneWork;
 import org.hibernate.search.query.dsl.QueryBuilder;
 import org.hibernate.search.test.SearchTestBase;
 import org.hibernate.search.testsupport.backend.LeakingBackendQueueProcessor;
+import org.hibernate.search.testsupport.junit.SkipOnElasticsearch;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,6 +29,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Sanne Grinovero (C) 2012 Red Hat Inc.
  */
+@Category(SkipOnElasticsearch.class)
 public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 
 	@Test
@@ -57,9 +60,10 @@ public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 		QueryBuilder queryBuilder = getSearchFactory().buildQueryBuilder().forEntity( PersonCustomDocumentId.class ).get();
 		Query query = queryBuilder.keyword().onField( "id" ).ignoreAnalyzer().matching( "AB123" ).createQuery();
 
-		List results = Search.getFullTextSession( s ).createFullTextQuery( query, PersonCustomDocumentId.class ).list();
+		@SuppressWarnings("unchecked")
+		List<PersonCustomDocumentId> results = Search.getFullTextSession( s ).createFullTextQuery( query, PersonCustomDocumentId.class ).list();
 		assertEquals( 1, results.size() );
-		johnDoe = (PersonCustomDocumentId) results.get( 0 );
+		johnDoe = results.get( 0 );
 		johnDoe.setFavoriteColor( "Red" );
 		tx.commit();
 		s.clear();

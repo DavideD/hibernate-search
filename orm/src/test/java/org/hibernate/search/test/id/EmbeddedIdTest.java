@@ -41,23 +41,25 @@ public class EmbeddedIdTest extends SearchTestBase {
 		s.clear();
 
 		tx = s.beginTransaction();
-		List results = Search.getFullTextSession( s ).createFullTextQuery(
-				new TermQuery( new Term( "id.lastName", "Bernard" ) )
+		@SuppressWarnings("unchecked")
+		List<Person> results = Search.getFullTextSession( s ).createFullTextQuery(
+				new TermQuery( new Term( "id_lastName", "Bernard" ) )
 		).list();
 		assertEquals( 1, results.size() );
-		emmanuel = (Person) results.get( 0 );
+		emmanuel = results.get( 0 );
 		emmanuel.setFavoriteColor( "Red" );
 		tx.commit();
 		s.clear();
 
 		tx = s.beginTransaction();
-		results = Search.getFullTextSession( s ).createFullTextQuery(
-				new TermQuery( new Term( "id.lastName", "Bernard" ) )
+		@SuppressWarnings("unchecked")
+		List<Person> results2 = Search.getFullTextSession( s ).createFullTextQuery(
+				new TermQuery( new Term( "id_lastName", "Bernard" ) )
 		).list();
 		assertEquals( 1, results.size() );
-		emmanuel = (Person) results.get( 0 );
+		emmanuel = results2.get( 0 );
 		assertEquals( "Red", emmanuel.getFavoriteColor() );
-		s.delete( results.get( 0 ) );
+		s.delete( results2.get( 0 ) );
 		tx.commit();
 		s.close();
 	}
@@ -93,7 +95,8 @@ public class EmbeddedIdTest extends SearchTestBase {
 		tx = s.beginTransaction();
 
 		// we need a query which has at least the size of two.
-		List results = Search.getFullTextSession( s ).createFullTextQuery(
+		@SuppressWarnings("unchecked")
+		List<Person> results = Search.getFullTextSession( s ).createFullTextQuery(
 				new TermQuery( new Term( "favoriteColor", "blue" ) )
 		).list();
 		assertEquals( 2, results.size() );

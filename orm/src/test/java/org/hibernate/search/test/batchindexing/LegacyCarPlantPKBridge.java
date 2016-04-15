@@ -17,8 +17,8 @@ import org.hibernate.search.bridge.TwoWayFieldBridge;
  * @author Bayo Erinle
  */
 public class LegacyCarPlantPKBridge implements TwoWayFieldBridge {
-	private static final String PLANT_ID = ".plantId";
-	private static final String CAR_ID = ".carId";
+	private static final String PLANT_ID = "_plantId";
+	private static final String CAR_ID = "_carId";
 
 	@Override
 	public Object get(String name, Document document) {

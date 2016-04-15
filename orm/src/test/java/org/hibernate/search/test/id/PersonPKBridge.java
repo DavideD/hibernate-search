@@ -10,20 +10,23 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.IndexableField;
 
 import org.hibernate.search.bridge.LuceneOptions;
+import org.hibernate.search.bridge.MetadataProvidingFieldBridge;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
+import org.hibernate.search.bridge.spi.FieldMetadataBuilder;
+import org.hibernate.search.bridge.spi.FieldType;
 
 /**
  * @author Emmanuel Bernard
  */
-public class PersonPKBridge implements TwoWayFieldBridge {
+public class PersonPKBridge implements MetadataProvidingFieldBridge, TwoWayFieldBridge {
 
 	@Override
 	public Object get(String name, Document document) {
 		PersonPK id = new PersonPK();
-		IndexableField field = document.getField( name + ".firstName" );
-		id.setFirstName( field.stringValue() );
-		field = document.getField( name + ".lastName" );
-		id.setLastName( field.stringValue() );
+		IndexableField field = document.getField( name );
+		String[] split = field.stringValue().split(" ");
+		id.setFirstName( split[0] );
+		id.setLastName( split[1] );
 		return id;
 	}
 
@@ -40,13 +43,20 @@ public class PersonPKBridge implements TwoWayFieldBridge {
 		PersonPK id = (PersonPK) value;
 
 		//store each property in a unique field
-		luceneOptions.addFieldToDocument( name + ".firstName", id.getFirstName(), document );
+		luceneOptions.addFieldToDocument( name + "_firstName", id.getFirstName(), document );
 
-		luceneOptions.addFieldToDocument( name + ".lastName", id.getLastName(), document );
+		luceneOptions.addFieldToDocument( name + "_lastName", id.getLastName(), document );
 
 		//store the unique string representation in the named field
 		luceneOptions.addFieldToDocument( name, objectToString( id ), document );
 
+	}
+
+	@Override
+	public void configureFieldMetadata(String name, FieldMetadataBuilder builder) {
+		builder
+			.field( name + "_firstName", FieldType.STRING )
+			.field( name + "_lastName", FieldType.STRING );
 	}
 
 }
