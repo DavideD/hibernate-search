@@ -239,9 +239,7 @@
                                 <exclude>**/ExplanationTest.java</exclude>
 
                                 <!-- Embedded ids -->
-                                <exclude>**/EmbeddedIdTest.java</exclude>
                                 <exclude>**/EmbeddedIdWithDocumentIdTest.java</exclude>
-                                <exclude>**/ProgrammaticEmbeddedItTest.java</exclude>
                                 <exclude>**/CollectionInitializeTest.java</exclude>
 
                                 <!-- Needs range queries on nested fields -->
