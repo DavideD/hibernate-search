@@ -34,6 +34,10 @@ public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 
 	@Test
 	public void testFieldBridge() throws Exception {
+		testFieldBridge( "id" );
+	}
+
+	public void testFieldBridge(String columnId) throws Exception {
 		LeakingBackendQueueProcessor.reset();
 
 		PersonPK johnDoePk = new PersonPK();
@@ -58,7 +62,7 @@ public class EmbeddedIdWithDocumentIdTest extends SearchTestBase {
 		tx = s.beginTransaction();
 
 		QueryBuilder queryBuilder = getSearchFactory().buildQueryBuilder().forEntity( PersonCustomDocumentId.class ).get();
-		Query query = queryBuilder.keyword().onField( "id" ).ignoreAnalyzer().matching( "AB123" ).createQuery();
+		Query query = queryBuilder.keyword().onField( columnId ).ignoreAnalyzer().matching( "AB123" ).createQuery();
 
 		@SuppressWarnings("unchecked")
 		List<PersonCustomDocumentId> results = Search.getFullTextSession( s ).createFullTextQuery( query, PersonCustomDocumentId.class ).list();

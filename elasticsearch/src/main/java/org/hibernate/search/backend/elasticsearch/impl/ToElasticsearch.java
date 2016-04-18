@@ -235,8 +235,7 @@ public class ToElasticsearch {
 	private static JsonObject convertTermQuery(TermQuery termQuery) {
 		String field = termQuery.getTerm().field();
 
-		JsonObject matchQuery = JsonBuilder.object()
-				.add( "term",
+		JsonObject matchQuery = JsonBuilder.object().add( "term",
 						JsonBuilder.object().add( field,
 								JsonBuilder.object()
 										.addProperty( "value", termQuery.getTerm().text() )

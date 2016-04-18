@@ -34,8 +34,16 @@ public class JsonBuilder {
 		return new JsonBuilder.Object();
 	}
 
+	public static JsonBuilder.Object object( String idFieldName ) {
+		return new JsonBuilder.Object( idFieldName );
+	}
+
 	public static JsonBuilder.Object object(JsonObject jsonObject) {
 		return new JsonBuilder.Object( jsonObject );
+	}
+
+	public static JsonBuilder.Object object(JsonObject jsonObject, String idFieldName) {
+		return new JsonBuilder.Object( jsonObject, idFieldName );
 	}
 
 	public static class Array {
@@ -78,13 +86,24 @@ public class JsonBuilder {
 	}
 
 	public static class Object {
-		private JsonObject jsonObject = new JsonObject();
+		private final JsonObject jsonObject; 
+		private final String idFieldName;
 
 		private Object() {
+			this( new JsonObject(), null );
 		}
 
-		private Object(JsonObject jsonObject) {
+		public Object(JsonObject jsonObject) {
+			this( jsonObject, null );
+		}
+
+		private Object(JsonObject jsonObject, String idFieldName) {
 			this.jsonObject = jsonObject;
+			this.idFieldName = idFieldName;
+		}
+
+		public Object(String idFieldName) {
+			this( new JsonObject(), idFieldName );
 		}
 
 		public JsonBuilder.Object add( String property, JsonElement element) {
@@ -98,8 +117,15 @@ public class JsonBuilder {
 		}
 
 		public JsonBuilder.Object add( String property, JsonBuilder.Object element) {
-			jsonObject.add( property, element.build() );
+			jsonObject.add( checkId( property ), element.build() );
 			return this;
+		}
+
+		private String checkId(String property) {
+			if ( property.equals( idFieldName ) ) {
+				return "_id";
+			}
+			return property;
 		}
 
 		public JsonBuilder.Object addProperty(String property, java.lang.Object value) {

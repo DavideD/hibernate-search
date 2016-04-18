@@ -39,6 +39,7 @@ import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
 import org.hibernate.search.engine.integration.impl.ExtendedSearchIntegrator;
 import org.hibernate.search.engine.metadata.impl.DocumentFieldMetadata;
+import org.hibernate.search.engine.metadata.impl.PropertyMetadata;
 import org.hibernate.search.engine.service.spi.ServiceReference;
 import org.hibernate.search.engine.spi.DocumentBuilderIndexedEntity;
 import org.hibernate.search.engine.spi.EntityIndexBinding;
@@ -298,7 +299,7 @@ public class ElasticsearchHSQueryImpl extends AbstractHSQuery {
 
 					// TODO will this be a problem when querying multiple entity types, with one using a field as id
 					// field and the other not; is that possible?
-					idFieldName = binding.getDocumentBuilder().getIdentifierName();
+					idFieldName = binding.getDocumentBuilder().getTypeMetadata().getIdPropertyMetadata().getFieldMetadataSet().iterator().next().getFieldName();
 					ElasticsearchIndexManager esIndexManager = (ElasticsearchIndexManager) indexManager;
 					indexNames.add( esIndexManager.getActualIndexName() );
 				}
@@ -313,7 +314,7 @@ public class ElasticsearchHSQueryImpl extends AbstractHSQuery {
 			JsonBuilder.Object completeQuery = JsonBuilder.object();
 
 			completeQuery.add( "query",
-					JsonBuilder.object()
+					JsonBuilder.object( idFieldName )
 							.add( "filtered", JsonBuilder.object( jsonQuery ).add( "filter", effectiveFilter ) ) );
 
 			if ( !getFacetManager().getFacetRequests().isEmpty() ) {
