@@ -59,12 +59,12 @@ public interface Log extends org.hibernate.search.util.logging.impl.Log {
 	SearchException cannotQueryOnEmptyPhraseQuery();
 
 	@Message(id = ES_BACKEND_MESSAGES_START_ID + 7,
-			value = "Elasticsearch request failed.\n Request:\n========\n%1$sResponse:\n=========\n%2$s"
+			value = "Elasticsearch request failed. Request: %1$s, Response: %2$s"
 	)
 	SearchException elasticsearchRequestFailed(String request, String response, @Cause Exception cause);
 
 	@Message(id = ES_BACKEND_MESSAGES_START_ID + 8,
-			value = "Elasticsearch request failed.\n Request:\n========\n%1$sResponse:\n=========\n%2$s"
+			value = "Elasticsearch request failed. Request: %1$s, Response: %2$s"
 	)
 	BulkRequestFailedException elasticsearchBulkRequestFailed(String request, String response, @Param List<BackendRequest<? extends JestResult>> erroneousItems);
 
@@ -74,6 +74,6 @@ public interface Log extends org.hibernate.search.util.logging.impl.Log {
 	void analyzerIsNotRemote(@FormatWith(ClassFormatter.class) Class<?> entityType, String fieldName, AnalyzerReference analyzerReference);
 
 	@Message(id = ES_BACKEND_MESSAGES_START_ID + 10,
-			value = "Elasticsearch connection time-out; check the connection to the cluster and the status (it should be 'green');\n Request:\n========\n%1$sResponse:\n=========\n%2$s" )
+			value = "Elasticsearch connection time-out; check the connection to the cluster and the status (it should be 'green'); Request: %1$s, Response: %2$s" )
 	SearchException elasticsearchRequestTimeout(String request, String response);
 }

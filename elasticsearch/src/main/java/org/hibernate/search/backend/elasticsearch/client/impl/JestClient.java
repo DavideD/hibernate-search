@@ -189,39 +189,41 @@ public class JestClient implements Service, Startable, Stoppable {
 	private String requestToString(Action<?> action) {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append( "Operation: " ).append( action.getClass().getSimpleName() ).append( "\n" );
+		sb.append( "[operation: " ).append( action.getClass() );
 
 		if ( action instanceof DocumentTargetedAction ) {
-			sb.append( "Index: " ).append( ( (DocumentTargetedAction<?>) action ).getIndex() ).append( "\n" );
-			sb.append( "Type: " ).append( ( (DocumentTargetedAction<?>) action ).getType() ).append( "\n" );
-			sb.append( "Id: " ).append( ( (DocumentTargetedAction<?>) action ).getId() ).append( "\n" );
+			sb.append( " {index: " ).append( ( (DocumentTargetedAction<?>) action ).getIndex() );
+			sb.append( ", type: " ).append( ( (DocumentTargetedAction<?>) action ).getType() );
+			sb.append( ", id: " ).append( ( (DocumentTargetedAction<?>) action ).getId() );
+			sb.append( "}" );
 		}
 
-		sb.append( "Data:\n" );
+		sb.append( ", data: " );
 		sb.append( action.getData( GsonHolder.GSON ) );
-		sb.append( "\n" );
+		sb.append( "]" );
 		return sb.toString();
 	}
 
 	private String resultToString(JestResult result) {
 		StringBuilder sb = new StringBuilder();
-		sb.append( "Status: " ).append( result.getResponseCode() ).append( "\n" );
-		sb.append( "Error message: " ).append( result.getErrorMessage() ).append( "\n" );
-		sb.append( "Cluster name: " ).append( property( result, "cluster_name" ) ).append( "\n" );
-		sb.append( "Cluster status: " ).append( property( result, "status" ) ).append( "\n" );
-		sb.append( "\n" );
+		sb.append( "[" );
+		sb.append( "error: " ).append( result.getErrorMessage() );
+		sb.append( ", response code: " ).append( result.getResponseCode() );
+		sb.append( ", cluster: " ).append( property( result, "cluster_name" ) );
+		sb.append( ", status: " ).append( property( result, "status" ) );
 
 		if ( result instanceof BulkResult ) {
 			for ( BulkResultItem item : ( (BulkResult) result ).getItems() ) {
-				sb.append( "Operation: " ).append( item.operation ).append( "\n" );
-				sb.append( "  Index: " ).append( item.index ).append( "\n" );
-				sb.append( "  Type: " ).append( item.type ).append( "\n" );
-				sb.append( "  Id: " ).append( item.id ).append( "\n" );
-				sb.append( "  Status: " ).append( item.status ).append( "\n" );
-				sb.append( "  Error: " ).append( item.error ).append( "\n" );
+				sb.append( ", Operation: " ).append( item.operation ).append( System.lineSeparator() );
+				sb.append( "{index: " ).append( item.index ).append( System.lineSeparator() );
+				sb.append( ". type: " ).append( item.type ).append( System.lineSeparator() );
+				sb.append( ". id: " ).append( item.id ).append( System.lineSeparator() );
+				sb.append( ". status: " ).append( item.status ).append( System.lineSeparator() );
+				sb.append( ". error: " ).append( item.error ).append( System.lineSeparator() );
+				sb.append( "}" );
 			}
 		}
-
+		sb.append( "]" );
 		return sb.toString();
 	}
 
