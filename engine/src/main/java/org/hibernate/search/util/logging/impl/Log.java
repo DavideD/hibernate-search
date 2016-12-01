@@ -1000,4 +1000,7 @@ public interface Log extends BasicLogger {
 	@Message(id = 324, value = "The fieldBridge for field '%1$s' is an instance of '%2$s', which does not implement TwoWayFieldBridge. Projected fields must have a TwoWayFieldBridge.")
 	SearchException projectingFieldWithoutTwoWayFieldBridge(String fieldName, Class<?> fieldBridgeClass);
 
+	@Message(id = 325, value = "Index names collision detected. Different index managers will point to the same actual index: %1$s")
+	SearchException indexNamesCollisionDetected(String string);
+
 }
