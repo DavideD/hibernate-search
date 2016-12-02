@@ -205,7 +205,7 @@ public class TikaBridge implements MetadataProvidingFieldBridge, ContainerAwareB
 	public boolean isContainer(ExtendedBridgeProviderContext context) {
 		Class<?> returnType = context.getElementOrContainerReturnType();
 		if ( returnType.isAssignableFrom( byte[].class ) ) {
-			// If the property is of type byte[], we don't want to treat it an array container
+			// If the property is of type byte[], we don't want to treat it as a container
 			return false;
 		}
 		return true;
