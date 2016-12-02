@@ -22,6 +22,7 @@ import org.hibernate.search.annotations.Field;
 import org.hibernate.search.annotations.Parameter;
 import org.hibernate.search.annotations.Spatial;
 import org.hibernate.search.bridge.AppliedOnTypeAwareBridge;
+import org.hibernate.search.bridge.ContainerAwareBridge;
 import org.hibernate.search.bridge.FieldBridge;
 import org.hibernate.search.bridge.ParameterizedBridge;
 import org.hibernate.search.bridge.TwoWayFieldBridge;
@@ -30,10 +31,11 @@ import org.hibernate.search.bridge.builtin.TikaBridge;
 import org.hibernate.search.bridge.builtin.impl.BuiltinArrayBridge;
 import org.hibernate.search.bridge.builtin.impl.BuiltinIterableBridge;
 import org.hibernate.search.bridge.builtin.impl.BuiltinMapBridge;
+import org.hibernate.search.bridge.spi.BridgeProvider;
 import org.hibernate.search.bridge.spi.IndexManagerTypeSpecificBridgeProvider;
 import org.hibernate.search.bridge.util.impl.String2FieldBridgeAdaptor;
 import org.hibernate.search.bridge.util.impl.TwoWayString2FieldBridgeAdaptor;
-import org.hibernate.search.bridge.spi.BridgeProvider;
+import org.hibernate.search.engine.metadata.impl.EmbeddedTypeMetadata.Container;
 import org.hibernate.search.engine.service.classloading.spi.ClassLoaderService;
 import org.hibernate.search.engine.service.spi.ServiceManager;
 import org.hibernate.search.exception.AssertionFailure;
@@ -297,10 +299,14 @@ public final class BridgeFactory {
 		if ( bridge == null ) {
 			return null;
 		}
-		if ( bridge instanceof TikaBridge ) {
-			return bridge;
-		}
 		populateReturnType( context.getReturnType(), bridge.getClass(), bridge );
+		if ( containerType != ContainerType.SINGLE && bridge instanceof ContainerAwareBridge ) {
+			ContainerAwareBridge containerBridge = (ContainerAwareBridge) bridge;
+			if ( !containerBridge.isContainer( context ) ) {
+				// We don't want to treat this type as a container
+				return bridge;
+			}
+		}
 		switch ( containerType ) {
 			case SINGLE:
 				return bridge;
@@ -448,6 +454,6 @@ public final class BridgeFactory {
 		SINGLE,
 		ARRAY,
 		ITERABLE,
-		MAP,
+		MAP
 	}
 }
